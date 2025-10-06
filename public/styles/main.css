@@ -1,0 +1,271 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Inter", sans-serif;
+  background-color: #0D0D0D;
+  color: #e0e0e0;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+canvas#fireflyCanvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.hero {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  background: linear-gradient(135deg, #121212 0%, #0D0D0D 100%);
+}
+.hero .navbar {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  padding: 2rem;
+}
+.hero .navbar .logo {
+  font-family: "Cinzel", serif;
+  font-size: 1.5rem;
+  color: #FFD580;
+  font-weight: 600;
+}
+.hero .hero-content {
+  text-align: center;
+  z-index: 2;
+}
+.hero .hero-content .hero-title {
+  font-family: "Cinzel", serif;
+  font-size: clamp(2.5rem, 5vw, 5rem);
+  font-weight: 400;
+  color: #FFD580;
+  margin-bottom: 2rem;
+  opacity: 0;
+}
+.hero .hero-content .cta-button {
+  background: transparent;
+  border: 1px solid #FFCA28;
+  color: #FFCA28;
+  padding: 1rem 2rem;
+  font-family: "Inter", sans-serif;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  opacity: 0;
+}
+.hero .hero-content .cta-button:hover {
+  background: #FFCA28;
+  color: #0D0D0D;
+  box-shadow: 0 0 20px #FFCA28;
+}
+
+.section {
+  padding: 100px 0;
+  position: relative;
+  z-index: 2;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.about .about-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
+}
+.about .portrait-wrapper {
+  position: relative;
+}
+.about .portrait-wrapper .portrait {
+  width: 100%;
+  height: 600px;
+  object-fit: cover;
+  border-radius: 2px;
+  filter: grayscale(100%);
+  transition: filter 0.3s ease;
+}
+.about .portrait-wrapper .portrait:hover {
+  filter: grayscale(0%);
+}
+.about .about-text h2 {
+  font-family: "Cinzel", serif;
+  font-size: 2.5rem;
+  color: #FFD580;
+  margin-bottom: 1.5rem;
+}
+.about .about-text p {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  opacity: 0.9;
+}
+
+.gallery h2 {
+  font-family: "Cinzel", serif;
+  font-size: 2.5rem;
+  color: #FFD580;
+  text-align: center;
+  margin-bottom: 3rem;
+}
+.gallery .gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+.gallery .gallery-item {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 4/5;
+}
+.gallery .gallery-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+.gallery .gallery-item .image-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+  padding: 2rem;
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+}
+.gallery .gallery-item .image-overlay h3 {
+  color: #FFD580;
+  font-family: "Cinzel", serif;
+  font-size: 1.2rem;
+}
+.gallery .gallery-item:hover img {
+  transform: scale(1.05);
+}
+.gallery .gallery-item:hover .image-overlay {
+  transform: translateY(0);
+}
+
+.philosophy .philosophy-text {
+  text-align: center;
+}
+.philosophy .philosophy-text .philosophy-line {
+  font-family: "Cinzel", serif;
+  font-size: clamp(1.5rem, 3vw, 2.5rem);
+  color: #FFD580;
+  margin: 3rem 0;
+  opacity: 0;
+}
+
+.contact h2 {
+  font-family: "Cinzel", serif;
+  font-size: 2.5rem;
+  color: #FFD580;
+  text-align: center;
+  margin-bottom: 3rem;
+}
+.contact .contact-form {
+  max-width: 600px;
+  margin: 0 auto;
+}
+.contact .contact-form .form-group {
+  position: relative;
+  margin-bottom: 2rem;
+}
+.contact .contact-form .form-group input, .contact .contact-form .form-group textarea {
+  width: 100%;
+  padding: 1rem;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #e0e0e0;
+  color: #e0e0e0;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+.contact .contact-form .form-group input:focus, .contact .contact-form .form-group textarea:focus {
+  outline: none;
+  border-bottom-color: #FFCA28;
+}
+.contact .contact-form .form-group input:focus + label, .contact .contact-form .form-group textarea:focus + label {
+  transform: translateY(-1.5rem) scale(0.8);
+  color: #FFCA28;
+}
+.contact .contact-form .form-group input:valid + label, .contact .contact-form .form-group textarea:valid + label {
+  transform: translateY(-1.5rem) scale(0.8);
+}
+.contact .contact-form .form-group textarea {
+  height: 120px;
+  resize: none;
+}
+.contact .contact-form .form-group label {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  color: #e0e0e0;
+  pointer-events: none;
+  transition: all 0.3s ease;
+}
+.contact .contact-form .submit-btn {
+  background: transparent;
+  border: 1px solid #FFCA28;
+  color: #FFCA28;
+  padding: 1rem 2rem;
+  font-family: "Inter", sans-serif;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+.contact .contact-form .submit-btn:hover {
+  background: #FFCA28;
+  color: #0D0D0D;
+  box-shadow: 0 0 20px #FFCA28;
+}
+
+.footer {
+  text-align: center;
+  padding: 3rem 0;
+  border-top: 1px solid rgba(255, 213, 128, 0.1);
+}
+.footer .logo {
+  font-family: "Cinzel", serif;
+  font-size: 1.5rem;
+  color: #FFD580;
+  margin-bottom: 1rem;
+}
+.footer p {
+  opacity: 0.7;
+}
+
+@media (max-width: 768px) {
+  .about .about-content {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  .hero .hero-content .hero-title {
+    font-size: 2.5rem;
+  }
+  .section {
+    padding: 60px 0;
+  }
+  .container {
+    padding: 0 1rem;
+  }
+}
+
+/*# sourceMappingURL=main.css.map */

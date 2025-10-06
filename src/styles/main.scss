@@ -1,0 +1,335 @@
+// Todo : src/styles/main.scss
+// Variables
+$deep-night: #0D0D0D;
+$dark-blue: #121212;
+$warm-gold: #FFD580;
+$amber-light: #FFCA28;
+$soft-gray: #e0e0e0;
+
+$title-font: 'Cinzel', serif;
+$text-font: 'Inter', sans-serif;
+
+// Base styles
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: $text-font;
+  background-color: $deep-night;
+  color: $soft-gray;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+canvas#fireflyCanvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+// Hero Section
+.hero {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  background: linear-gradient(135deg, $dark-blue 0%, $deep-night 100%);
+
+  .navbar {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    padding: 2rem;
+
+    .logo {
+      font-family: $title-font;
+      font-size: 1.5rem;
+      color: $warm-gold;
+      font-weight: 600;
+    }
+  }
+
+  .hero-content {
+    text-align: center;
+    z-index: 2;
+
+    .hero-title {
+      font-family: $title-font;
+      font-size: clamp(2.5rem, 5vw, 5rem);
+      font-weight: 400;
+      color: $warm-gold;
+      margin-bottom: 2rem;
+      opacity: 0;
+    }
+
+    .cta-button {
+      background: transparent;
+      border: 1px solid $amber-light;
+      color: $amber-light;
+      padding: 1rem 2rem;
+      font-family: $text-font;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      opacity: 0;
+
+      &:hover {
+        background: $amber-light;
+        color: $deep-night;
+        box-shadow: 0 0 20px $amber-light;
+      }
+    }
+  }
+}
+
+// Section common styles
+.section {
+  padding: 100px 0;
+  position: relative;
+  z-index: 2;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+// About Section
+.about {
+  .about-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+  }
+
+  .portrait-wrapper {
+    position: relative;
+
+    .portrait {
+      width: 100%;
+      height: 600px;
+      object-fit: cover;
+      border-radius: 2px;
+      filter: grayscale(100%);
+      transition: filter 0.3s ease;
+
+      &:hover {
+        filter: grayscale(0%);
+      }
+    }
+  }
+
+  .about-text {
+    h2 {
+      font-family: $title-font;
+      font-size: 2.5rem;
+      color: $warm-gold;
+      margin-bottom: 1.5rem;
+    }
+
+    p {
+      font-size: 1.1rem;
+      line-height: 1.8;
+      opacity: 0.9;
+    }
+  }
+}
+
+// Gallery Section
+.gallery {
+  h2 {
+    font-family: $title-font;
+    font-size: 2.5rem;
+    color: $warm-gold;
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .gallery-item {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 4/5;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+
+    .image-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(transparent, rgba(0,0,0,0.8));
+      padding: 2rem;
+      transform: translateY(100%);
+      transition: transform 0.3s ease;
+
+      h3 {
+        color: $warm-gold;
+        font-family: $title-font;
+        font-size: 1.2rem;
+      }
+    }
+
+    &:hover {
+      img {
+        transform: scale(1.05);
+      }
+
+      .image-overlay {
+        transform: translateY(0);
+      }
+    }
+  }
+}
+
+// Philosophy Section
+.philosophy {
+  .philosophy-text {
+    text-align: center;
+
+    .philosophy-line {
+      font-family: $title-font;
+      font-size: clamp(1.5rem, 3vw, 2.5rem);
+      color: $warm-gold;
+      margin: 3rem 0;
+      opacity: 0;
+    }
+  }
+}
+
+// Contact Section
+.contact {
+  h2 {
+    font-family: $title-font;
+    font-size: 2.5rem;
+    color: $warm-gold;
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  .contact-form {
+    max-width: 600px;
+    margin: 0 auto;
+
+    .form-group {
+      position: relative;
+      margin-bottom: 2rem;
+
+      input, textarea {
+        width: 100%;
+        padding: 1rem;
+        background: transparent;
+        border: none;
+        border-bottom: 1px solid $soft-gray;
+        color: $soft-gray;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+
+        &:focus {
+          outline: none;
+          border-bottom-color: $amber-light;
+
+          + label {
+            transform: translateY(-1.5rem) scale(0.8);
+            color: $amber-light;
+          }
+        }
+
+        &:valid + label {
+          transform: translateY(-1.5rem) scale(0.8);
+        }
+      }
+
+      textarea {
+        height: 120px;
+        resize: none;
+      }
+
+      label {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+        color: $soft-gray;
+        pointer-events: none;
+        transition: all 0.3s ease;
+      }
+    }
+
+    .submit-btn {
+      background: transparent;
+      border: 1px solid $amber-light;
+      color: $amber-light;
+      padding: 1rem 2rem;
+      font-family: $text-font;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      width: 100%;
+
+      &:hover {
+        background: $amber-light;
+        color: $deep-night;
+        box-shadow: 0 0 20px $amber-light;
+      }
+    }
+  }
+}
+
+// Footer
+.footer {
+  text-align: center;
+  padding: 3rem 0;
+  border-top: 1px solid rgba(255, 213, 128, 0.1);
+
+  .logo {
+    font-family: $title-font;
+    font-size: 1.5rem;
+    color: $warm-gold;
+    margin-bottom: 1rem;
+  }
+
+  p {
+    opacity: 0.7;
+  }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .about .about-content {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .hero .hero-content .hero-title {
+    font-size: 2.5rem;
+  }
+
+  .section {
+    padding: 60px 0;
+  }
+
+  .container {
+    padding: 0 1rem;
+  }
+}
