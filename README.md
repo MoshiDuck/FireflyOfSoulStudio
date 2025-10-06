@@ -21,7 +21,7 @@ https://github.com/MoshiDuck/FireflyOfSoulStudio
 
 4. Lier au dépôt distant GitHub
     ```bash
-   git remote add origin https://github.com/MoshiDuck/FireflyOfSoulStudio
+   git remote add origin git@github.com:MoshiDuck/FireflyOfSoulStudio.git
    ```
 ---
 
