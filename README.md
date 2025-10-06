@@ -33,12 +33,12 @@ https://github.com/MoshiDuck/FireflyOfSoulStudio
     ```
 2. Commit
     ```bash
-    git commit -m "[FAIT] - corriger icone upload "
+    git commit -m "[FAIT] - Site debut"
     ```
 
 3. Version
    ```bash
-   git tag 0.1.0.4
+   git tag 0.0.0.1
    ```
 
 4. Force le push
@@ -79,3 +79,4 @@ Ce dépôt GitHub est publié à titre de démonstration et ne confère aucun dr
 En résumé :
 
 🔒 Ce projet est protégé. Vous pouvez le consulter, mais vous n’avez pas le droit de l’utiliser, le copier ou le modifier sans autorisation écrite de l’auteur.
+# FireflyOfSoulStudio
