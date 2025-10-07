@@ -1,0 +1,155 @@
+<!-- Todo : public/gallery.html -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gallery | Firefly of Soul Studio</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Inter:wght@300;400&display=swap" rel="stylesheet">
+</head>
+<body>
+<canvas id="fireflyCanvas"></canvas>
+
+<header class="gallery-hero">
+    <nav class="navbar">
+        <div class="logo">Firefly of Soul</div>
+        <div class="nav-buttons">
+            <a href="index.html" class="nav-btn">Home</a>
+            <a href="gallery.html" class="nav-btn active">Gallery</a>
+            <a href="pricing.html" class="nav-btn">Pricing</a>
+        </div>
+    </nav>
+    <div class="gallery-hero-content">
+        <h1>Visual Poetry</h1>
+        <p>Discover the soul behind each moment</p>
+    </div>
+</header>
+
+<section class="albums-section">
+    <div class="container">
+        <h2 class="section-title">Albums</h2>
+
+        <div class="albums-grid">
+            <!-- Album 1 -->
+            <div class="album-card" data-album="nocturnal">
+                <div class="album-cover">
+                    <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Nocturnal Dreams">
+                    <div class="album-overlay">
+                        <h3>View Album</h3>
+                    </div>
+                </div>
+                <div class="album-info">
+                    <h3>Nocturnal Dreams</h3>
+                    <p>12 photographs</p>
+                </div>
+            </div>
+
+            <!-- Album 2 -->
+            <div class="album-card" data-album="portraits">
+                <div class="album-cover">
+                    <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Soul Portraits">
+                    <div class="album-overlay">
+                        <h3>View Album</h3>
+                    </div>
+                </div>
+                <div class="album-info">
+                    <h3>Soul Portraits</h3>
+                    <p>8 photographs</p>
+                </div>
+            </div>
+
+            <!-- Album 3 -->
+            <div class="album-card" data-album="nature">
+                <div class="album-cover">
+                    <img src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Wilderness Soul">
+                    <div class="album-overlay">
+                        <h3>View Album</h3>
+                    </div>
+                </div>
+                <div class="album-info">
+                    <h3>Wilderness Soul</h3>
+                    <p>15 photographs</p>
+                </div>
+            </div>
+
+            <!-- Album 4 -->
+            <div class="album-card" data-album="urban">
+                <div class="album-cover">
+                    <img src="https://images.unsplash.com/photo-1500462918059-b1a0cb512f1d?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Urban Echoes">
+                    <div class="album-overlay">
+                        <h3>View Album</h3>
+                    </div>
+                </div>
+                <div class="album-info">
+                    <h3>Urban Echoes</h3>
+                    <p>10 photographs</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="album-content-section">
+    <div class="container">
+        <!-- Nocturnal Dreams Album -->
+        <div class="album-photos" id="nocturnal-album">
+            <div class="album-header">
+                <h2>Nocturnal Dreams</h2>
+                <button class="back-to-albums">Back to Albums</button>
+            </div>
+            <div class="masonry-grid">
+                <div class="masonry-item">
+                    <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Night Vision">
+                    <div class="photo-info">
+                        <h4>Night Vision</h4>
+                    </div>
+                </div>
+                <div class="masonry-item">
+                    <img src="https://images.unsplash.com/photo-1469474968028-56623f02e42e?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Moonlight Dance">
+                    <div class="photo-info">
+                        <h4>Moonlight Dance</h4>
+                    </div>
+                </div>
+                <div class="masonry-item">
+                    <img src="https://images.unsplash.com/photo-1505144808419-1957a94ca61e?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Starry Night">
+                    <div class="photo-info">
+                        <h4>Starry Night</h4>
+                    </div>
+                </div>
+                <!-- Add more images as needed -->
+            </div>
+        </div>
+
+        <!-- Soul Portraits Album -->
+        <div class="album-photos" id="portraits-album">
+            <div class="album-header">
+                <h2>Soul Portraits</h2>
+                <button class="back-to-albums">Back to Albums</button>
+            </div>
+            <div class="masonry-grid">
+                <div class="masonry-item">
+                    <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Eternal Gaze">
+                    <div class="photo-info">
+                        <h4>Eternal Gaze</h4>
+                    </div>
+                </div>
+                <!-- Add portrait images -->
+            </div>
+        </div>
+
+        <!-- Add other albums following the same structure -->
+    </div>
+</section>
+
+<footer class="footer">
+    <div class="logo">Firefly of Soul</div>
+    <p>&copy; 2025 Firefly of Soul Studio. All moments preserved.</p>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+<script type="module" src="scripts/main.js"></script>
+<script src="scripts/gallery.js"></script>
+</body>
+</html>

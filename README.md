@@ -33,7 +33,7 @@ https://github.com/MoshiDuck/FireflyOfSoulStudio
     ```
 2. Commit
     ```bash
-    git commit -m "[FAIT] - Site debut"
+    git commit -m "[FAIT] - Gallery, Pricing"
     ```
 
 3. Version
