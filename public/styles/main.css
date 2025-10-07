@@ -26,23 +26,23 @@ canvas#fireflyCanvas {
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 2rem;
+  padding: 0 clamp(1rem, 2vw, 2rem);
   width: 100%;
   box-sizing: border-box;
 }
 
 .section {
-  padding: 100px 0;
+  padding: clamp(40px, 6vw, 100px) 0;
   position: relative;
   z-index: 2;
 }
 
 .section-title, .contact h2, .gallery h2 {
   font-family: "Cinzel", serif;
-  font-size: 2.5rem;
+  font-size: clamp(1.75rem, 3.5vw, 2.5rem);
   color: #FFD580;
   text-align: center;
-  margin-bottom: 3rem;
+  margin-bottom: clamp(1rem, 3vw, 3rem);
   width: 100%;
 }
 
@@ -50,7 +50,7 @@ canvas#fireflyCanvas {
   position: absolute;
   top: 0;
   width: 100%;
-  padding: 2rem;
+  padding: clamp(1rem, 2.5vw, 2rem);
   z-index: 3;
   display: flex;
   justify-content: space-between;
@@ -59,7 +59,7 @@ canvas#fireflyCanvas {
 }
 .navbar .logo {
   font-family: "Cinzel", serif;
-  font-size: 1.5rem;
+  font-size: clamp(1.125rem, 1.8vw, 1.5rem);
   color: #FFD580;
   font-weight: 600;
   text-decoration: none;
@@ -67,12 +67,12 @@ canvas#fireflyCanvas {
 .navbar .nav-btn {
   color: #FFD580;
   text-decoration: none;
-  padding: 0.5rem 1rem;
+  padding: clamp(0.35rem, 0.9vw, 0.8rem) clamp(0.6rem, 1.4vw, 1rem);
   border: 1px solid #FFD580;
   border-radius: 2px;
   transition: all 0.3s ease;
   font-family: "Inter", sans-serif;
-  font-size: 0.9rem;
+  font-size: clamp(0.85rem, 1.2vw, 0.95rem);
 }
 .navbar .nav-btn:hover {
   background: #FFD580;
@@ -99,6 +99,7 @@ canvas#fireflyCanvas {
 .hero-base .hero-content, .pricing-hero .hero-content, .gallery-hero .hero-content, .hero .hero-content {
   text-align: center;
   z-index: 2;
+  padding: clamp(1rem, 2.5vw, 2rem);
 }
 
 .hero {
@@ -106,25 +107,25 @@ canvas#fireflyCanvas {
 }
 .hero .hero-content .hero-title {
   font-family: "Cinzel", serif;
-  font-size: clamp(2.5rem, 5vw, 5rem);
+  font-size: clamp(2rem, 6vw, 5rem);
   font-weight: 400;
   color: #FFD580;
-  margin-bottom: 2rem;
+  margin-bottom: clamp(1rem, 3vw, 2rem);
   opacity: 1;
   transform: translateY(0);
 }
 
 .gallery-hero {
-  height: 60vh;
+  height: min(60vh, 720px);
 }
 .gallery-hero .gallery-hero-content h1 {
   font-family: "Cinzel", serif;
-  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-size: clamp(1.75rem, 4.5vw, 4rem);
   color: #FFD580;
-  margin-bottom: 1rem;
+  margin-bottom: clamp(0.75rem, 2vw, 1rem);
 }
 .gallery-hero .gallery-hero-content p {
-  font-size: 1.2rem;
+  font-size: clamp(1rem, 1.8vw, 1.2rem);
   color: #e0e0e0;
   opacity: 0.9;
 }
@@ -132,7 +133,7 @@ canvas#fireflyCanvas {
 .about .about-content {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 4rem;
+  gap: clamp(1rem, 3.5vw, 4rem);
   align-items: center;
 }
 .about .portrait-wrapper {
@@ -140,7 +141,7 @@ canvas#fireflyCanvas {
 }
 .about .portrait-wrapper .portrait {
   width: 100%;
-  height: 600px;
+  height: clamp(300px, 40vh, 600px);
   object-fit: cover;
   border-radius: 2px;
   filter: grayscale(100%);
@@ -151,20 +152,20 @@ canvas#fireflyCanvas {
 }
 .about .about-text h2 {
   font-family: "Cinzel", serif;
-  font-size: 2.5rem;
+  font-size: clamp(1.5rem, 3vw, 2.5rem);
   color: #FFD580;
-  margin-bottom: 1.5rem;
+  margin-bottom: clamp(1rem, 2.5vw, 1.5rem);
 }
 .about .about-text p {
-  font-size: 1.1rem;
-  line-height: 1.8;
+  font-size: clamp(0.95rem, 1.6vw, 1.1rem);
+  line-height: 1.6;
   opacity: 0.9;
 }
 
 .gallery-grid-base, .albums-grid, .gallery .gallery-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(clamp(220px, 28vw, 300px), 1fr));
+  gap: clamp(0.75rem, 2vw, 1.5rem);
 }
 
 .gallery .gallery-item {
@@ -184,14 +185,14 @@ canvas#fireflyCanvas {
   left: 0;
   right: 0;
   background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
-  padding: 2rem;
+  padding: clamp(1rem, 2.2vw, 2rem);
   transform: translateY(100%);
   transition: transform 0.3s ease;
 }
 .gallery .gallery-item .image-overlay h3 {
   color: #FFD580;
   font-family: "Cinzel", serif;
-  font-size: 1.2rem;
+  font-size: clamp(1rem, 1.6vw, 1.2rem);
 }
 .gallery .gallery-item:hover img {
   transform: scale(1.05);
@@ -201,15 +202,15 @@ canvas#fireflyCanvas {
 }
 
 .albums-section {
-  padding: 80px 0;
+  padding: clamp(40px, 6vw, 80px) 0;
   background: #121212;
   width: 100%;
   overflow: hidden;
 }
 
 .albums-grid {
-  gap: 2rem;
-  margin-bottom: 4rem;
+  gap: clamp(1rem, 2.5vw, 2rem);
+  margin-bottom: clamp(1.5rem, 3vw, 4rem);
   width: 100%;
   align-items: start;
 }
@@ -221,7 +222,7 @@ canvas#fireflyCanvas {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   cursor: pointer;
   height: auto;
-  min-height: 400px;
+  min-height: clamp(300px, 35vh, 400px);
   display: flex;
   flex-direction: column;
 }
@@ -265,11 +266,11 @@ canvas#fireflyCanvas {
 .album-cover .album-overlay h3 {
   color: #0D0D0D;
   font-family: "Cinzel", serif;
-  font-size: 1.5rem;
+  font-size: clamp(1rem, 1.6vw, 1.5rem);
 }
 
 .album-info {
-  padding: 1.5rem;
+  padding: clamp(1rem, 2vw, 1.5rem);
   flex-grow: 1;
   display: flex;
   flex-direction: column;
@@ -278,19 +279,19 @@ canvas#fireflyCanvas {
 .album-info h3 {
   font-family: "Cinzel", serif;
   color: #FFD580;
-  font-size: 1.3rem;
+  font-size: clamp(1.05rem, 1.8vw, 1.3rem);
   margin-bottom: 0.5rem;
   line-height: 1.3;
 }
 .album-info p {
   color: #e0e0e0;
   opacity: 0.7;
-  font-size: 0.9rem;
+  font-size: clamp(0.85rem, 1.4vw, 0.95rem);
   margin: 0;
 }
 
 .album-content-section {
-  padding: 60px 0;
+  padding: clamp(30px, 5vw, 60px) 0;
   background: #0D0D0D;
 }
 
@@ -305,19 +306,19 @@ canvas#fireflyCanvas {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 3rem;
+  margin-bottom: clamp(1rem, 2.5vw, 3rem);
 }
 .album-header h2 {
   font-family: "Cinzel", serif;
   color: #FFD580;
-  font-size: 2rem;
+  font-size: clamp(1.25rem, 2.8vw, 2rem);
 }
 
 .back-to-albums {
   background: transparent;
   border: 1px solid #FFCA28;
   color: #FFCA28;
-  padding: 0.75rem 1.5rem;
+  padding: clamp(0.5rem, 1.2vw, 0.75rem) clamp(1rem, 2.2vw, 1.5rem);
   font-family: "Inter", sans-serif;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -329,12 +330,12 @@ canvas#fireflyCanvas {
 
 .masonry-grid {
   columns: 3;
-  column-gap: 1.5rem;
+  column-gap: clamp(0.75rem, 2vw, 1.5rem);
 }
 
 .masonry-item {
   break-inside: avoid;
-  margin-bottom: 1.5rem;
+  margin-bottom: clamp(0.75rem, 2vw, 1.5rem);
   position: relative;
   overflow: hidden;
   border-radius: 4px;
@@ -351,14 +352,14 @@ canvas#fireflyCanvas {
   left: 0;
   right: 0;
   background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
-  padding: 1rem;
+  padding: clamp(0.75rem, 1.8vw, 1rem);
   transform: translateY(100%);
   transition: transform 0.3s ease;
 }
 .masonry-item .photo-info h4 {
   color: #FFD580;
   font-family: "Cinzel", serif;
-  font-size: 1rem;
+  font-size: clamp(0.9rem, 1.6vw, 1rem);
   margin: 0;
 }
 .masonry-item:hover img {
@@ -369,32 +370,41 @@ canvas#fireflyCanvas {
 }
 
 .philosophy .philosophy-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 35vh;
+  gap: clamp(0.75rem, 2.5vw, 2rem);
   text-align: center;
+  padding: 0 clamp(1rem, 2vw, 2rem);
 }
 .philosophy .philosophy-text .philosophy-line {
   font-family: "Cinzel", serif;
-  font-size: clamp(1.5rem, 3vw, 2.5rem);
+  font-size: clamp(1.25rem, 2.6vw, 2.5rem);
   color: #FFD580;
-  margin: 3rem 0;
+  margin: 0;
   opacity: 0;
+  line-height: 1.1;
 }
 
 .contact .contact-form {
-  max-width: 600px;
+  max-width: clamp(320px, 50%, 600px);
   margin: 0 auto;
+  padding: 0 clamp(0.5rem, 2vw, 1rem);
 }
 .contact .contact-form .form-group {
   position: relative;
-  margin-bottom: 2rem;
+  margin-bottom: clamp(1rem, 2.5vw, 2rem);
 }
 .contact .contact-form .form-group input, .contact .contact-form .form-group textarea {
   width: 100%;
-  padding: 1rem;
+  padding: clamp(0.75rem, 1.8vw, 1rem);
   background: transparent;
   border: none;
   border-bottom: 1px solid #e0e0e0;
   color: #e0e0e0;
-  font-size: 1rem;
+  font-size: clamp(0.95rem, 1.6vw, 1rem);
   transition: all 0.3s ease;
 }
 .contact .contact-form .form-group input:focus, .contact .contact-form .form-group textarea:focus {
@@ -409,7 +419,7 @@ canvas#fireflyCanvas {
   transform: translateY(-1.5rem) scale(0.8);
 }
 .contact .contact-form .form-group textarea {
-  height: 120px;
+  height: clamp(100px, 18vh, 140px);
   resize: none;
 }
 .contact .contact-form .form-group label {
@@ -419,14 +429,15 @@ canvas#fireflyCanvas {
   color: #e0e0e0;
   pointer-events: none;
   transition: all 0.3s ease;
+  font-size: clamp(0.9rem, 1.6vw, 1rem);
 }
 .contact .contact-form .submit-btn {
   background: transparent;
   border: 1px solid #FFCA28;
   color: #FFCA28;
-  padding: 1rem 2rem;
+  padding: clamp(0.75rem, 1.8vw, 1rem) clamp(1rem, 2.2vw, 2rem);
   font-family: "Inter", sans-serif;
-  font-size: 1rem;
+  font-size: clamp(0.95rem, 1.6vw, 1rem);
   cursor: pointer;
   transition: all 0.3s ease;
   width: 100%;
@@ -439,51 +450,57 @@ canvas#fireflyCanvas {
 
 .footer {
   text-align: center;
-  padding: 3rem 0;
+  padding: clamp(1.5rem, 3.5vw, 3rem) 0;
   border-top: 1px solid rgba(255, 213, 128, 0.1);
 }
 .footer .logo {
   font-family: "Cinzel", serif;
-  font-size: 1.5rem;
+  font-size: clamp(1rem, 1.8vw, 1.5rem);
   color: #FFD580;
-  margin-bottom: 1rem;
+  margin-bottom: clamp(0.5rem, 1.8vw, 1rem);
 }
 .footer p {
   opacity: 0.7;
+  font-size: clamp(0.9rem, 1.6vw, 1rem);
 }
 
+@media (max-width: 1024px) {
+  .masonry-grid {
+    columns: 2;
+  }
+}
 @media (max-width: 768px) {
   .about .about-content {
     grid-template-columns: 1fr;
-    gap: 2rem;
+    gap: clamp(0.75rem, 3vw, 2rem);
   }
   .hero .hero-content .hero-title {
-    font-size: 2.5rem;
+    font-size: clamp(1.75rem, 6.5vw, 2.5rem);
   }
   .section {
-    padding: 60px 0;
+    padding: clamp(30px, 5.5vw, 60px) 0;
   }
   .container {
-    padding: 0 1rem;
+    padding: 0 clamp(0.8rem, 2.2vw, 1rem);
   }
   .albums-grid {
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: clamp(0.75rem, 2.2vw, 1.5rem);
   }
   .album-header {
     flex-direction: column;
-    gap: 1rem;
+    gap: clamp(0.5rem, 1.8vw, 1rem);
     text-align: center;
   }
   .masonry-grid {
     columns: 2;
   }
   .album-card {
-    min-height: 350px;
+    min-height: clamp(280px, 30vh, 350px);
   }
   .pricing-cards {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
+    gap: clamp(1rem, 2.5vw, 1.5rem);
   }
   .pricing-card.featured {
     transform: none;
@@ -497,23 +514,23 @@ canvas#fireflyCanvas {
   }
   .booking-buttons .booking-btn {
     width: 100%;
-    max-width: 300px;
+    max-width: clamp(220px, 60%, 300px);
   }
   .nav-buttons .nav-btn {
-    padding: 0.4rem 0.8rem;
-    font-size: 0.9rem;
+    padding: clamp(0.35rem, 0.9vw, 0.6rem) clamp(0.5rem, 1.2vw, 0.8rem);
+    font-size: clamp(0.85rem, 1.2vw, 0.9rem);
   }
 }
 @media (max-width: 480px) {
   .albums-grid {
     grid-template-columns: 1fr;
-    gap: 1rem;
+    gap: clamp(0.5rem, 1.8vw, 1rem);
   }
   .pricing-card {
-    padding: 2rem 1.5rem;
+    padding: clamp(1.25rem, 3vw, 2rem) clamp(1rem, 2vw, 1.5rem);
   }
   .pricing-header .price {
-    font-size: 2.5rem;
+    font-size: clamp(2rem, 6vw, 2.5rem);
   }
   .services-grid {
     grid-template-columns: 1fr;
@@ -522,53 +539,57 @@ canvas#fireflyCanvas {
     columns: 1;
   }
   .album-info {
-    padding: 1rem;
+    padding: clamp(0.75rem, 1.8vw, 1rem);
   }
   .album-info h3 {
-    font-size: 1.1rem;
+    font-size: clamp(1rem, 2.2vw, 1.1rem);
+  }
+  .philosophy .philosophy-text {
+    min-height: 28vh;
+    gap: clamp(0.6rem, 2.4vw, 1rem);
   }
 }
 .nav-buttons {
   display: flex;
-  gap: 1rem;
+  gap: clamp(0.5rem, 1.5vw, 1rem);
 }
 @media (max-width: 480px) {
   .nav-buttons {
-    gap: 0.5rem;
+    gap: clamp(0.25rem, 1vw, 0.5rem);
   }
 }
 
 .pricing-hero {
-  height: 50vh;
+  height: min(50vh, 650px);
 }
 .pricing-hero .pricing-hero-content h1 {
   font-family: "Cinzel", serif;
-  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-size: clamp(1.75rem, 4.5vw, 4rem);
   color: #FFD580;
-  margin-bottom: 1rem;
+  margin-bottom: clamp(0.75rem, 2vw, 1rem);
 }
 .pricing-hero .pricing-hero-content p {
-  font-size: 1.2rem;
+  font-size: clamp(1rem, 1.8vw, 1.2rem);
   color: #e0e0e0;
   opacity: 0.9;
 }
 
 .pricing-section {
-  padding: 80px 0;
+  padding: clamp(40px, 6vw, 80px) 0;
   background: #121212;
 }
 
 .pricing-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 2rem;
-  margin-top: 3rem;
+  grid-template-columns: repeat(auto-fit, minmax(clamp(260px, 35%, 320px), 1fr));
+  gap: clamp(0.8rem, 2vw, 2rem);
+  margin-top: clamp(1rem, 3vw, 3rem);
 }
 
 .pricing-card {
   background: #0D0D0D;
   border-radius: 12px;
-  padding: 2.5rem 2rem;
+  padding: clamp(1.25rem, 2.5vw, 2.5rem) clamp(1rem, 2vw, 2rem);
   position: relative;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   border: 1px solid rgba(255, 213, 128, 0.1);
@@ -593,28 +614,28 @@ canvas#fireflyCanvas {
   transform: translateX(-50%);
   background: #FFCA28;
   color: #0D0D0D;
-  padding: 0.5rem 1.5rem;
+  padding: clamp(0.35rem, 0.9vw, 0.5rem) clamp(1rem, 2vw, 1.5rem);
   border-radius: 20px;
   font-family: "Cinzel", serif;
-  font-size: 0.9rem;
+  font-size: clamp(0.8rem, 1.4vw, 0.9rem);
   font-weight: 600;
 }
 
 .pricing-header {
   text-align: center;
-  margin-bottom: 2rem;
-  padding-bottom: 2rem;
+  margin-bottom: clamp(1rem, 2.5vw, 2rem);
+  padding-bottom: clamp(1rem, 2.5vw, 2rem);
   border-bottom: 1px solid rgba(255, 213, 128, 0.2);
 }
 .pricing-header h3 {
   font-family: "Cinzel", serif;
   color: #FFD580;
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
+  font-size: clamp(1rem, 2vw, 1.5rem);
+  margin-bottom: clamp(0.5rem, 1.5vw, 1rem);
 }
 .pricing-header .price {
   font-family: "Cinzel", serif;
-  font-size: 3rem;
+  font-size: clamp(2rem, 6vw, 3rem);
   color: #FFCA28;
   font-weight: 600;
   margin-bottom: 0.5rem;
@@ -622,17 +643,17 @@ canvas#fireflyCanvas {
 .pricing-header .price-description {
   color: #e0e0e0;
   opacity: 0.8;
-  font-size: 0.9rem;
+  font-size: clamp(0.85rem, 1.5vw, 0.9rem);
 }
 
 .pricing-features {
-  margin-bottom: 2rem;
+  margin-bottom: clamp(0.75rem, 2vw, 2rem);
 }
 .pricing-features ul {
   list-style: none;
 }
 .pricing-features ul li {
-  padding: 0.75rem 0;
+  padding: clamp(0.5rem, 1.6vw, 0.75rem) 0;
   color: #e0e0e0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
@@ -651,9 +672,9 @@ canvas#fireflyCanvas {
   background: transparent;
   border: 2px solid #FFCA28;
   color: #FFCA28;
-  padding: 1rem 2rem;
+  padding: clamp(0.75rem, 1.8vw, 1rem) clamp(1rem, 2vw, 2rem);
   font-family: "Inter", sans-serif;
-  font-size: 1rem;
+  font-size: clamp(0.95rem, 1.6vw, 1rem);
   cursor: pointer;
   transition: all 0.3s ease;
   border-radius: 4px;
@@ -672,20 +693,20 @@ canvas#fireflyCanvas {
 }
 
 .additional-services {
-  padding: 80px 0;
+  padding: clamp(30px, 5vw, 80px) 0;
   background: #0D0D0D;
 }
 
 .services-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 2rem;
-  margin-top: 3rem;
+  grid-template-columns: repeat(auto-fit, minmax(clamp(200px, 28vw, 250px), 1fr));
+  gap: clamp(0.75rem, 2vw, 2rem);
+  margin-top: clamp(1rem, 2.5vw, 3rem);
 }
 
 .service-item {
   background: #121212;
-  padding: 2rem;
+  padding: clamp(1rem, 2vw, 2rem);
   border-radius: 8px;
   text-align: center;
   transition: transform 0.3s ease;
@@ -696,55 +717,56 @@ canvas#fireflyCanvas {
 .service-item h3 {
   font-family: "Cinzel", serif;
   color: #FFD580;
-  font-size: 1.3rem;
-  margin-bottom: 1rem;
+  font-size: clamp(1rem, 2vw, 1.3rem);
+  margin-bottom: clamp(0.5rem, 1.6vw, 1rem);
 }
 .service-item p {
   color: #e0e0e0;
-  margin-bottom: 1.5rem;
+  margin-bottom: clamp(0.75rem, 1.8vw, 1.5rem);
   line-height: 1.6;
 }
 .service-item .service-price {
   font-family: "Cinzel", serif;
   color: #FFCA28;
-  font-size: 1.2rem;
+  font-size: clamp(1rem, 2vw, 1.2rem);
   font-weight: 600;
 }
 
 .booking-section {
-  padding: 100px 0;
+  padding: clamp(40px, 6vw, 100px) 0;
   background: linear-gradient(135deg, #121212 0%, #0D0D0D 100%);
   text-align: center;
 }
 
 .booking-content {
-  max-width: 600px;
+  max-width: clamp(320px, 60%, 600px);
   margin: 0 auto;
+  padding: 0 clamp(0.5rem, 1.8vw, 1rem);
 }
 .booking-content h2 {
   font-family: "Cinzel", serif;
   color: #FFD580;
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
+  font-size: clamp(1.5rem, 3.5vw, 2.5rem);
+  margin-bottom: clamp(0.75rem, 2vw, 1rem);
 }
 .booking-content p {
   color: #e0e0e0;
-  font-size: 1.1rem;
-  margin-bottom: 2rem;
+  font-size: clamp(0.95rem, 1.6vw, 1.1rem);
+  margin-bottom: clamp(1rem, 2.5vw, 2rem);
   opacity: 0.9;
 }
 
 .booking-buttons {
   display: flex;
-  gap: 1rem;
+  gap: clamp(0.5rem, 1.6vw, 1rem);
   justify-content: center;
   flex-wrap: wrap;
 }
 
 .booking-btn {
-  padding: 1rem 2rem;
+  padding: clamp(0.75rem, 1.8vw, 1rem) clamp(1rem, 2vw, 2rem);
   font-family: "Inter", sans-serif;
-  font-size: 1rem;
+  font-size: clamp(0.95rem, 1.6vw, 1rem);
   text-decoration: none;
   border-radius: 4px;
   transition: all 0.3s ease;

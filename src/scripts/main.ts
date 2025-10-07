@@ -200,7 +200,6 @@ class ScrollAnimations {
         // Cacher les éléments initialement pour l'animation
         gsap.set('.hero-title', { opacity: 0, y: 50 });
         gsap.set('.cta-button', { opacity: 0, y: 30 });
-        gsap.set('.philosophy-line', { opacity: 0, y: 30 });
 
         console.log('✅ Elements prepared for animation');
 
@@ -265,21 +264,24 @@ class ScrollAnimations {
         });
 
         // Philosophy text lines animation
-        const philosophyLines = gsap.utils.toArray('.philosophy-line');
-        philosophyLines.forEach((line: any, index: number) => {
-            gsap.from(line, {
-                scrollTrigger: {
-                    trigger: line,
-                    start: 'top 85%',
-                    toggleActions: 'play none none reverse'
-                },
-                y: 50,
-                opacity: 0,
-                duration: 1,
-                delay: index * 0.2,
-                ease: 'power2.out'
-            });
+        gsap.utils.toArray('.philosophy-line').forEach((line: any, index: number) => {
+            gsap.fromTo(line,
+                { y: 30, opacity: 0 },
+                {
+                    y: 0,
+                    opacity: 1,
+                    duration: 0.9,
+                    delay: index * 0.15,
+                    ease: 'power2.out',
+                    scrollTrigger: {
+                        trigger: line,
+                        start: 'top 85%',
+                        toggleActions: 'play none none reverse'
+                    }
+                }
+            );
         });
+
 
         // Contact form animation
         gsap.from('.contact-form', {
