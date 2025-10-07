@@ -1,4 +1,4 @@
-;@use "sass:color";
+@use "sass:color";
 
 // Variables
 $deep-night: #0D0D0D;
@@ -88,42 +88,25 @@ canvas#fireflyCanvas {
     transition: all 0.3s ease;
     font-family: $text-font;
     font-size: 0.9rem;
-    position: relative;
 
-    /* Style de survol */
+    // Style de survol
     &:hover {
       background: $warm-gold;
       color: $deep-night;
     }
 
-    /* Style du bouton actif - plus spécifique */
+    // Style du bouton actif - même style que le survol
     &.active {
-      background: $warm-gold !important;
-      color: $deep-night !important;
+      background: $warm-gold;
+      color: $deep-night;
       box-shadow: 0 0 15px rgba(255, 213, 128, 0.3);
-      border-color: $warm-gold;
 
-      /* Animation de pulsation légère */
+      // Optionnel: légère animation pour le bouton actif
       animation: gentlePulse 2s infinite;
     }
   }
 }
-@keyframes gentlePulse {
-  0% {
-    box-shadow: 0 0 15px rgba(255, 213, 128, 0.3);
-  }
-  50% {
-    box-shadow: 0 0 20px rgba(255, 213, 128, 0.5);
-  }
-  100% {
-    box-shadow: 0 0 15px rgba(255, 213, 128, 0.3);
-  }
-}
-.nav-btn.active:hover {
-  background: $warm-gold !important;
-  color: $deep-night !important;
-  box-shadow: 0 0 20px rgba(255, 213, 128, 0.5);
-}
+
 // Hero Sections
 .hero-base {
   display: flex;
@@ -636,10 +619,11 @@ canvas#fireflyCanvas {
   }
 
   .nav-buttons {
-    display: flex;
-    gap: 1rem;
+    .nav-btn {
+      padding: 0.4rem 0.8rem;
+      font-size: 0.9rem;
+    }
   }
-
 
 }
 

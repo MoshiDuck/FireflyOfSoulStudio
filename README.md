@@ -52,7 +52,7 @@ https://github.com/MoshiDuck/FireflyOfSoulStudio
     ```
 2. Commit
     ```bash
-    git commit -m "[FAIT] - Fichier style organiser en plusieurs fichiers"
+    git commit -m "[FAIT] - Remis en etat "
     ```
 
 3. Version

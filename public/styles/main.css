@@ -73,40 +73,16 @@ canvas#fireflyCanvas {
   transition: all 0.3s ease;
   font-family: "Inter", sans-serif;
   font-size: 0.9rem;
-  position: relative;
-  /* Style de survol */
 }
 .navbar .nav-btn:hover {
   background: #FFD580;
   color: #0D0D0D;
 }
-.navbar .nav-btn {
-  /* Style du bouton actif - plus spécifique */
-}
 .navbar .nav-btn.active {
-  background: #FFD580 !important;
-  color: #0D0D0D !important;
+  background: #FFD580;
+  color: #0D0D0D;
   box-shadow: 0 0 15px rgba(255, 213, 128, 0.3);
-  border-color: #FFD580;
-  /* Animation de pulsation légère */
   animation: gentlePulse 2s infinite;
-}
-
-@keyframes gentlePulse {
-  0% {
-    box-shadow: 0 0 15px rgba(255, 213, 128, 0.3);
-  }
-  50% {
-    box-shadow: 0 0 20px rgba(255, 213, 128, 0.5);
-  }
-  100% {
-    box-shadow: 0 0 15px rgba(255, 213, 128, 0.3);
-  }
-}
-.nav-btn.active:hover {
-  background: #FFD580 !important;
-  color: #0D0D0D !important;
-  box-shadow: 0 0 20px rgba(255, 213, 128, 0.5);
 }
 
 .hero-base, .pricing-hero, .gallery-hero, .hero {
@@ -523,9 +499,9 @@ canvas#fireflyCanvas {
     width: 100%;
     max-width: 300px;
   }
-  .nav-buttons {
-    display: flex;
-    gap: 1rem;
+  .nav-buttons .nav-btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.9rem;
   }
 }
 @media (max-width: 480px) {
