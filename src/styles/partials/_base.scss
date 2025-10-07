@@ -1,0 +1,52 @@
+// Todo : src/styles/partials/_base.scss
+@use 'sass:color';
+@use 'variables' as *;
+
+// Base styles
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: $text-font;
+  background-color: $deep-night;
+  color: $soft-gray;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+canvas#fireflyCanvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+// Common Components
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.section {
+  padding: 100px 0;
+  position: relative;
+  z-index: 2;
+}
+
+.section-title {
+  font-family: $title-font;
+  font-size: 2.5rem;
+  color: $warm-gold;
+  text-align: center;
+  margin-bottom: 3rem;
+  width: 100%;
+}

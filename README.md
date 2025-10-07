@@ -2,6 +2,25 @@
 
 https://github.com/MoshiDuck/FireflyOfSoulStudio
 
+### Utiliser code onlime pour remplacer code offline
+
+1. Crée une sauvegarde de ton code actuel
+    ```bash
+    git branch backup-local
+    ```
+2. Met à jour les informations locales du dépôt avec la dernière version en ligne , sans modifier ton code.
+    ```bash
+    git fetch origin 
+    ```
+3. Remplace complètement ton code local par la version en ligne de la branche main
+    ```bash
+    git reset --hard origin/main 
+    ```
+4. Permet de revenir à ta sauvegarde locale si tu veux restaurer ton ancien code.
+   ```bash
+   git checkout backup-local
+    ```
+
 ### Réinitialiser
 
 1. Supprimer l'historique Git local + recrée un dépôt Git vierge
@@ -33,12 +52,12 @@ https://github.com/MoshiDuck/FireflyOfSoulStudio
     ```
 2. Commit
     ```bash
-    git commit -m "[FAIT] - Gallery, Pricing"
+    git commit -m "[FAIT] - Fichier style organiser en plusieurs fichiers"
     ```
 
 3. Version
    ```bash
-   git tag 0.0.0.1
+   git tag 0.0.0.3
    ```
 
 4. Force le push
@@ -56,7 +75,10 @@ Corriger :
 
 Objectif:
 
-- Calendrier
+- Transformer home en reel page home
+- Calendrier dans pricing
+- ajoutez different pricing
+- page pour recuperer photos apres shoot
 - About
 - Chercher images dans lucioles
 - animations lucioles
