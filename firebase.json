@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "site": "fireflyofsoulstudio",
     "public": "public",
     "ignore": [
       "firebase.json",
