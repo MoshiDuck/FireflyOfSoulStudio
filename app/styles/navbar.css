@@ -1,0 +1,505 @@
+/* Styles spécifiques pour la navbar FireflyOfSoulStudio */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Inter:wght@300;400;500&display=swap');
+
+:root {
+    --nav-height: 80px;
+    --nav-height-scrolled: 70px;
+    --nav-bg: rgba(13, 13, 13, 0.95);
+    --nav-border: rgba(255, 213, 128, 0.1);
+    --nav-glow: rgba(255, 213, 128, 0.3);
+}
+
+/* Structure de base */
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    backdrop-filter: blur(20px);
+    background: var(--nav-bg);
+    border-bottom: 1px solid var(--nav-border);
+    transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+    height: var(--nav-height);
+    display: flex;
+    align-items: center;
+}
+
+.navbar.scrolled {
+    height: var(--nav-height-scrolled);
+    background: rgba(13, 13, 13, 0.98);
+    box-shadow: 0 8px 60px rgba(0, 0, 0, 0.3);
+}
+
+.navbar-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Logo et branding */
+.navbar-logo {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    text-decoration: none;
+    transition: all 0.5s ease;
+}
+
+.navbar-logo:hover {
+    transform: translateY(-1px);
+}
+
+.navbar-firefly {
+    position: relative;
+    width: 12px;
+    height: 12px;
+}
+
+.navbar-firefly-core {
+    width: 100%;
+    height: 100%;
+    background: #FFD580;
+    border-radius: 50%;
+    animation: firefly-pulse 3s ease-in-out infinite;
+}
+
+.navbar-firefly-glow-1 {
+    position: absolute;
+    inset: -4px;
+    background: #FFD580;
+    border-radius: 50%;
+    opacity: 0.4;
+    filter: blur(2px);
+    animation: firefly-glow-1 3s ease-in-out infinite;
+}
+
+.navbar-firefly-glow-2 {
+    position: absolute;
+    inset: -8px;
+    background: #FFD580;
+    border-radius: 50%;
+    opacity: 0.2;
+    filter: blur(4px);
+    animation: firefly-glow-2 3s ease-in-out infinite;
+}
+
+.navbar-brand {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+}
+
+.navbar-brand-main {
+    font-family: 'Cinzel', serif;
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: #FFD580;
+    letter-spacing: 0.15em;
+    transition: color 0.3s ease;
+}
+
+.navbar-brand-sub {
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    color: rgba(255, 213, 128, 0.7);
+    letter-spacing: 0.2em;
+    transition: color 0.3s ease;
+}
+
+.navbar-logo:hover .navbar-brand-main,
+.navbar-logo:hover .navbar-brand-sub {
+    color: #FFCA28;
+}
+
+/* Navigation desktop */
+.navbar-nav {
+    display: flex;
+    align-items: center;
+    gap: 3rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.navbar-item {
+    position: relative;
+}
+
+.navbar-link {
+    font-family: 'Cinzel', serif;
+    font-size: 0.9rem;
+    font-weight: 400;
+    color: rgba(255, 213, 128, 0.8);
+    text-decoration: none;
+    letter-spacing: 0.1em;
+    padding: 0.5rem 0;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.navbar-link::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 1px;
+    background: #FFD580;
+    transform: translateX(-50%);
+    transition: width 0.3s ease;
+}
+
+.navbar-link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(255, 213, 128, 0.05) 50%,
+    transparent 100%);
+    transform: translateX(-100%);
+    transition: transform 0.6s ease;
+}
+
+.navbar-link:hover {
+    color: #FFD580;
+    transform: translateY(-1px);
+}
+
+.navbar-link:hover::before {
+    width: 100%;
+}
+
+.navbar-link:hover::after {
+    transform: translateX(100%);
+}
+
+.navbar-link.active {
+    color: #FFD580;
+}
+
+.navbar-link.active::before {
+    width: 100%;
+}
+
+/* Menu mobile toggle */
+.navbar-toggle {
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+    background: none;
+    border: none;
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.navbar-toggle:hover {
+    transform: scale(1.1);
+}
+
+.navbar-toggle-line {
+    width: 24px;
+    height: 1px;
+    background: #FFD580;
+    transition: all 0.3s ease;
+    transform-origin: center;
+}
+
+.navbar-toggle.active .navbar-toggle-line:nth-child(1) {
+    transform: rotate(45deg) translate(6px, 6px);
+}
+
+.navbar-toggle.active .navbar-toggle-line:nth-child(2) {
+    opacity: 0;
+}
+
+.navbar-toggle.active .navbar-toggle-line:nth-child(3) {
+    transform: rotate(-45deg) translate(6px, -6px);
+}
+
+/* Menu mobile */
+.navbar-mobile {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+}
+
+.navbar-mobile.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.navbar-mobile-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.9);
+    backdrop-filter: blur(10px);
+}
+
+.navbar-mobile-sidebar {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(400px, 90vw);
+    background: rgba(13, 13, 13, 0.98);
+    border-left: 1px solid var(--nav-border);
+    transform: translateX(100%);
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    padding: 2rem;
+}
+
+.navbar-mobile.active .navbar-mobile-sidebar {
+    transform: translateX(0);
+}
+
+.navbar-mobile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--nav-border);
+}
+
+.navbar-mobile-brand {
+    font-family: 'Cinzel', serif;
+    font-size: 1.1rem;
+    color: #FFD580;
+    letter-spacing: 0.1em;
+}
+
+.navbar-mobile-close {
+    background: none;
+    border: none;
+    color: #FFD580;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.navbar-mobile-close:hover {
+    transform: scale(1.1);
+}
+
+.navbar-mobile-nav {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 2rem 0;
+}
+
+.navbar-mobile-link {
+    font-family: 'Cinzel', serif;
+    font-size: 1.2rem;
+    color: rgba(255, 213, 128, 0.8);
+    text-decoration: none;
+    padding: 1rem 1.5rem;
+    border-left: 3px solid transparent;
+    transition: all 0.3s ease;
+    letter-spacing: 0.1em;
+}
+
+.navbar-mobile-link:hover,
+.navbar-mobile-link.active {
+    color: #FFD580;
+    border-left-color: #FFD580;
+    background: rgba(255, 213, 128, 0.05);
+    transform: translateX(8px);
+}
+
+.navbar-mobile-footer {
+    padding-top: 2rem;
+    border-top: 1px solid var(--nav-border);
+    text-align: center;
+}
+
+.navbar-mobile-tagline {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    color: rgba(255, 213, 128, 0.6);
+    margin-top: 0.5rem;
+}
+
+/* Animations */
+@keyframes firefly-pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+        box-shadow: 0 0 10px #FFD580;
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.1);
+        box-shadow: 0 0 20px #FFD580;
+    }
+}
+
+@keyframes firefly-glow-1 {
+    0%, 100% {
+        opacity: 0.3;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.5;
+        transform: scale(1.2);
+    }
+}
+
+@keyframes firefly-glow-2 {
+    0%, 100% {
+        opacity: 0.1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.3;
+        transform: scale(1.4);
+    }
+}
+
+@keyframes nav-link-enter {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Appliquer l'animation d'entrée aux liens */
+.navbar-item {
+    animation: nav-link-enter 0.6s ease-out forwards;
+}
+
+.navbar-item:nth-child(1) { animation-delay: 0.1s; }
+.navbar-item:nth-child(2) { animation-delay: 0.2s; }
+.navbar-item:nth-child(3) { animation-delay: 0.3s; }
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .navbar-container {
+        padding: 0 1rem;
+    }
+
+    .navbar-nav {
+        display: none;
+    }
+
+    .navbar-toggle {
+        display: flex;
+    }
+
+    .navbar-brand-main {
+        font-size: 1.1rem;
+    }
+
+    .navbar-brand-sub {
+        font-size: 0.65rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .navbar {
+        height: 70px;
+    }
+
+    .navbar.scrolled {
+        height: 60px;
+    }
+
+    .navbar-brand-main {
+        font-size: 1rem;
+    }
+
+    .navbar-brand-sub {
+        font-size: 0.6rem;
+    }
+
+    .navbar-mobile-sidebar {
+        width: 85vw;
+        padding: 1.5rem;
+    }
+}
+
+/* Accessibilité */
+@media (prefers-reduced-motion: reduce) {
+    .navbar,
+    .navbar-link,
+    .navbar-logo,
+    .navbar-firefly-core,
+    .navbar-firefly-glow-1,
+    .navbar-firefly-glow-2 {
+        transition: none;
+        animation: none;
+    }
+
+    .navbar-item {
+        animation: none;
+    }
+}
+
+/* Focus styles pour l'accessibilité */
+.navbar-link:focus-visible,
+.navbar-logo:focus-visible,
+.navbar-toggle:focus-visible,
+.navbar-mobile-close:focus-visible,
+.navbar-mobile-link:focus-visible {
+    outline: 2px solid #FFD580;
+    outline-offset: 3px;
+    border-radius: 2px;
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+    .navbar {
+        background: #000000;
+        border-bottom-color: #FFD580;
+    }
+
+    .navbar-link {
+        color: #FFD580;
+    }
+
+    .navbar-link::before {
+        background: #FFD580;
+        height: 2px;
+    }
+}
+
+/* Impression */
+@media print {
+    .navbar {
+        position: static;
+        background: white;
+        border-bottom: 1px solid #ccc;
+        height: auto;
+    }
+
+    .navbar-brand-main,
+    .navbar-brand-sub {
+        color: #000;
+    }
+
+    .navbar-firefly-core {
+        background: #000;
+        animation: none;
+    }
+}

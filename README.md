@@ -1,49 +1,116 @@
-# Hono + React Router + Vite + ShadCN UI on Cloudflare Workers
+## 🔗 Dépôt GitHub
 
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/cloudflare/templates/tree/main/react-router-hono-fullstack-template)
-![Build modern full-stack apps with Hono, React Router, and ShadCN UI on Cloudflare Workers](https://imagedelivery.net/wSMYJvS3Xw-n339CbDyDIA/24c5a7dd-e1e3-43a9-b912-d78d9a4293bc/public)
+https://github.com/MoshiDuck/FireflyOfSoulStudio
 
-<!-- dash-content-start -->
+### Utiliser code onlime pour remplacer code offline
 
-A modern full-stack template powered by [Cloudflare Workers](https://workers.cloudflare.com/), using [Hono](https://hono.dev/) for backend APIs, [React Router](https://reactrouter.com/) for frontend routing, and [shadcn/ui](https://ui.shadcn.com/) for beautiful, accessible components styled with [Tailwind CSS](https://tailwindcss.com/).
+1. Crée une sauvegarde de ton code actuel
+    ```bash
+    git branch backup-local
+    ```
+2. Met à jour les informations locales du dépôt avec la dernière version en ligne , sans modifier ton code.
+    ```bash
+    git fetch origin 
+    ```
+3. Remplace complètement ton code local par la version en ligne de la branche main
+    ```bash
+    git reset --hard origin/main 
+    ```
+4. Permet de revenir à ta sauvegarde locale si tu veux restaurer ton ancien code.
+   ```bash
+   git checkout backup-local
+    ```
 
-Built with the [Cloudflare Vite plugin](https://developers.cloudflare.com/workers/vite-plugin/) for optimized static asset delivery and seamless local development. React is configured in single-page app (SPA) mode via Workers.
+### Réinitialiser
 
-A perfect starting point for building interactive, styled, and edge-deployed SPAs with minimal configuration.
+1. Supprimer l'historique Git local + recrée un dépôt Git vierge
+    ```bash
+   Remove-Item -Recurse -Force .git
+   ```
 
-## Features
+2. Init git
+    ```bash       
+   git init
+   ```
 
-- ⚡ Full-stack app on Cloudflare Workers
-- 🔁 Hono for backend API endpoints
-- 🧭 React Router for client-side routing
-- 🎨 ShadCN UI with Tailwind CSS for components and styling
-- 🧱 File-based route separation
-- 🚀 Zero-config Vite build for Workers
-- 🛠️ Automatically deploys with Wrangler
-- 🔎 Built-in Observability to monitor your Worker
-<!-- dash-content-end -->
+3. Mettre main
+   ```bash  
+   git checkout -b main
+   ```
 
-## Tech Stack
+4. Lier au dépôt distant GitHub
+    ```bash
+   git remote add origin git@github.com:MoshiDuck/FireflyOfSoulStudio.git
+   ```
+---
 
-- **Frontend**: React + React Router + ShadCN UI
-  - SPA architecture powered by React Router
-  - Includes accessible, themeable UI from ShadCN
-  - Styled with utility-first Tailwind CSS
-  - Built and optimized with Vite
+### Ajouter / Modifier
 
-- **Backend**: Hono on Cloudflare Workers
-  - API routes defined and handled via Hono in `/api/*`
-  - Supports REST-like endpoints, CORS, and middleware
+1. Ajoutez les dossiers
+    ```bash
+    git add .
+    ```
+2. Commit
+    ```bash
+    git commit -m "[FAIT] - Remise en place de l'ancien style "
+    ```
 
-- **Deployment**: Cloudflare Workers via Wrangler
-  - Vite plugin auto-bundles frontend and backend together
-  - Deployed worldwide on Cloudflare’s edge network
+3. Version
+   ```bash
+   git tag 0.0.0.1
+   ```
 
-## Resources
+4. Force le push
+    ```bash
+    git push --force origin main
+    ```
 
-- 🧩 [Hono on Cloudflare Workers](https://hono.dev/docs/getting-started/cloudflare-workers)
-- 📦 [Vite Plugin for Cloudflare](https://developers.cloudflare.com/workers/vite-plugin/)
-- 🛠 [Wrangler CLI reference](https://developers.cloudflare.com/workers/wrangler/)
-- 🎨 [shadcn/ui](https://ui.shadcn.com)
-- 💨 [Tailwind CSS Documentation](https://tailwindcss.com/)
-- 🔀 [React Router Docs](https://reactrouter.com/)
+---
+
+## CloudFlare
+
+1. Tester localement
+    ```bash
+    npm run dev
+    ```
+2. Déployer sur Cloudflare Pages
+    ```bash
+   npm run deploy
+    ```
+
+---
+
+## PROCHAINE CHOSE À FAIRE :
+
+Corriger :
+
+-
+
+Objectif:
+
+- Calendrier mieux dans pricing
+- ajoutez different pricing
+- page pour recuperer photos apres shoot
+- About
+- Chercher images dans lucioles
+- animations lucioles
+
+
+---
+
+## 🛡️ Licence
+
+© 2025 Firefly of Soul Studio — Tous droits réservés.
+
+Ce projet, y compris son code source, son design, ses textes, ses images et ses animations,
+est la propriété exclusive de Firefly of Soul Studio (auteur : MoshiDoki).
+
+- ❌ Aucune autorisation n’est accordée pour la copie, la modification, la distribution ou l’exploitation du code, du design ou du contenu.
+- ❌ Toute utilisation commerciale, reproduction publique ou hébergement en ligne de tout ou partie du projet est strictement interdite sans accord écrit explicite de l’auteur.
+- ❌ La redistribution, même partielle, sous quelque forme que ce soit, est interdite.
+
+Ce dépôt GitHub est publié à titre de démonstration et ne confère aucun droit d’utilisation, d’adaptation ou de publication.
+En résumé :
+
+🔒 Ce projet est protégé. Vous pouvez le consulter, mais vous n’avez pas le droit de l’utiliser, le copier ou le modifier sans autorisation écrite de l’auteur.
+# FireflyOfSoulStudio

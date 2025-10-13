@@ -1,8 +1,9 @@
 // Todo : app/routes/pricing.tsx
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import type { Route } from "./+types/home";
 import { Navbar } from "~/components/navbar";
-import { useState } from "react";
 import { API_ENDPOINTS } from '~/config/api';
+import "~/styles/pricing.css";
 
 export function meta({}: Route.MetaArgs) {
     return [
@@ -24,17 +25,184 @@ interface ApiErrorResponse {
 
 type ApiResponse = ApiSuccessResponse | ApiErrorResponse;
 
-// Composant modal de réservation
-function BookingModal({ onClose }: { onClose: () => void }) {
-    const [formData, setFormData] = useState({
-        name: "",
-        email: "",
-        date: "",
-        time: "",
-        service: "portrait"
-    });
+interface Service {
+    id: string;
+    name: string;
+    price: number;
+    description: string;
+    duration: string;
+    features: string[];
+}
+
+interface TimeSlot {
+    time: string;
+    available: boolean;
+}
+
+// Services disponibles
+const SERVICES: Service[] = [
+    {
+        id: "portrait",
+        name: "Portrait Session",
+        price: 450,
+        description: "Individual & Couples",
+        duration: "2 hours",
+        features: [
+            "30 professionally edited images",
+            "Online gallery",
+            "Print release",
+            "2 outfit changes"
+        ]
+    },
+    {
+        id: "artistic",
+        name: "Artistic Series",
+        price: 850,
+        description: "Conceptual & Fine Art",
+        duration: "4 hours",
+        features: [
+            "50 professionally edited images",
+            "Concept development",
+            "Premium retouching",
+            "Online gallery + USB delivery",
+            "2 large format prints (16x24)"
+        ]
+    },
+    {
+        id: "editorial",
+        name: "Editorial Project",
+        price: 1200,
+        description: "Commercial & Publication",
+        duration: "8 hours",
+        features: [
+            "80+ professionally edited images",
+            "Creative direction",
+            "Advanced retouching",
+            "Commercial usage rights",
+            "Priority delivery"
+        ]
+    }
+];
+
+/**
+ * Input COMPLÈTEMENT uncontrolled avec synchronisation manuelle
+ * C'est la seule façon de garantir ZERO perte de focus
+ */
+function UncontrolledInput({
+                               name,
+                               defaultValue = "",
+                               onValueChange,
+                               ...props
+                           }: Omit<React.InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange'> & {
+    onValueChange?: (value: string, name: string) => void;
+}) {
+    const ref = useRef<HTMLInputElement>(null);
+    const lastSyncedValue = useRef(defaultValue);
+
+    // Initialisation UNIQUEMENT au montage
+    useEffect(() => {
+        if (ref.current) {
+            ref.current.value = defaultValue as string;
+            lastSyncedValue.current = defaultValue;
+        }
+    }, []); // Empty dependency array - ONLY on mount
+
+    // Gestionnaire natif d'input - ZERO React state pendant la saisie
+    const handleInput = useCallback((e: React.FormEvent<HTMLInputElement>) => {
+        const value = (e.target as HTMLInputElement).value;
+
+        // Synchronisation différée pour éviter les re-rendus
+        if (value !== lastSyncedValue.current) {
+            lastSyncedValue.current = value;
+            onValueChange?.(value, name || "");
+        }
+    }, [name, onValueChange]);
+
+    return (
+        <input
+            ref={ref}
+            name={name}
+            onInput={handleInput}
+            {...props}
+        />
+    );
+}
+
+/**
+ * FormDataManager - Gère l'état du formulaire SANS causer de re-rendus
+ */
+function useFormDataManager(initialData: { firstName: string; lastName: string; email: string; phone: string }) {
+    const formDataRef = useRef(initialData);
+    const [, forceUpdate] = useState({});
+
+    const updateField = useCallback((field: string, value: string) => {
+        formDataRef.current = { ...formDataRef.current, [field]: value };
+    }, []);
+
+    const getFormData = useCallback(() => formDataRef.current, []);
+
+    const reset = useCallback((newData = initialData) => {
+        formDataRef.current = newData;
+        forceUpdate({});
+    }, [initialData]);
+
+    return {
+        updateField,
+        getFormData,
+        reset
+    };
+}
+
+// Composant principal de réservation en étapes
+function BookingWizard({ onClose }: { onClose: () => void }) {
+    const [step, setStep] = useState(1);
+    const [selectedService, setSelectedService] = useState<Service | null>(null);
+    const [selectedDate, setSelectedDate] = useState<string>("");
+    const [selectedTime, setSelectedTime] = useState<string>("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+    // Gestionnaire de formulaire SANS état React pour les champs
+    const { updateField, getFormData, reset } = useFormDataManager({
+        firstName: "",
+        lastName: "",
+        email: "",
+        phone: ""
+    });
+
+    const [availableDates, setAvailableDates] = useState<string[]>([]);
+    const [availableTimes, setAvailableTimes] = useState<TimeSlot[]>([]);
+
+    // Simuler la récupération des dates disponibles
+    useEffect(() => {
+        if (selectedService) {
+            const dates: string[] = [];
+            const today = new Date();
+            for (let i = 1; i <= 14; i++) {
+                const date = new Date(today);
+                date.setDate(today.getDate() + i);
+                if (date.getDay() !== 0 && date.getDay() !== 6) {
+                    dates.push(date.toISOString().split('T')[0]);
+                }
+            }
+            setAvailableDates(dates);
+        }
+    }, [selectedService]);
+
+    // Simuler la récupération des créneaux horaires disponibles
+    useEffect(() => {
+        if (selectedDate) {
+            const times: TimeSlot[] = [];
+            for (let hour = 9; hour < 18; hour++) {
+                const available = Math.random() > 0.3;
+                times.push({
+                    time: `${hour.toString().padStart(2, '0')}:00`,
+                    available
+                });
+            }
+            setAvailableTimes(times);
+        }
+    }, [selectedDate]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -42,29 +210,32 @@ function BookingModal({ onClose }: { onClose: () => void }) {
         setMessage(null);
 
         try {
+            const formData = getFormData();
             const response = await fetch(API_ENDPOINTS.RESERVATIONS, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(formData),
+                body: JSON.stringify({
+                    ...formData,
+                    service: selectedService?.id,
+                    date: selectedDate,
+                    time: selectedTime
+                }),
             });
 
             const result = await response.json() as ApiResponse;
 
             if (response.ok) {
-                // Type guard pour vérifier que c'est une réponse de succès
                 if ('success' in result && result.success) {
                     setMessage({ type: 'success', text: result.message || 'Reservation confirmed!' });
-                    setFormData({ name: "", email: "", date: "", time: "", service: "portrait" });
                     setTimeout(() => {
                         onClose();
-                    }, 2000);
+                    }, 3000);
                 } else {
                     setMessage({ type: 'error', text: 'Unexpected response format' });
                 }
             } else {
-                // Type guard pour vérifier que c'est une réponse d'erreur
                 if ('error' in result) {
                     setMessage({ type: 'error', text: result.error || 'An error occurred' });
                 } else {
@@ -82,132 +253,300 @@ function BookingModal({ onClose }: { onClose: () => void }) {
         }
     };
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        setFormData(prev => ({
-            ...prev,
-            [e.target.name]: e.target.value
-        }));
-    };
+    const handleFieldChange = useCallback((value: string, fieldName: string) => {
+        updateField(fieldName, value);
+    }, [updateField]);
 
-    // Générer les créneaux horaires
-    const timeSlots = [];
-    for (let hour = 9; hour < 18; hour++) {
-        timeSlots.push(`${hour.toString().padStart(2, '0')}:00`);
-    }
+    const formatDate = useCallback((dateStr: string) => {
+        const date = new Date(dateStr);
+        return date.toLocaleDateString('en-US', {
+            weekday: 'long',
+            month: 'long',
+            day: 'numeric'
+        });
+    }, []);
+
+    const resetSelection = useCallback(() => {
+        setSelectedService(null);
+        setSelectedDate("");
+        setSelectedTime("");
+        reset();
+        setStep(1);
+    }, [reset]);
+
+    // Étape 1: Sélection du service
+    const Step1 = () => (
+        <div className="space-y-6">
+            <h3 className="font-cinzel text-2xl text-amber-500 text-center mb-8">Choose Your Session</h3>
+            <div className="grid gap-6">
+                {SERVICES.map(service => (
+                    <div
+                        key={service.id}
+                        className={`pricing-card cursor-pointer transition-all duration-300 ${
+                            selectedService?.id === service.id
+                                ? 'border-amber-500 bg-amber-500/10'
+                                : 'border-amber-500/20 bg-gray-800/50 hover:border-amber-500/40'
+                        }`}
+                        onClick={() => {
+                            setSelectedService(service);
+                            setStep(2);
+                        }}
+                    >
+                        <div className="flex justify-between items-start mb-4">
+                            <div>
+                                <h4 className="font-cinzel text-xl text-amber-500">{service.name}</h4>
+                                <p className="text-amber-200 font-inter">{service.description}</p>
+                            </div>
+                            <div className="text-right">
+                                <div className="font-cinzel text-2xl text-white">${service.price}</div>
+                                <div className="text-amber-200 text-sm font-inter">{service.duration}</div>
+                            </div>
+                        </div>
+                        <div className="pricing-features">
+                            <ul>
+                                {service.features.map((feature, index) => (
+                                    <li key={index} className="text-gray-300 font-inter flex items-center">
+                                        <span className="w-1.5 h-1.5 bg-amber-500 rounded-full mr-3"></span>
+                                        {feature}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+
+    // Étape 2: Sélection de la date
+    const Step2 = () => (
+        <div className="space-y-6">
+            <div className="flex items-center justify-between mb-6">
+                <button
+                    onClick={() => setStep(1)}
+                    className="text-amber-400 hover:text-amber-300 font-inter flex items-center"
+                >
+                    ← Back
+                </button>
+                <h3 className="font-cinzel text-2xl text-amber-500">Choose a Date</h3>
+                <div className="w-6"></div>
+            </div>
+
+            <div className="text-center mb-6">
+                <div className="font-cinzel text-lg text-amber-500 mb-2">{selectedService?.name}</div>
+                <div className="text-amber-200 font-inter">${selectedService?.price} • {selectedService?.duration}</div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 max-h-96 overflow-y-auto">
+                {availableDates.map(date => (
+                    <button
+                        key={date}
+                        onClick={() => {
+                            setSelectedDate(date);
+                            setStep(3);
+                        }}
+                        className="p-4 rounded-xl border border-amber-500/20 bg-gray-800/50 hover:border-amber-500/40 hover:bg-amber-500/10 transition-all duration-300 text-center backdrop-blur-sm"
+                    >
+                        <div className="font-cinzel text-amber-500 text-lg">
+                            {new Date(date).getDate()}
+                        </div>
+                        <div className="text-amber-200 font-inter text-sm">
+                            {new Date(date).toLocaleDateString('en-US', { weekday: 'short' })}
+                        </div>
+                        <div className="text-gray-400 font-inter text-xs mt-1">
+                            {new Date(date).toLocaleDateString('en-US', { month: 'short' })}
+                        </div>
+                    </button>
+                ))}
+            </div>
+        </div>
+    );
+
+    // Étape 3: Sélection de l'heure
+    const Step3 = () => (
+        <div className="space-y-6">
+            <div className="flex items-center justify-between mb-6">
+                <button
+                    onClick={() => setStep(2)}
+                    className="text-amber-400 hover:text-amber-300 font-inter flex items-center"
+                >
+                    ← Back
+                </button>
+                <h3 className="font-cinzel text-2xl text-amber-500">Choose a Time</h3>
+                <div className="w-6"></div>
+            </div>
+
+            <div className="text-center mb-6">
+                <div className="font-cinzel text-lg text-amber-500 mb-2">{selectedService?.name}</div>
+                <div className="text-amber-200 font-inter">
+                    {formatDate(selectedDate)} • ${selectedService?.price}
+                </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 max-h-96 overflow-y-auto">
+                {availableTimes.map(slot => (
+                    <button
+                        key={slot.time}
+                        onClick={() => {
+                            if (slot.available) {
+                                setSelectedTime(slot.time);
+                                setStep(4);
+                            }
+                        }}
+                        disabled={!slot.available}
+                        className={`p-4 rounded-xl border transition-all duration-300 text-center backdrop-blur-sm ${
+                            slot.available
+                                ? 'border-amber-500/20 bg-gray-800/50 hover:border-amber-500/40 hover:bg-amber-500/10 text-amber-200'
+                                : 'border-gray-600/30 bg-gray-900/30 text-gray-500 cursor-not-allowed'
+                        }`}
+                    >
+                        <div className="font-cinzel text-lg">{slot.time}</div>
+                        <div className="font-inter text-sm mt-1">
+                            {slot.available ? 'Available' : 'Booked'}
+                        </div>
+                    </button>
+                ))}
+            </div>
+        </div>
+    );
+
+    // Étape 4: Informations personnelles - COMPLÈTEMENT uncontrolled
+    const Step4 = () => (
+        <div className="space-y-6">
+            <div className="flex items-center justify-between mb-6">
+                <button
+                    onClick={() => setStep(3)}
+                    className="text-amber-400 hover:text-amber-300 font-inter flex items-center"
+                >
+                    ← Back
+                </button>
+                <h3 className="font-cinzel text-2xl text-amber-500">Your Information</h3>
+                <div className="w-6"></div>
+            </div>
+
+            <div className="bg-gray-800/30 rounded-xl p-4 mb-6 border border-amber-500/20 backdrop-blur-sm">
+                <div className="text-center">
+                    <div className="font-cinzel text-amber-500 text-lg mb-2">{selectedService?.name}</div>
+                    <div className="text-amber-200 font-inter">
+                        {formatDate(selectedDate)} at {selectedTime}
+                    </div>
+                    <div className="text-gray-300 font-inter mt-2">${selectedService?.price}</div>
+                </div>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-amber-200 mb-2 font-inter text-sm">First Name</label>
+                        <UncontrolledInput
+                            type="text"
+                            name="firstName"
+                            defaultValue=""
+                            onValueChange={handleFieldChange}
+                            required
+                            className="w-full bg-gray-700/50 border border-amber-500/30 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 backdrop-blur-sm"
+                            placeholder="John"
+                            autoComplete="given-name"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-amber-200 mb-2 font-inter text-sm">Last Name</label>
+                        <UncontrolledInput
+                            type="text"
+                            name="lastName"
+                            defaultValue=""
+                            onValueChange={handleFieldChange}
+                            required
+                            className="w-full bg-gray-700/50 border border-amber-500/30 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 backdrop-blur-sm"
+                            placeholder="Doe"
+                            autoComplete="family-name"
+                        />
+                    </div>
+                </div>
+
+                <div>
+                    <label className="block text-amber-200 mb-2 font-inter text-sm">Email</label>
+                    <UncontrolledInput
+                        type="email"
+                        name="email"
+                        defaultValue=""
+                        onValueChange={handleFieldChange}
+                        required
+                        className="w-full bg-gray-700/50 border border-amber-500/30 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 backdrop-blur-sm"
+                        placeholder="your.email@example.com"
+                        autoComplete="email"
+                    />
+                </div>
+
+                <div>
+                    <label className="block text-amber-200 mb-2 font-inter text-sm">Phone (Optional)</label>
+                    <UncontrolledInput
+                        type="tel"
+                        name="phone"
+                        defaultValue=""
+                        onValueChange={handleFieldChange}
+                        className="w-full bg-gray-700/50 border border-amber-500/30 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 backdrop-blur-sm"
+                        placeholder="+1 (555) 123-4567"
+                        autoComplete="tel"
+                    />
+                </div>
+
+                {message && (
+                    <div className={`p-3 rounded-lg backdrop-blur-sm ${
+                        message.type === 'success'
+                            ? 'bg-green-900/50 text-green-200 border border-green-500/30'
+                            : 'bg-red-900/50 text-red-200 border border-red-500/30'
+                    }`}>
+                        {message.text}
+                    </div>
+                )}
+
+                <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full bg-amber-500 text-gray-900 py-4 rounded-lg font-semibold font-inter hover:bg-amber-400 transition-all duration-300 disabled:opacity-50 transform hover:scale-105 backdrop-blur-sm"
+                >
+                    {isSubmitting ? 'Confirming...' : 'Confirm Booking'}
+                </button>
+            </form>
+        </div>
+    );
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-            <div className="bg-gray-800 rounded-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+            <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto border border-amber-500/20">
                 <div className="p-6">
-                    <div className="flex justify-between items-center mb-6">
-                        <h3 className="font-cinzel text-2xl text-amber-500">Book Your Session</h3>
+                    {/* Header avec progression */}
+                    <div className="flex justify-between items-center mb-8">
                         <button
                             onClick={onClose}
-                            className="text-gray-400 hover:text-white text-2xl"
+                            className="text-amber-400 hover:text-amber-300 text-xl transition-colors"
                         >
                             ×
                         </button>
+                        <div className="flex items-center space-x-2">
+                            {[1, 2, 3, 4].map(s => (
+                                <div
+                                    key={s}
+                                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                                        step >= s ? 'bg-amber-500' : 'bg-amber-500/30'
+                                    }`}
+                                />
+                            ))}
+                        </div>
+                        <button
+                            onClick={resetSelection}
+                            className="text-amber-400 hover:text-amber-300 font-inter text-sm"
+                        >
+                            Restart
+                        </button>
                     </div>
 
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <div>
-                            <label className="block text-gray-300 mb-2">Full Name</label>
-                            <input
-                                type="text"
-                                name="name"
-                                value={formData.name}
-                                onChange={handleChange}
-                                required
-                                className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
-                                placeholder="Enter your full name"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-gray-300 mb-2">Email</label>
-                            <input
-                                type="email"
-                                name="email"
-                                value={formData.email}
-                                onChange={handleChange}
-                                required
-                                className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
-                                placeholder="your.email@example.com"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-gray-300 mb-2">Service Type</label>
-                            <select
-                                name="service"
-                                value={formData.service}
-                                onChange={handleChange}
-                                required
-                                className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
-                            >
-                                <option value="portrait">Portrait Session - $450</option>
-                                <option value="artistic">Artistic Series - $850</option>
-                                <option value="editorial">Editorial Project - $1,200</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-gray-300 mb-2">Date</label>
-                            <input
-                                type="date"
-                                name="date"
-                                value={formData.date}
-                                onChange={handleChange}
-                                required
-                                min={new Date().toISOString().split('T')[0]}
-                                className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-gray-300 mb-2">Time</label>
-                            <select
-                                name="time"
-                                value={formData.time}
-                                onChange={handleChange}
-                                required
-                                className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
-                            >
-                                <option value="">Select a time</option>
-                                {timeSlots.map(time => (
-                                    <option key={time} value={time}>{time}</option>
-                                ))}
-                            </select>
-                        </div>
-
-                        {message && (
-                            <div className={`p-3 rounded-lg ${
-                                message.type === 'success'
-                                    ? 'bg-green-900 text-green-200'
-                                    : 'bg-red-900 text-red-200'
-                            }`}>
-                                {message.text}
-                            </div>
-                        )}
-
-                        <div className="flex gap-3 pt-4">
-                            <button
-                                type="button"
-                                onClick={onClose}
-                                disabled={isSubmitting}
-                                className="flex-1 bg-gray-600 text-white py-3 rounded-lg hover:bg-gray-500 transition-all duration-300 disabled:opacity-50"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="submit"
-                                disabled={isSubmitting}
-                                className="flex-1 bg-amber-500 text-gray-900 py-3 rounded-lg font-semibold hover:bg-amber-400 transition-all duration-300 disabled:opacity-50 transform hover:scale-105"
-                            >
-                                {isSubmitting ? 'Booking...' : 'Confirm Booking'}
-                            </button>
-                        </div>
-                    </form>
+                    {/* Contenu des étapes */}
+                    {step === 1 && <Step1 />}
+                    {step === 2 && <Step2 />}
+                    {step === 3 && <Step3 />}
+                    {step === 4 && <Step4 />}
                 </div>
             </div>
         </div>
@@ -218,39 +557,155 @@ export default function Pricing() {
     const [isBooking, setIsBooking] = useState(false);
 
     return (
-        <div className="min-h-screen bg-gray-900 text-white">
-            <Navbar />
-            <header className="pricing-hero min-h-[50vh] flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900">
-                <div className="pricing-hero-content text-center">
-                    <h1 className="font-cinzel text-4xl md:text-6xl text-amber-500 mb-4">
-                        Investment in Art
-                    </h1>
-                    <p className="text-gray-300 text-xl">Each photograph tells a story, each story has its value</p>
+        <div className="min-h-screen bg-gray-900 text-white relative overflow-hidden">
+            {/* Canvas pour les fireflies */}
+            <div className="absolute inset-0 pointer-events-none" id="fireflyCanvas"></div>
 
-                    {/* Bouton pour ouvrir le formulaire de réservation */}
+            <Navbar />
+
+            {/* Hero Section avec l'ancien style */}
+            <header className="pricing-hero">
+                <div className="pricing-hero-content">
+                    <h1 className="font-cinzel">Investment in Art</h1>
+                    <p>Each photograph tells a story, each story has its value</p>
+
                     <button
                         onClick={() => setIsBooking(true)}
-                        className="mt-8 bg-amber-500 text-gray-900 px-8 py-3 rounded-lg font-semibold hover:bg-amber-400 transition-all duration-300 transform hover:scale-105"
+                        className="booking-btn primary mt-8"
                     >
                         Book Your Session
                     </button>
                 </div>
+                <div className="section-overlay absolute inset-0"></div>
             </header>
 
-            {/* Modal de réservation */}
-            {isBooking && (
-                <BookingModal onClose={() => setIsBooking(false)} />
-            )}
+            {/* Section des tarifs avec l'ancien style */}
+            <section className="pricing-section">
+                <div className="container">
+                    <h2 className="section-title font-cinzel">Photography Services</h2>
 
-            {/* Section des tarifs existante */}
-            <section className="py-16">
-                <div className="container mx-auto px-4">
-                    <h2 className="font-cinzel text-3xl text-amber-500 text-center mb-12">
-                        Photography Services
-                    </h2>
-                    {/* Vos cartes de prix existantes ici */}
+                    <div className="pricing-cards">
+                        {/* Carte Portrait */}
+                        <div className="pricing-card" onClick={() => setIsBooking(true)}>
+                            <div className="pricing-header">
+                                <h3 className="font-cinzel">Portrait Session</h3>
+                                <div className="price font-cinzel">$450</div>
+                                <p className="price-description">Individual & Couples</p>
+                            </div>
+                            <div className="pricing-features">
+                                <ul>
+                                    <li>2-hour photoshoot</li>
+                                    <li>30 professionally edited images</li>
+                                    <li>Online gallery</li>
+                                    <li>Print release</li>
+                                    <li>2 outfit changes</li>
+                                </ul>
+                            </div>
+                            <button className="pricing-btn">Book Session</button>
+                        </div>
+
+                        {/* Carte Artistic Series - Featured */}
+                        <div className="pricing-card featured" onClick={() => setIsBooking(true)}>
+                            <div className="featured-badge">Most Popular</div>
+                            <div className="pricing-header">
+                                <h3 className="font-cinzel">Artistic Series</h3>
+                                <div className="price font-cinzel">$850</div>
+                                <p className="price-description">Conceptual & Fine Art</p>
+                            </div>
+                            <div className="pricing-features">
+                                <ul>
+                                    <li>4-hour creative session</li>
+                                    <li>50 professionally edited images</li>
+                                    <li>Concept development</li>
+                                    <li>Premium retouching</li>
+                                    <li>Online gallery + USB delivery</li>
+                                    <li>2 large format prints (16x24)</li>
+                                </ul>
+                            </div>
+                            <button className="pricing-btn featured-btn">Book Session</button>
+                        </div>
+
+                        {/* Carte Editorial Project */}
+                        <div className="pricing-card" onClick={() => setIsBooking(true)}>
+                            <div className="pricing-header">
+                                <h3 className="font-cinzel">Editorial Project</h3>
+                                <div className="price font-cinzel">$1,200</div>
+                                <p className="price-description">Commercial & Publication</p>
+                            </div>
+                            <div className="pricing-features">
+                                <ul>
+                                    <li>Full day shoot (8 hours)</li>
+                                    <li>80+ professionally edited images</li>
+                                    <li>Creative direction</li>
+                                    <li>Advanced retouching</li>
+                                    <li>Commercial usage rights</li>
+                                    <li>Priority delivery</li>
+                                </ul>
+                            </div>
+                            <button className="pricing-btn">Book Session</button>
+                        </div>
+                    </div>
                 </div>
             </section>
+
+            {/* Services additionnels avec l'ancien style */}
+            <section className="additional-services">
+                <div className="container">
+                    <h2 className="section-title font-cinzel">Additional Services</h2>
+                    <div className="services-grid">
+                        <div className="service-item">
+                            <h3 className="font-cinzel">Print Collections</h3>
+                            <p>Fine art prints on premium archival paper</p>
+                            <div className="service-price font-cinzel">Starting at $150</div>
+                        </div>
+                        <div className="service-item">
+                            <h3 className="font-cinzel">Digital Enhancement</h3>
+                            <p>Advanced retouching for existing images</p>
+                            <div className="service-price font-cinzel">$75/image</div>
+                        </div>
+                        <div className="service-item">
+                            <h3 className="font-cinzel">Album Design</h3>
+                            <p>Custom designed photo books</p>
+                            <div className="service-price font-cinzel">Starting at $300</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Section Réservation avec l'ancien style */}
+            <section className="booking-section">
+                <div className="container">
+                    <div className="booking-content">
+                        <h2 className="font-cinzel">Ready to Create Magic?</h2>
+                        <p>Let's discuss your vision and create something extraordinary together.</p>
+                        <div className="booking-buttons">
+                            <button
+                                onClick={() => setIsBooking(true)}
+                                className="booking-btn primary"
+                            >
+                                Start Your Project
+                            </button>
+                            <a
+                                href="mailto:hello@fireflyofsoul.com"
+                                className="booking-btn secondary"
+                            >
+                                Email Inquiry
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Footer avec l'ancien style */}
+            <footer className="footer-pricing">
+                <div className="logo font-cinzel">Firefly of Soul</div>
+                <p>&copy; 2025 Firefly of Soul Studio. All moments preserved.</p>
+            </footer>
+
+            {/* Wizard de réservation */}
+            {isBooking && (
+                <BookingWizard onClose={() => setIsBooking(false)} />
+            )}
         </div>
     );
 }

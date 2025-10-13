@@ -1,0 +1,407 @@
+/* Todo : app/styles/pricing.css */
+/* Pricing Page Specific Styles */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Inter:wght@300;400&display=swap');
+
+/* Variables CSS modernes */
+:root {
+    --deep-night: #0D0D0D;
+    --dark-blue: #121212;
+    --warm-gold: #FFD580;
+    --amber-light: #FFCA28;
+    --soft-gray: #e0e0e0;
+    --title-font: 'Cinzel', serif;
+    --text-font: 'Inter', sans-serif;
+}
+
+/* Styles spécifiques à la page Pricing */
+.pricing-hero {
+    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.3)),
+    url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80');
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    min-height: 50vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.pricing-hero-content {
+    text-align: center;
+    z-index: 2;
+    padding: 2rem;
+}
+
+.pricing-hero-content h1 {
+    font-family: var(--title-font);
+    font-size: clamp(1.75rem, 4.5vw, 4rem);
+    color: var(--warm-gold);
+    margin-bottom: clamp(0.75rem, 2vw, 1rem);
+}
+
+.pricing-hero-content p {
+    font-size: clamp(1rem, 1.8vw, 1.2rem);
+    color: var(--soft-gray);
+    opacity: 0.9;
+}
+
+/* Section Pricing */
+.pricing-section {
+    padding: clamp(40px, 6vw, 80px) 0;
+    background: var(--dark-blue);
+}
+
+.pricing-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+    gap: clamp(0.8rem, 2vw, 2rem);
+    margin-top: clamp(1rem, 3vw, 3rem);
+}
+
+.pricing-card {
+    background: var(--deep-night);
+    border-radius: 12px;
+    padding: clamp(1.25rem, 2.5vw, 2.5rem) clamp(1rem, 2vw, 2rem);
+    position: relative;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 213, 128, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.pricing-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(255, 213, 128, 0.1);
+    border-color: rgba(255, 213, 128, 0.3);
+}
+
+.pricing-card.featured {
+    border: 2px solid var(--amber-light);
+    transform: scale(1.05);
+    background: linear-gradient(135deg, var(--deep-night) 0%, rgba(255, 202, 40, 0.1) 100%);
+}
+
+.pricing-card.featured:hover {
+    transform: scale(1.05) translateY(-5px);
+}
+
+/* Badge Featured */
+.featured-badge {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--amber-light);
+    color: var(--deep-night);
+    padding: clamp(0.35rem, 0.9vw, 0.5rem) clamp(1rem, 2vw, 1.5rem);
+    border-radius: 20px;
+    font-family: var(--title-font);
+    font-size: clamp(0.8rem, 1.4vw, 0.9rem);
+    font-weight: 600;
+    z-index: 10;
+}
+
+/* Header des cartes de prix */
+.pricing-header {
+    text-align: center;
+    margin-bottom: clamp(1rem, 2.5vw, 2rem);
+    padding-bottom: clamp(1rem, 2.5vw, 2rem);
+    border-bottom: 1px solid rgba(255, 213, 128, 0.2);
+}
+
+.pricing-header h3 {
+    font-family: var(--title-font);
+    color: var(--warm-gold);
+    font-size: clamp(1rem, 2vw, 1.5rem);
+    margin-bottom: clamp(0.5rem, 1.5vw, 1rem);
+}
+
+.pricing-header .price {
+    font-family: var(--title-font);
+    font-size: clamp(2rem, 6vw, 3rem);
+    color: var(--amber-light);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.pricing-header .price-description {
+    color: var(--soft-gray);
+    opacity: 0.8;
+    font-size: clamp(0.85rem, 1.5vw, 0.9rem);
+}
+
+/* Features list */
+.pricing-features {
+    margin-bottom: clamp(0.75rem, 2vw, 2rem);
+}
+
+.pricing-features ul {
+    list-style: none;
+    padding: 0;
+}
+
+.pricing-features li {
+    padding: clamp(0.5rem, 1.6vw, 0.75rem) 0;
+    color: var(--soft-gray);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    align-items: center;
+    font-family: var(--text-font);
+}
+
+.pricing-features li:last-child {
+    border-bottom: none;
+}
+
+.pricing-features li::before {
+    content: "✓";
+    color: var(--amber-light);
+    margin-right: 0.75rem;
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+/* Boutons de prix */
+.pricing-btn {
+    width: 100%;
+    background: transparent;
+    border: 2px solid var(--amber-light);
+    color: var(--amber-light);
+    padding: clamp(0.75rem, 1.8vw, 1rem) clamp(1rem, 2vw, 2rem);
+    font-family: var(--text-font);
+    font-size: clamp(0.95rem, 1.6vw, 1rem);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+.pricing-btn:hover {
+    background: var(--amber-light);
+    color: var(--deep-night);
+    transform: translateY(-2px);
+}
+
+.pricing-btn.featured-btn {
+    background: var(--amber-light);
+    color: var(--deep-night);
+}
+
+.pricing-btn.featured-btn:hover {
+    background: #e6b400;
+    border-color: #e6b400;
+}
+
+/* Services additionnels */
+.additional-services {
+    padding: clamp(30px, 5vw, 80px) 0;
+    background: var(--deep-night);
+}
+
+.services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
+    gap: clamp(0.75rem, 2vw, 2rem);
+    margin-top: clamp(1rem, 2.5vw, 3rem);
+}
+
+.service-item {
+    background: var(--dark-blue);
+    padding: clamp(1rem, 2vw, 2rem);
+    border-radius: 8px;
+    text-align: center;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 213, 128, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.service-item:hover {
+    transform: translateY(-3px);
+    border-color: rgba(255, 213, 128, 0.3);
+}
+
+.service-item h3 {
+    font-family: var(--title-font);
+    color: var(--warm-gold);
+    font-size: clamp(1rem, 2vw, 1.3rem);
+    margin-bottom: clamp(0.5rem, 1.6vw, 1rem);
+}
+
+.service-item p {
+    color: var(--soft-gray);
+    margin-bottom: clamp(0.75rem, 1.8vw, 1.5rem);
+    line-height: 1.6;
+    font-family: var(--text-font);
+}
+
+.service-price {
+    font-family: var(--title-font);
+    color: var(--amber-light);
+    font-size: clamp(1rem, 2vw, 1.2rem);
+    font-weight: 600;
+}
+
+/* Section Réservation */
+.booking-section {
+    padding: clamp(40px, 6vw, 100px) 0;
+    background: linear-gradient(135deg, var(--dark-blue) 0%, var(--deep-night) 100%);
+    text-align: center;
+}
+
+.booking-content {
+    max-width: min(600px, 90%);
+    margin: 0 auto;
+}
+
+.booking-content h2 {
+    font-family: var(--title-font);
+    color: var(--warm-gold);
+    font-size: clamp(1.5rem, 3.5vw, 2.5rem);
+    margin-bottom: clamp(0.75rem, 2vw, 1rem);
+}
+
+.booking-content p {
+    color: var(--soft-gray);
+    font-size: clamp(0.95rem, 1.6vw, 1.1rem);
+    margin-bottom: clamp(1rem, 2.5vw, 2rem);
+    opacity: 0.9;
+    font-family: var(--text-font);
+}
+
+.booking-buttons {
+    display: flex;
+    gap: clamp(0.5rem, 1.6vw, 1rem);
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.booking-btn {
+    padding: clamp(0.75rem, 1.8vw, 1rem) clamp(1rem, 2vw, 2rem);
+    font-family: var(--text-font);
+    font-size: clamp(0.95rem, 1.6vw, 1rem);
+    text-decoration: none;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    border: 2px solid transparent;
+}
+
+.booking-btn.primary {
+    background: var(--amber-light);
+    color: var(--deep-night);
+    border-color: var(--amber-light);
+}
+
+.booking-btn.primary:hover {
+    background: #e6b400;
+    border-color: #e6b400;
+    transform: translateY(-2px);
+}
+
+.booking-btn.secondary {
+    background: transparent;
+    color: var(--amber-light);
+    border: 2px solid var(--amber-light);
+}
+
+.booking-btn.secondary:hover {
+    background: var(--amber-light);
+    color: var(--deep-night);
+    transform: translateY(-2px);
+}
+
+/* Footer Pricing */
+.footer-pricing {
+    text-align: center;
+    padding: clamp(1.5rem, 3.5vw, 3rem) 0;
+    border-top: 1px solid rgba(255, 213, 128, 0.1);
+    background: var(--deep-night);
+}
+
+.footer-pricing .logo {
+    font-family: var(--title-font);
+    font-size: clamp(1rem, 1.8vw, 1.5rem);
+    color: var(--warm-gold);
+    margin-bottom: clamp(0.5rem, 1.8vw, 1rem);
+}
+
+.footer-pricing p {
+    opacity: 0.7;
+    font-size: clamp(0.9rem, 1.6vw, 1rem);
+    color: var(--soft-gray);
+    font-family: var(--text-font);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .pricing-cards {
+        grid-template-columns: 1fr;
+        gap: clamp(1rem, 2.5vw, 1.5rem);
+    }
+
+    .pricing-card.featured {
+        transform: none;
+    }
+
+    .pricing-card.featured:hover {
+        transform: translateY(-5px);
+    }
+
+    .booking-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .booking-btn {
+        width: 100%;
+        max-width: min(300px, 100%);
+    }
+}
+
+@media (max-width: 480px) {
+    .pricing-card {
+        padding: clamp(1.25rem, 3vw, 2rem) clamp(1rem, 2vw, 1.5rem);
+    }
+
+    .pricing-header .price {
+        font-size: clamp(2rem, 6vw, 2.5rem);
+    }
+
+    .services-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes gentlePulse {
+    0%, 100% {
+        box-shadow: 0 0 15px rgba(255, 213, 128, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 25px rgba(255, 213, 128, 0.5);
+    }
+}
+
+.pricing-card {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.service-item {
+    animation: fadeInUp 0.6s ease-out 0.2s both;
+}
+
+.featured-badge {
+    animation: gentlePulse 2s infinite;
+}

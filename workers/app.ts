@@ -3,7 +3,6 @@ import { Hono } from "hono";
 import { createRequestHandler } from "react-router";
 import { cors } from 'hono/cors'
 
-// Définition de l'interface pour les bindings Cloudflare
 interface Bindings {
     DB: D1Database;
 }
@@ -13,7 +12,6 @@ const app = new Hono<{ Bindings: Bindings }>();
 // Middleware CORS pour toutes les routes API
 app.use('/api/*', cors())
 
-// Fonction utilitaire pour obtenir le message d'erreur
 function getErrorMessage(error: unknown): string {
     if (error instanceof Error) {
         return error.message;
@@ -26,23 +24,23 @@ app.post('/api/reservations', async (c) => {
     const db = c.env.DB;
 
     try {
-        const { name, email, date, time, service } = await c.req.json();
+        const { firstName, lastName, email, phone, service, date, time } = await c.req.json();
 
         // Validation des données
-        if (!name || !email || !date || !time || !service) {
-            return c.json({ error: "Tous les champs sont requis" }, 400);
+        if (!firstName || !lastName || !email || !service || !date || !time) {
+            return c.json({ error: "All required fields must be filled" }, 400);
         }
 
         // Validation du format de date
         const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
         if (!dateRegex.test(date)) {
-            return c.json({ error: "Format de date invalide" }, 400);
+            return c.json({ error: "Invalid date format" }, 400);
         }
 
         // Validation du format de temps
         const timeRegex = /^\d{2}:\d{2}$/;
         if (!timeRegex.test(time)) {
-            return c.json({ error: "Format de temps invalide" }, 400);
+            return c.json({ error: "Invalid time format" }, 400);
         }
 
         // Vérification des créneaux disponibles
@@ -51,24 +49,31 @@ app.post('/api/reservations', async (c) => {
         ).bind(date, time).first();
 
         if (existing) {
-            return c.json({ error: "Créneau déjà réservé" }, 409);
+            return c.json({ error: "This time slot is already booked" }, 409);
         }
 
         // Insertion de la réservation
         const result = await db.prepare(
-            "INSERT INTO reservations (customer_name, customer_email, reservation_date, reservation_time, service_type) VALUES (?, ?, ?, ?, ?)"
-        ).bind(name, email, date, time, service).run();
+            "INSERT INTO reservations (customer_name, customer_email, customer_phone, reservation_date, reservation_time, service_type) VALUES (?, ?, ?, ?, ?, ?)"
+        ).bind(
+            `${firstName} ${lastName}`,
+            email,
+            phone || null,
+            date,
+            time,
+            service
+        ).run();
 
         return c.json({
             success: true,
             id: result.meta.last_row_id,
-            message: "Réservation confirmée !"
+            message: "Booking confirmed! We'll contact you soon."
         }, 201);
 
     } catch (error) {
-        console.error('Erreur API:', error);
+        console.error('API Error:', error);
         return c.json({
-            error: "Erreur serveur: " + getErrorMessage(error)
+            error: "Server error: " + getErrorMessage(error)
         }, 500);
     }
 });
@@ -85,9 +90,9 @@ app.get('/api/reservations', async (c) => {
         return c.json(result.results);
 
     } catch (error) {
-        console.error('Erreur API:', error);
+        console.error('API Error:', error);
         return c.json({
-            error: "Erreur serveur: " + getErrorMessage(error)
+            error: "Server error: " + getErrorMessage(error)
         }, 500);
     }
 });
