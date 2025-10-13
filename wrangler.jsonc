@@ -1,0 +1,22 @@
+// Todo : wrangler.jsonc
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "fireflyofsoulstudio",
+	"compatibility_date": "2025-10-08",
+	"main": "./workers/app.ts",
+	"vars": {
+		"VALUE_FROM_CLOUDFLARE": "Hello from Hono/CF"
+	},
+	"observability": {
+		"enabled": true
+	},
+
+	"upload_source_maps": true,
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "firefly-reservations",
+			"database_id": "4648ffba-4dc7-4edd-8c7d-91182a2e2c4e"
+		}
+	]
+}
