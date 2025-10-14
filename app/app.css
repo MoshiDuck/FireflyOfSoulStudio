@@ -1,3 +1,4 @@
+/* Todo : app/app.css */
 @import "tailwindcss" source(".");
 @import "./styles/navbar.css";
 @import "./styles/pricing.css";
