@@ -1,4 +1,11 @@
-import { Link, useLocation } from "react-router";
+// =========================
+// File: corrections / Navbar (import fix)
+// Path: app/components/navbar.tsx (MODIFIE)
+// =========================
+
+// NOTE: votre import d'origine utilisait "react-router" — cela doit être "react-router-dom"
+
+import { Link, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 
 export function Navbar() {
@@ -14,8 +21,8 @@ export function Navbar() {
         const handleScroll = () => {
             setIsScrolled(window.scrollY > 20);
         };
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
+        window.addEventListener("scroll", handleScroll);
+        return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
     const navItems = [
@@ -23,7 +30,6 @@ export function Navbar() {
         { path: "/gallery", label: "Gallery" },
         { path: "/pricing", label: "Pricing" }
     ];
-
     return (
         <>
             {/* Navigation principale */}
@@ -41,7 +47,6 @@ export function Navbar() {
                             <div className="navbar-brand-sub">STUDIO</div>
                         </div>
                     </Link>
-
                     {/* Navigation desktop */}
                     <ul className="navbar-nav">
                         {navItems.map((item) => (
@@ -55,7 +60,6 @@ export function Navbar() {
                             </li>
                         ))}
                     </ul>
-
                     {/* Bouton menu mobile */}
                     <button
                         className={`navbar-toggle ${isMobileMenuOpen ? 'active' : ''}`}
@@ -68,7 +72,6 @@ export function Navbar() {
                     </button>
                 </div>
             </nav>
-
             {/* Menu mobile */}
             <div className={`navbar-mobile ${isMobileMenuOpen ? 'active' : ''}`}>
                 <div
@@ -100,7 +103,6 @@ export function Navbar() {
                             </Link>
                         ))}
                     </nav>
-
                     <div className="navbar-mobile-footer">
                         <div className="navbar-mobile-brand">FireflyOfSoulStudio</div>
                         <div className="navbar-mobile-tagline">Capturing souls through light</div>

@@ -1,15 +1,20 @@
-// Todo : app/root.tsx
+// =========================
+// File: app/root.tsx (MODIFIE)
+// =========================
+
 import {
     isRouteErrorResponse,
     Links,
     Meta,
-    Outlet,
     Scripts,
     ScrollRestoration,
 } from "react-router";
 
 import type { Route } from "./+types/root";
-import "./app.css";
+import "~/styles/app.css";
+
+
+import AnimatedOutlet from "~/components/AnimatedOutlet"; // <-- nouveau
 
 export const links: Route.LinksFunction = () => [
     { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -42,8 +47,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
     );
 }
 
+// Remplace Outlet par AnimatedOutlet — l'ensemble du routage passera par AnimatePresence
 export default function App() {
-    return <Outlet />;
+    return <AnimatedOutlet />;
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
@@ -68,8 +74,8 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
             <p>{details}</p>
             {stack && (
                 <pre className="w-full p-4 overflow-x-auto">
-          <code>{stack}</code>
-        </pre>
+<code>{stack}</code>
+</pre>
             )}
         </main>
     );

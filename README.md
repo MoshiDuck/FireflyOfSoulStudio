@@ -52,7 +52,7 @@ https://github.com/MoshiDuck/FireflyOfSoulStudio
     ```
 2. Commit
     ```bash
-    git commit -m "[FAIT] - Remise en place de l'ancien style "
+    git commit -m "[FAIT] - mise en place animation simple "
     ```
 
 3. Version

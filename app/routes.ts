@@ -5,5 +5,4 @@ export default [
     index("routes/home.tsx"),
     route("gallery", "routes/gallery.tsx"),
     route("pricing", "routes/pricing.tsx"),
-    // Supprimez cette ligne : route("api/reservations", "functions/api/reservations.js")
 ] satisfies RouteConfig;
