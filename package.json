@@ -17,11 +17,11 @@
     "publish": true
   },
   "dependencies": {
-    "framer-motion": "^12.23.24",
     "git": "^0.1.5",
     "gsap": "^3.13.0",
     "hono": "4.8.2",
     "isbot": "5.1.26",
+    "motion": "^12.23.24",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "react-router": "7.6.3",

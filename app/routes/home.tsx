@@ -1,44 +1,90 @@
-// =========================
-// File: app/routes/home.tsx (MODIFIE)
-// =========================
-
+// Todo : app/routes/home.tsx
 import type { Route } from "./+types/home";
 import { Navbar } from "~/components/navbar";
-import { AnimatedLayout } from "~/components/AnimatedLayout";
+import { FireflyCanvas } from "~/components/FireflyCanvas";
+import { PageTransition } from "~/components/PageTransition";
 
 export function meta({}: Route.MetaArgs) {
     return [
         { title: "Firefly of Soul Studio | Capturing Souls Through Light" },
-        { name: "description", content: "Professional photography studio capturing souls through light" },
+        {
+            name: "description",
+            content: "Professional photography studio capturing souls through light",
+        },
     ];
 }
 
+const galleryImages = [
+    {
+        src: "https://images.unsplash.com/photo-1500462918059-b1a0cb512f1d?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+        title: "Golden Hour",
+    },
+    {
+        src: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+        title: "Wilderness Soul",
+    },
+    {
+        src: "https://images.unsplash.com/photo-1505144808419-1957a94ca61e?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+        title: "Mountain Light",
+    },
+    {
+        src: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+        title: "Forest Dream",
+    },
+];
+
 export default function Home() {
     return (
-        <AnimatedLayout>
+        <PageTransition>
             <div className="min-h-screen bg-gray-900 text-white">
+                <FireflyCanvas />
                 <Navbar />
 
                 {/* Hero Section */}
-                <header className="home-hero min-h-screen flex items-center justify-center relative">
-                    <div className="home-hero-content text-center">
-                        <h1 className="hero-title font-cinzel text-4xl md:text-7xl text-amber-500 mb-4">
+                <header className="hero">
+                    <div className="home-hero-content">
+                        <h1 className="hero-title fade-in-up">
                             Capturing souls through light
                         </h1>
+
+                        <div className="mt-8 fade-in-up delay-1">
+                            <div className="w-20 h-20 mx-auto border-2 border-amber-500 rounded-full flex items-center justify-center animate-pulse">
+                                <svg
+                                    className="w-8 h-8 text-amber-500"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M19 14l-7 7m0 0l-7-7m7 7V3"
+                                    />
+                                </svg>
+                            </div>
+                        </div>
                     </div>
                 </header>
+
                 {/* About Section */}
-                <section id="about" className="about-section section">
+                <section id="about" className="section about">
                     <div className="container">
                         <div className="about-content">
-                            <div className="about-text">
-                                <h2 className="font-cinzel text-3xl md:text-4xl text-amber-500 mb-6">Through the Lens</h2>
+                            <div className="about-text fade-in-left">
+                                <h2 className="section-title text-left mb-8">Through the Lens</h2>
+                                <p className="text-gray-300 text-lg leading-relaxed mb-6">
+                                    In the silence of the night, where light dances with shadows,
+                                    I find the truth of a moment. My camera is not a tool, but an
+                                    extension of the soul.
+                                </p>
                                 <p className="text-gray-300 text-lg leading-relaxed">
-                                    In the silence of the night, where light dances with shadows, I find the truth of a moment.
-                                    My camera is not a tool, but an extension of the soul.
+                                    Every photograph tells a story that words cannot express.
+                                    Through the interplay of shadow and illumination, we capture
+                                    the essence of what it means to be truly alive.
                                 </p>
                             </div>
-                            <div className="portrait-wrapper">
+                            <div className="portrait-wrapper fade-in-right hover-lift">
                                 <img
                                     src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80"
                                     alt="Portrait du photographe"
@@ -48,51 +94,61 @@ export default function Home() {
                         </div>
                     </div>
                 </section>
+
                 {/* Gallery Preview Section */}
-                <section id="gallery" className="gallery-section section">
+                <section id="gallery" className="section gallery bg-dark-blue">
                     <div className="container">
-                        <h2 className="section-title font-cinzel text-3xl md:text-4xl text-amber-500 mb-12 text-center">
-                            Moments Captured
-                        </h2>
+                        <h2 className="section-title fade-in-up">Moments Captured</h2>
                         <div className="gallery-grid">
-                            {[
-                                { src: "https://images.unsplash.com/photo-1500462918059-b1a0cb512f1d?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80", title: "Golden Hour" },
-                                { src: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80", title: "Wilderness Soul" },
-                                { src: "https://images.unsplash.com/photo-1505144808419-1957a94ca61e?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80", title: "Mountain Light" },
-                                { src: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80", title: "Forest Dream" }
-                            ].map((image, index) => (
-                                <div key={index} className="gallery-item group">
-                                    <img src={image.src} alt={image.title} className="group-hover:scale-105 transition-transform duration-300" />
+                            {galleryImages.map((image, index) => (
+                                <div
+                                    key={index}
+                                    className="gallery-item group hover-lift-smooth fade-in-up"
+                                    style={{ animationDelay: `${index * 0.1}s` }}
+                                >
+                                    <img
+                                        src={image.src}
+                                        alt={image.title}
+                                        className="group-hover:scale-105"
+                                    />
                                     <div className="image-overlay group-hover:translate-y-0">
-                                        <h3 className="font-cinzel text-amber-500">{image.title}</h3>
+                                        <h3 className="font-cinzel text-amber-500 text-xl">{image.title}</h3>
                                     </div>
                                 </div>
                             ))}
                         </div>
                     </div>
                 </section>
-                {/* Philosophy Section */}
-                <section id="philosophy" className="philosophy-section section">
+
+                {/* Philosophy Section - NOUVELLE SECTION */}
+                <section id="philosophy" className="section philosophy">
                     <div className="container">
                         <div className="philosophy-text">
-                            <p className="philosophy-line font-cinzel text-2xl md:text-4xl text-amber-500 text-center">
+                            <p className="philosophy-line fade-in-up">
                                 Every shadow holds a story waiting for its light.
                             </p>
-                            <p className="philosophy-line font-cinzel text-2xl md:text-4xl text-amber-500 text-center">
+                            <p className="philosophy-line fade-in-up delay-1">
                                 In the brief flash of a firefly, eternity is captured.
+                            </p>
+                            <p className="philosophy-line fade-in-up delay-2">
+                                Where darkness meets illumination, souls are revealed.
                             </p>
                         </div>
                     </div>
                 </section>
 
                 {/* Footer */}
-                <footer className="footer-home">
+                <footer className="footer footer-home">
                     <div className="container">
-                        <div className="logo font-cinzel text-2xl text-amber-500 mb-4">Firefly of Soul</div>
-                        <p className="text-gray-400">&copy; 2025 Firefly of Soul Studio. All moments preserved.</p>
+                        <div className="logo font-cinzel text-2xl text-amber-500 mb-4">
+                            Firefly of Soul
+                        </div>
+                        <p className="text-gray-400">
+                            &copy; 2025 Firefly of Soul Studio. All moments preserved.
+                        </p>
                     </div>
                 </footer>
             </div>
-        </AnimatedLayout>
+        </PageTransition>
     );
 }

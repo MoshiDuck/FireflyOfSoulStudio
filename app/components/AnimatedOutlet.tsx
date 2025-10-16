@@ -1,24 +1,24 @@
-// =========================
-// File: app/components/AnimatedOutlet.tsx
-// =========================
+// Todo : app/components/AnimatedOutlet.tsx
+import {Outlet, useLocation} from "react-router";
+import { AnimatePresence, motion } from "motion/react";
+import { PageTransition } from "./PageTransition";
 
-import React, {type JSX} from "react";
-import { AnimatePresence } from "framer-motion";
-import { useLocation, useOutlet } from "react-router-dom";
-
-/**
- * AnimatedOutlet
- * - useOutlet() récupère l'élément de route enfant
- * - React.cloneElement lui donne une key dépendant de la route
- * afin que AnimatePresence puisse animer l'exit/enter correctement.
- */
-export default function AnimatedOutlet(): JSX.Element | null {
+export default function AnimatedOutlet() {
     const location = useLocation();
-    const outlet = useOutlet();
 
     return (
-        <AnimatePresence mode="wait" initial={false}>
-            {outlet && React.cloneElement(outlet, { key: location.pathname })}
+        <AnimatePresence mode="wait">
+            <motion.div
+                key={location.pathname}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+            >
+                <PageTransition>
+                    <Outlet />
+                </PageTransition>
+            </motion.div>
         </AnimatePresence>
     );
 }
