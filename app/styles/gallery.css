@@ -1,0 +1,220 @@
+/* app/styles/gallery.css */
+
+/* Gallery Hero */
+.gallery-hero {
+    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.3)),
+    url('https://images.unsplash.com/photo-1516035069371-29a1b244cc32?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80');
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+/* Albums Section */
+.albums-section {
+    background: var(--dark-blue);
+}
+
+.albums-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.album-card {
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+}
+
+.album-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(255, 213, 128, 0.2);
+}
+
+.album-cover {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 4/3;
+}
+
+.album-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.album-card:hover .album-cover img {
+    transform: scale(1.1);
+}
+
+.album-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 213, 128, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.album-card:hover .album-overlay {
+    opacity: 1;
+}
+
+.album-overlay h3 {
+    color: var(--deep-night);
+    font-family: 'Cinzel', serif;
+    font-size: 1.25rem;
+}
+
+.album-info {
+    padding: 1.5rem;
+}
+
+.album-info h3 {
+    font-family: 'Cinzel', serif;
+    color: var(--warm-gold);
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+}
+
+.album-info p {
+    color: var(--soft-gray);
+    opacity: 0.8;
+    font-size: 0.9rem;
+}
+
+/* Album Photos */
+.album-content-section {
+    background: var(--deep-night);
+}
+
+.album-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 3rem;
+}
+
+.album-header h2 {
+    font-family: 'Cinzel', serif;
+    color: var(--warm-gold);
+    font-size: 2rem;
+}
+
+.back-to-albums {
+    background: rgba(255, 213, 128, 0.1);
+    border: 1px solid rgba(255, 213, 128, 0.3);
+    color: var(--warm-gold);
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Inter', sans-serif;
+}
+
+.back-to-albums:hover {
+    background: rgba(255, 213, 128, 0.2);
+    transform: scale(1.05);
+}
+
+.masonry-grid {
+    columns: 3;
+    gap: 1.5rem;
+}
+
+.masonry-item {
+    break-inside: avoid;
+    margin-bottom: 1.5rem;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.masonry-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(255, 213, 128, 0.15);
+}
+
+.photo-info {
+    background: linear-gradient(transparent 0%, rgba(0, 0, 0, 0.9) 100%);
+    padding: 1.5rem;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+}
+
+.masonry-item:hover .photo-info {
+    transform: translateY(0);
+}
+
+.photo-info h4 {
+    font-family: 'Cinzel', serif;
+    color: var(--warm-gold);
+    font-size: 1.1rem;
+}
+
+/* Footer Gallery */
+.footer-gallery {
+    background: var(--dark-blue);
+    border-top: 1px solid rgba(255, 213, 128, 0.1);
+    padding: 3rem 0;
+    text-align: center;
+}
+
+/* Animations Gallery */
+.hover-lift-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift-photo {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-scale {
+    transition: transform 0.3s ease;
+}
+
+.hover-scale:hover {
+    transform: scale(1.05);
+}
+
+/* Responsive Gallery */
+@media (max-width: 1024px) {
+    .masonry-grid {
+        columns: 2;
+    }
+}
+
+@media (max-width: 768px) {
+    .albums-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .album-header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+
+    .masonry-grid {
+        columns: 1;
+    }
+}
+
+@media (max-width: 480px) {
+    .albums-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .album-info {
+        padding: 1rem;
+    }
+}

@@ -1,7 +1,7 @@
 import type { Route } from "./+types/home";
+import "../styles/gallery.css";
 import { Navbar } from "~/components/navbar";
 import { PageTransition } from "~/components/PageTransition";
-import { FireflyCanvas } from "~/components/FireflyCanvas";
 import { useState } from "react";
 
 export function meta({}: Route.MetaArgs) {
@@ -116,7 +116,6 @@ export default function Gallery() {
     return (
         <PageTransition>
             <div className="min-h-screen bg-gray-900 text-white">
-                <FireflyCanvas />
                 <Navbar />
 
                 {/* Hero Section */}

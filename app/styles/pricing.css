@@ -1,0 +1,292 @@
+/* app/styles/pricing.css */
+
+/* Pricing Hero */
+.pricing-hero {
+    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.3)),
+    url('https://images.unsplash.com/photo-1452587925148-ce544e77e70d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80');
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.pricing-hero-content {
+    text-align: center;
+    z-index: 2;
+    padding: clamp(1rem, 2.5vw, 2rem);
+}
+
+.pricing-hero-content h1 {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(2rem, 6vw, 5rem);
+    color: var(--warm-gold);
+    margin-bottom: clamp(1rem, 3vw, 2rem);
+    font-weight: 400;
+}
+
+.pricing-hero-content p {
+    color: var(--soft-gray);
+    font-size: 1.25rem;
+    margin-bottom: 2rem;
+}
+
+/* Pricing Cards */
+.pricing-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
+    margin-top: 3rem;
+}
+
+.pricing-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 213, 128, 0.2);
+    border-radius: 16px;
+    padding: 2.5rem;
+    position: relative;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.pricing-card.featured {
+    border-color: var(--warm-gold);
+    background: rgba(255, 213, 128, 0.05);
+    transform: scale(1.05);
+}
+
+.featured-badge {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--warm-gold);
+    color: var(--deep-night);
+    padding: 0.5rem 1.5rem;
+    border-radius: 20px;
+    font-family: 'Cinzel', serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.pricing-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.pricing-header h3 {
+    font-family: 'Cinzel', serif;
+    color: var(--warm-gold);
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.price {
+    font-size: 3rem;
+    color: white;
+    margin-bottom: 0.5rem;
+}
+
+.price-description {
+    color: var(--soft-gray);
+    opacity: 0.8;
+}
+
+.pricing-features ul {
+    list-style: none;
+    margin-bottom: 2rem;
+}
+
+.pricing-features li {
+    color: var(--soft-gray);
+    margin-bottom: 1rem;
+    padding-left: 0;
+    display: flex;
+    align-items: flex-start;
+}
+
+.pricing-btn {
+    width: 100%;
+    background: rgba(255, 213, 128, 0.1);
+    border: 1px solid rgba(255, 213, 128, 0.3);
+    color: var(--warm-gold);
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.pricing-btn.featured-btn {
+    background: var(--warm-gold);
+    color: var(--deep-night);
+    font-weight: 600;
+}
+
+.pricing-btn:hover {
+    background: rgba(255, 213, 128, 0.2);
+    transform: translateY(-2px);
+}
+
+.pricing-btn.featured-btn:hover {
+    background: var(--amber-light);
+}
+
+/* Additional Services */
+.additional-services {
+    background: var(--dark-blue);
+}
+
+.services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+    margin-top: 3rem;
+}
+
+.service-item {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 213, 128, 0.1);
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.service-item:hover {
+    border-color: rgba(255, 213, 128, 0.3);
+    transform: translateY(-5px);
+}
+
+.service-item h3 {
+    font-family: 'Cinzel', serif;
+    color: var(--warm-gold);
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.service-item p {
+    color: var(--soft-gray);
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+}
+
+.service-price {
+    color: var(--warm-gold);
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+/* Booking Section */
+.booking-section {
+    background: linear-gradient(135deg, var(--deep-night) 0%, var(--dark-blue) 100%);
+    text-align: center;
+}
+
+.booking-content {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.booking-content h2 {
+    font-family: 'Cinzel', serif;
+    color: var(--warm-gold);
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.booking-content p {
+    color: var(--soft-gray);
+    font-size: 1.125rem;
+    margin-bottom: 2rem;
+    line-height: 1.6;
+}
+
+.booking-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.booking-btn {
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    min-width: 160px;
+}
+
+.booking-btn.primary {
+    background: var(--warm-gold);
+    color: var(--deep-night);
+}
+
+.booking-btn.secondary {
+    background: transparent;
+    color: var(--warm-gold);
+    border: 1px solid var(--warm-gold);
+}
+
+.booking-btn.primary:hover {
+    background: var(--amber-light);
+}
+
+.booking-btn.secondary:hover {
+    background: rgba(255, 213, 128, 0.1);
+}
+
+/* Footer Pricing */
+.footer-pricing {
+    background: var(--dark-blue);
+    border-top: 1px solid rgba(255, 213, 128, 0.1);
+    padding: 3rem 0;
+    text-align: center;
+}
+
+/* Responsive Pricing */
+@media (max-width: 1024px) {
+    .pricing-card.featured {
+        transform: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .pricing-cards {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .pricing-card {
+        padding: 2rem;
+    }
+
+    .booking-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .booking-btn {
+        width: 100%;
+        max-width: 300px;
+    }
+}
+
+@media (max-width: 480px) {
+    .pricing-card {
+        padding: 1.5rem;
+    }
+
+    .price {
+        font-size: 2.5rem;
+    }
+
+    .services-grid {
+        grid-template-columns: 1fr;
+    }
+}

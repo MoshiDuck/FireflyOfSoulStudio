@@ -1,7 +1,7 @@
 // Todo : app/routes/home.tsx
 import type { Route } from "./+types/home";
 import { Navbar } from "~/components/navbar";
-import { FireflyCanvas } from "~/components/FireflyCanvas";
+import "../styles/home.css";
 import { PageTransition } from "~/components/PageTransition";
 
 export function meta({}: Route.MetaArgs) {
@@ -37,7 +37,6 @@ export default function Home() {
     return (
         <PageTransition>
             <div className="min-h-screen bg-gray-900 text-white">
-                <FireflyCanvas />
                 <Navbar />
 
                 {/* Hero Section */}
@@ -47,23 +46,7 @@ export default function Home() {
                             Capturing souls through light
                         </h1>
 
-                        <div className="mt-8 fade-in-up delay-1">
-                            <div className="w-20 h-20 mx-auto border-2 border-amber-500 rounded-full flex items-center justify-center animate-pulse">
-                                <svg
-                                    className="w-8 h-8 text-amber-500"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M19 14l-7 7m0 0l-7-7m7 7V3"
-                                    />
-                                </svg>
-                            </div>
-                        </div>
+                        {/* Flèche retirée intentionnellement */}
                     </div>
                 </header>
 

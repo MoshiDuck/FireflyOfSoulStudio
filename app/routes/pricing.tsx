@@ -1,10 +1,10 @@
 // Todo : app/routes/pricing.tsx
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import type { Route } from "./+types/home";
+import "../styles/pricing.css";
 import { Navbar } from "~/components/navbar";
 import { AnimatedSection } from "~/components/AnimatedSection";
 import { PageTransition } from "~/components/PageTransition";
-import { FireflyCanvas } from "~/components/FireflyCanvas";
 import { motion, AnimatePresence } from "motion/react";
 import {API_ENDPOINTS} from "~/config/api";
 
@@ -591,7 +591,6 @@ export default function Pricing() {
     return (
         <PageTransition>
             <div className="min-h-screen bg-gray-900 text-white relative overflow-hidden">
-                <FireflyCanvas />
                 <Navbar />
 
                 {/* Hero Section */}

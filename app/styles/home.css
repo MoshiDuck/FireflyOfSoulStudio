@@ -1,0 +1,136 @@
+/* app/styles/home.css */
+
+/* About Section */
+.about {
+    background: var(--deep-night);
+}
+
+.about-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+}
+
+.about-text {
+    max-width: 500px;
+}
+
+.portrait-wrapper {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.portrait-wrapper:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 30px 60px rgba(255, 213, 128, 0.1);
+}
+
+.portrait {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Gallery Preview */
+.gallery {
+    background: var(--dark-blue);
+}
+
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+}
+
+.gallery-item {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.gallery-item:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(255, 213, 128, 0.15);
+}
+
+/* Philosophy Section */
+.philosophy {
+    background: linear-gradient(135deg, var(--deep-night) 0%, var(--dark-blue) 100%);
+    text-align: center;
+}
+
+.philosophy-text {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.philosophy-line {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(1.5rem, 3vw, 2.5rem);
+    color: var(--warm-gold);
+    margin-bottom: 2rem;
+    opacity: 0;
+}
+
+/* Footer Home */
+.footer-home {
+    background: var(--dark-blue);
+    border-top: 1px solid rgba(255, 213, 128, 0.1);
+    padding: 3rem 0;
+    text-align: center;
+}
+
+/* Animations spécifiques à Home */
+.hover-lift {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+    transform: translateY(-5px);
+}
+
+.hover-lift-smooth {
+    transition: all 0.3s ease;
+}
+
+.hover-lift-smooth:hover {
+    transform: translateY(-5px) scale(1.02);
+}
+
+/* Responsive Home */
+@media (max-width: 768px) {
+    .about-content {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+        text-align: center;
+    }
+
+    .about-text {
+        max-width: 100%;
+    }
+
+    .gallery-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .philosophy-line {
+        font-size: clamp(1.25rem, 4vw, 2rem);
+        margin-bottom: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .gallery-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .philosophy-line {
+        font-size: 1.25rem;
+    }
+}
