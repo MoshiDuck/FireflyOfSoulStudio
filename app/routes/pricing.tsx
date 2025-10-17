@@ -557,10 +557,9 @@ export default function Pricing() {
             <div className="pricing-page">
                 <Navbar />
 
-                {/* Hero Section avec image de fond */}
+                {/* Hero Section avec même hauteur que Gallery et Home */}
                 <header className="pricing-hero-modern">
                     <div className="pricing-hero-background">
-                        {/* Image de fond ajoutée ici */}
                         <div
                             className="hero-background-image"
                             style={{
@@ -568,12 +567,6 @@ export default function Pricing() {
                             }}
                         ></div>
                         <div className="hero-overlay"></div>
-                        {/* Effets de lumière supplémentaires */}
-                        <div className="hero-light-effects">
-                            <div className="light-effect light-1"></div>
-                            <div className="light-effect light-2"></div>
-                            <div className="light-effect light-3"></div>
-                        </div>
                     </div>
                     <div className="container">
                         <div className="pricing-hero-content">
@@ -614,11 +607,9 @@ export default function Pricing() {
                             </motion.div>
                         </div>
                     </div>
-                    {/* Élément décoratif flottant */}
-                    <div className="hero-floating-elements">
-                        <div className="floating-element element-1">📸</div>
-                        <div className="floating-element element-2">✨</div>
-                        <div className="floating-element element-3">🎨</div>
+                    {/* Flèche de défilement ajoutée */}
+                    <div className="scroll-indicator">
+                        <div className="scroll-arrow"></div>
                     </div>
                 </header>
 
