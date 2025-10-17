@@ -9,6 +9,17 @@
     --soft-gray: #e0e0e0;
     --page-padding: clamp(1rem, 2vw, 2rem);
     --section-padding: clamp(40px, 6vw, 100px);
+
+    /* Variables responsives */
+    --page-padding-mobile: 1rem;
+    --page-padding-tablet: 2rem;
+    --page-padding-desktop: clamp(2rem, 4vw, 4rem);
+    --section-padding-mobile: 3rem;
+    --section-padding-tablet: 4rem;
+    --section-padding-desktop: clamp(4rem, 8vw, 8rem);
+    --grid-gap-mobile: 1.5rem;
+    --grid-gap-tablet: 2rem;
+    --grid-gap-desktop: 3rem;
 }
 
 /* Styles généraux statiques */

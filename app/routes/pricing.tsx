@@ -613,30 +613,6 @@ export default function Pricing() {
                     </div>
                 </header>
 
-                {/* Stats Section */}
-                <section className="pricing-stats-section">
-                    <div className="container">
-                        <div className="pricing-stats-grid">
-                            <div className="stat-item">
-                                <div className="stat-number">100%</div>
-                                <div className="stat-label">Client Satisfaction</div>
-                            </div>
-                            <div className="stat-item">
-                                <div className="stat-number">500+</div>
-                                <div className="stat-label">Sessions Completed</div>
-                            </div>
-                            <div className="stat-item">
-                                <div className="stat-number">8+</div>
-                                <div className="stat-label">Years Experience</div>
-                            </div>
-                            <div className="stat-item">
-                                <div className="stat-number">50+</div>
-                                <div className="stat-label">Exhibitions</div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
                 {/* Pricing Cards */}
                 <AnimatedSection className="pricing-section-modern">
                     <div className="container">

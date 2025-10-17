@@ -2,7 +2,7 @@
 import { Link, useLocation } from "react-router";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import "../styles/navbar.css"; // ✅ Import direct du CSS
+import "../styles/navbar.css";
 
 export function Navbar() {
     const location = useLocation();
@@ -24,6 +24,7 @@ export function Navbar() {
         { path: "/", label: "Home" },
         { path: "/gallery", label: "Gallery" },
         { path: "/pricing", label: "Pricing" },
+        { path: "/about", label: "About" },
     ];
 
     return (

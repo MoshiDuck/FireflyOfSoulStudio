@@ -52,7 +52,7 @@ https://github.com/MoshiDuck/FireflyOfSoulStudio
     ```
 2. Commit
     ```bash
-    git commit -m "[FAIT] - mise en place animation simple "
+    git commit -m "[FAIT] - Page about "
     ```
 
 3. Version
@@ -88,10 +88,9 @@ Corriger :
 
 Objectif:
 
-- Calendrier mieux dans pricing
 - ajoutez different pricing
 - page pour recuperer photos apres shoot
-- About
+- Page FAQ
 - Chercher images dans lucioles
 - animations lucioles
 

@@ -131,7 +131,6 @@ export function Layout({children}: { children: React.ReactNode }) {
         </div>
         <ScrollRestoration/>
         <Scripts/>
-        {/* ✅ SUPPRIMEZ navbar.css ici - il est importé directement dans le composant */}
         <link rel="stylesheet" href="/styles/app.css"/>
         </body>
         </html>
