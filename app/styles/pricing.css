@@ -1364,9 +1364,9 @@
 
 /* Desktop (1024px and up) */
 @media (min-width: 1024px) {
-    .pricing-hero-modern {
-        min-height: var(--hero-height-desktop);
-        padding: 0 var(--page-padding-desktop);
+    .pricing-cards-modern {
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--grid-gap-desktop);
     }
 
     .pricing-stats-section,
@@ -1384,7 +1384,7 @@
 
     .pricing-card-modern.featured {
         grid-column: span 1;
-        order: 2;
+        /* Supprimez la ligne order: 2; */
     }
 
     .services-grid-modern {

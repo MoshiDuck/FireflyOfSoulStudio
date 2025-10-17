@@ -51,10 +51,23 @@ export default function Home() {
             <div className="home-page">
                 <Navbar />
 
-                {/* Hero Section Modernisée */}
+                {/* Hero Section avec image de fond */}
                 <header className="hero-modern">
                     <div className="hero-background">
+                        {/* Image de fond ajoutée ici */}
+                        <div
+                            className="hero-background-image"
+                            style={{
+                                backgroundImage: `url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80')`
+                            }}
+                        ></div>
                         <div className="hero-overlay"></div>
+                        {/* Effets de lumière supplémentaires */}
+                        <div className="hero-light-effects">
+                            <div className="light-effect light-1"></div>
+                            <div className="light-effect light-2"></div>
+                            <div className="light-effect light-3"></div>
+                        </div>
                     </div>
                     <div className="container">
                         <div className="hero-content">
@@ -97,7 +110,7 @@ export default function Home() {
                     </div>
                 </header>
 
-                {/* Stats Section */}
+                {/* Le reste du code reste inchangé */}
                 <section className="stats-section">
                     <div className="container">
                         <div className="stats-grid">
@@ -111,7 +124,6 @@ export default function Home() {
                     </div>
                 </section>
 
-                {/* About Section Modernisée */}
                 <section id="about" className="section about-modern">
                     <div className="container">
                         <div className="about-content-modern">
@@ -166,7 +178,6 @@ export default function Home() {
                     </div>
                 </section>
 
-                {/* Gallery Preview Section Modernisée */}
                 <section id="gallery" className="section gallery-modern">
                     <div className="container">
                         <div className="section-header">
@@ -204,15 +215,9 @@ export default function Home() {
                                 </div>
                             ))}
                         </div>
-                        <div className="gallery-cta fade-in-up">
-                            <Link to="/gallery" className="btn btn-outline">
-                                View Complete Portfolio
-                            </Link>
-                        </div>
                     </div>
                 </section>
 
-                {/* Philosophy Section Modernisée */}
                 <section id="philosophy" className="section philosophy-modern">
                     <div className="container">
                         <div className="philosophy-content">
@@ -240,7 +245,6 @@ export default function Home() {
                     </div>
                 </section>
 
-                {/* CTA Section */}
                 <section className="cta-section">
                     <div className="container">
                         <div className="cta-content fade-in-up">
@@ -260,7 +264,6 @@ export default function Home() {
                     </div>
                 </section>
 
-                {/* Footer */}
                 <footer className="footer-modern">
                     <div className="container">
                         <div className="footer-content">
