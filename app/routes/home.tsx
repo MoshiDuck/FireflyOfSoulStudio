@@ -56,37 +56,39 @@ export default function Home() {
                     <div className="hero-background">
                         <div className="hero-overlay"></div>
                     </div>
-                    <div className="hero-content">
-                        <div className="hero-text">
-                            <h1 className="hero-title-main">
-                                <span className="title-line">Capturing Souls</span>
-                                <span className="title-line accent">Through Light</span>
-                            </h1>
-                            <p className="hero-subtitle">
-                                Professional fine art photography that reveals the essence within.
-                                Where every shadow tells a story and every light reveals a soul.
-                            </p>
-                            <div className="hero-actions">
-                                <Link to="/gallery" className="btn btn-primary">
-                                    Explore Gallery
-                                </Link>
-                                <Link to="/pricing" className="btn btn-secondary">
-                                    Book Session
-                                </Link>
+                    <div className="container">
+                        <div className="hero-content">
+                            <div className="hero-text">
+                                <h1 className="hero-title-main">
+                                    <span className="title-line">Capturing Souls</span>
+                                    <span className="title-line accent">Through Light</span>
+                                </h1>
+                                <p className="hero-subtitle">
+                                    Professional fine art photography that reveals the essence within.
+                                    Where every shadow tells a story and every light reveals a soul.
+                                </p>
+                                <div className="hero-actions">
+                                    <Link to="/gallery" className="btn btn-primary">
+                                        Explore Gallery
+                                    </Link>
+                                    <Link to="/pricing" className="btn btn-secondary">
+                                        Book Session
+                                    </Link>
+                                </div>
                             </div>
-                        </div>
-                        <div className="hero-visual">
-                            <div className="floating-card card-1">
-                                <img
-                                    src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80"
-                                    alt="Portrait Art"
-                                />
-                            </div>
-                            <div className="floating-card card-2">
-                                <img
-                                    src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80"
-                                    alt="Landscape Art"
-                                />
+                            <div className="hero-visual">
+                                <div className="floating-card card-1">
+                                    <img
+                                        src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80"
+                                        alt="Portrait Art"
+                                    />
+                                </div>
+                                <div className="floating-card card-2">
+                                    <img
+                                        src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80"
+                                        alt="Landscape Art"
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>
