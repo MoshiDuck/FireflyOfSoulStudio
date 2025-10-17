@@ -1,4 +1,4 @@
-// Todo : app/routes/pricing.tsx
+// app/routes/pricing.tsx
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import type { Route } from "./+types/home";
 import "../styles/pricing.css";
@@ -6,15 +6,15 @@ import { Navbar } from "~/components/navbar";
 import { AnimatedSection } from "~/components/AnimatedSection";
 import { PageTransition } from "~/components/PageTransition";
 import { motion, AnimatePresence } from "motion/react";
-import {API_ENDPOINTS} from "~/config/api";
-
+import { API_ENDPOINTS } from "~/config/api";
+import { Link } from "react-router";
 
 export function meta({}: Route.MetaArgs) {
     return [
         { title: "Pricing | Firefly of Soul Studio" },
         {
             name: "description",
-            content: "Investment in art - photography services and pricing",
+            content: "Investment in art - Professional photography services and transparent pricing for portraits, artistic series, and editorial projects",
         },
     ];
 }
@@ -34,11 +34,13 @@ interface TimeSlot {
     available: boolean;
 }
 
-interface AdditionalService {  // ✅ Nouveau type
+interface AdditionalService {
     title: string;
     desc: string;
     price: string;
+    icon: string;
 }
+
 // Types pour la réponse API
 interface ApiSuccessResponse {
     success: boolean;
@@ -51,11 +53,6 @@ interface ApiErrorResponse {
 }
 
 type ApiResponse = ApiSuccessResponse | ApiErrorResponse;
-
-interface TimeSlot {
-    time: string;
-    available: boolean;
-}
 
 // Services disponibles
 const SERVICES: Service[] = [
@@ -70,6 +67,8 @@ const SERVICES: Service[] = [
             "Online gallery",
             "Print release",
             "2 outfit changes",
+            "Private viewing session",
+            "Digital delivery"
         ],
     },
     {
@@ -84,6 +83,7 @@ const SERVICES: Service[] = [
             "Premium retouching",
             "Online gallery + USB delivery",
             "2 large format prints (16x24)",
+            "Creative direction"
         ],
     },
     {
@@ -98,6 +98,7 @@ const SERVICES: Service[] = [
             "Advanced retouching",
             "Commercial usage rights",
             "Priority delivery",
+            "Dedicated project manager"
         ],
     },
 ];
@@ -105,25 +106,25 @@ const SERVICES: Service[] = [
 const additionalServices: AdditionalService[] = [
     {
         title: "Print Collections",
-        desc: "Fine art prints on premium archival paper",
+        desc: "Fine art prints on premium archival paper with museum-quality framing",
         price: "Starting at $150",
+        icon: "🖼️"
     },
     {
         title: "Digital Enhancement",
-        desc: "Advanced retouching for existing images",
+        desc: "Advanced retouching and artistic editing for existing images",
         price: "$75/image",
+        icon: "✨"
     },
     {
         title: "Album Design",
-        desc: "Custom designed photo books",
+        desc: "Custom designed photo books with premium materials and binding",
         price: "Starting at $300",
+        icon: "📖"
     },
 ];
 
-/**
- * Input COMPLÈTEMENT uncontrolled avec synchronisation manuelle
- * C'est la seule façon de garantir ZERO perte de focus
- */
+// Composants partagés
 function UncontrolledInput({
                                name,
                                defaultValue = "",
@@ -140,7 +141,7 @@ function UncontrolledInput({
             ref.current.value = defaultValue as string;
             lastSyncedValue.current = defaultValue;
         }
-    }, [defaultValue]);  // ✅ Ajout de defaultValue dans les dépendances
+    }, [defaultValue]);
 
     const handleInput = useCallback(
         (e: React.FormEvent<HTMLInputElement>) => {
@@ -156,10 +157,6 @@ function UncontrolledInput({
     return <input ref={ref} name={name} onInput={handleInput} {...props} />;
 }
 
-
-/**
- * FormDataManager - Gère l'état du formulaire SANS causer de re-rendus
- */
 function useFormDataManager(initialData: {
     firstName: string;
     lastName: string;
@@ -185,7 +182,8 @@ function useFormDataManager(initialData: {
 
     return { updateField, getFormData, reset };
 }
-// Composant principal de réservation en étapes
+
+// Booking Wizard modernisé
 function BookingWizard({ onClose }: { onClose: () => void }) {
     const [step, setStep] = useState(1);
     const [selectedService, setSelectedService] = useState<Service | null>(null);
@@ -194,7 +192,6 @@ function BookingWizard({ onClose }: { onClose: () => void }) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-    // Gestionnaire de formulaire SANS état React pour les champs
     const { updateField, getFormData, reset } = useFormDataManager({
         firstName: "",
         lastName: "",
@@ -205,7 +202,6 @@ function BookingWizard({ onClose }: { onClose: () => void }) {
     const [availableDates, setAvailableDates] = useState<string[]>([]);
     const [availableTimes, setAvailableTimes] = useState<TimeSlot[]>([]);
 
-    // Simuler la récupération des dates disponibles
     useEffect(() => {
         if (selectedService) {
             const dates: string[] = [];
@@ -221,7 +217,6 @@ function BookingWizard({ onClose }: { onClose: () => void }) {
         }
     }, [selectedService]);
 
-    // Simuler la récupération des créneaux horaires disponibles
     useEffect(() => {
         if (selectedDate) {
             const times: TimeSlot[] = [];
@@ -308,43 +303,27 @@ function BookingWizard({ onClose }: { onClose: () => void }) {
 
     // Étape 1: Sélection du service
     const Step1 = () => (
-        <div className="space-y-6">
-            <h3 className="font-cinzel text-2xl text-amber-500 text-center mb-8">Choose Your Session</h3>
-            <div className="grid gap-6">
+        <div className="booking-step">
+            <h3 className="booking-step-title">Choose Your Session</h3>
+            <div className="service-selection-grid">
                 {SERVICES.map(service => (
-                    <div
+                    <motion.div
                         key={service.id}
-                        className={`pricing-card cursor-pointer transition-all duration-300 ${
-                            selectedService?.id === service.id
-                                ? 'border-amber-500 bg-amber-500/10'
-                                : 'border-amber-500/20 bg-gray-800/50 hover:border-amber-500/40'
-                        }`}
+                        className={`service-option ${selectedService?.id === service.id ? 'selected' : ''}`}
                         onClick={() => {
                             setSelectedService(service);
                             setStep(2);
                         }}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
                     >
-                        <div className="flex justify-between items-start mb-4">
-                            <div>
-                                <h4 className="font-cinzel text-xl text-amber-500">{service.name}</h4>
-                                <p className="text-amber-200 font-inter">{service.description}</p>
-                            </div>
-                            <div className="text-right">
-                                <div className="font-cinzel text-2xl text-white">${service.price}</div>
-                                <div className="text-amber-200 text-sm font-inter">{service.duration}</div>
-                            </div>
+                        <div className="service-option-header">
+                            <h4>{service.name}</h4>
+                            <div className="service-price">${service.price}</div>
                         </div>
-                        <div className="pricing-features">
-                            <ul>
-                                {service.features.map((feature, index) => (
-                                    <li key={index} className="text-gray-300 font-inter flex items-center">
-                                        <span className="w-1.5 h-1.5 bg-amber-500 rounded-full mr-3"></span>
-                                        {feature}
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    </div>
+                        <p className="service-description">{service.description}</p>
+                        <p className="service-duration">{service.duration}</p>
+                    </motion.div>
                 ))}
             </div>
         </div>
@@ -352,43 +331,40 @@ function BookingWizard({ onClose }: { onClose: () => void }) {
 
     // Étape 2: Sélection de la date
     const Step2 = () => (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between mb-6">
-                <button
-                    onClick={() => setStep(1)}
-                    className="text-amber-400 hover:text-amber-300 font-inter flex items-center"
-                >
+        <div className="booking-step">
+            <div className="booking-step-header">
+                <button onClick={() => setStep(1)} className="back-button">
                     ← Back
                 </button>
-                <h3 className="font-cinzel text-2xl text-amber-500">Choose a Date</h3>
-                <div className="w-6"></div>
+                <h3 className="booking-step-title">Choose a Date</h3>
+                <div className="spacer"></div>
             </div>
 
-            <div className="text-center mb-6">
-                <div className="font-cinzel text-lg text-amber-500 mb-2">{selectedService?.name}</div>
-                <div className="text-amber-200 font-inter">${selectedService?.price} • {selectedService?.duration}</div>
+            <div className="selected-service-info">
+                <div className="service-name">{selectedService?.name}</div>
+                <div className="service-details">${selectedService?.price} • {selectedService?.duration}</div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 max-h-96 overflow-y-auto">
+            <div className="date-selection-grid">
                 {availableDates.map(date => (
-                    <button
+                    <motion.button
                         key={date}
                         onClick={() => {
                             setSelectedDate(date);
                             setStep(3);
                         }}
-                        className="p-4 rounded-xl border border-amber-500/20 bg-gray-800/50 hover:border-amber-500/40 hover:bg-amber-500/10 transition-all duration-300 text-center backdrop-blur-sm"
+                        className="date-option"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                     >
-                        <div className="font-cinzel text-amber-500 text-lg">
-                            {new Date(date).getDate()}
-                        </div>
-                        <div className="text-amber-200 font-inter text-sm">
+                        <div className="date-day">{new Date(date).getDate()}</div>
+                        <div className="date-weekday">
                             {new Date(date).toLocaleDateString('en-US', { weekday: 'short' })}
                         </div>
-                        <div className="text-gray-400 font-inter text-xs mt-1">
+                        <div className="date-month">
                             {new Date(date).toLocaleDateString('en-US', { month: 'short' })}
                         </div>
-                    </button>
+                    </motion.button>
                 ))}
             </div>
         </div>
@@ -396,28 +372,25 @@ function BookingWizard({ onClose }: { onClose: () => void }) {
 
     // Étape 3: Sélection de l'heure
     const Step3 = () => (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between mb-6">
-                <button
-                    onClick={() => setStep(2)}
-                    className="text-amber-400 hover:text-amber-300 font-inter flex items-center"
-                >
+        <div className="booking-step">
+            <div className="booking-step-header">
+                <button onClick={() => setStep(2)} className="back-button">
                     ← Back
                 </button>
-                <h3 className="font-cinzel text-2xl text-amber-500">Choose a Time</h3>
-                <div className="w-6"></div>
+                <h3 className="booking-step-title">Choose a Time</h3>
+                <div className="spacer"></div>
             </div>
 
-            <div className="text-center mb-6">
-                <div className="font-cinzel text-lg text-amber-500 mb-2">{selectedService?.name}</div>
-                <div className="text-amber-200 font-inter">
+            <div className="selected-service-info">
+                <div className="service-name">{selectedService?.name}</div>
+                <div className="service-details">
                     {formatDate(selectedDate)} • ${selectedService?.price}
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 max-h-96 overflow-y-auto">
+            <div className="time-selection-grid">
                 {availableTimes.map(slot => (
-                    <button
+                    <motion.button
                         key={slot.time}
                         onClick={() => {
                             if (slot.available) {
@@ -426,162 +399,153 @@ function BookingWizard({ onClose }: { onClose: () => void }) {
                             }
                         }}
                         disabled={!slot.available}
-                        className={`p-4 rounded-xl border transition-all duration-300 text-center backdrop-blur-sm ${
-                            slot.available
-                                ? 'border-amber-500/20 bg-gray-800/50 hover:border-amber-500/40 hover:bg-amber-500/10 text-amber-200'
-                                : 'border-gray-600/30 bg-gray-900/30 text-gray-500 cursor-not-allowed'
-                        }`}
+                        className={`time-option ${slot.available ? 'available' : 'booked'}`}
+                        whileHover={slot.available ? { scale: 1.05 } : {}}
+                        whileTap={slot.available ? { scale: 0.95 } : {}}
                     >
-                        <div className="font-cinzel text-lg">{slot.time}</div>
-                        <div className="font-inter text-sm mt-1">
+                        <div className="time-slot">{slot.time}</div>
+                        <div className="time-status">
                             {slot.available ? 'Available' : 'Booked'}
                         </div>
-                    </button>
+                    </motion.button>
                 ))}
             </div>
         </div>
     );
 
-    // Étape 4: Informations personnelles - COMPLÈTEMENT uncontrolled
+    // Étape 4: Informations personnelles
     const Step4 = () => (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between mb-6">
-                <button
-                    onClick={() => setStep(3)}
-                    className="text-amber-400 hover:text-amber-300 font-inter flex items-center"
-                >
+        <div className="booking-step">
+            <div className="booking-step-header">
+                <button onClick={() => setStep(3)} className="back-button">
                     ← Back
                 </button>
-                <h3 className="font-cinzel text-2xl text-amber-500">Your Information</h3>
-                <div className="w-6"></div>
+                <h3 className="booking-step-title">Your Information</h3>
+                <div className="spacer"></div>
             </div>
 
-            <div className="bg-gray-800/30 rounded-xl p-4 mb-6 border border-amber-500/20 backdrop-blur-sm">
-                <div className="text-center">
-                    <div className="font-cinzel text-amber-500 text-lg mb-2">{selectedService?.name}</div>
-                    <div className="text-amber-200 font-inter">
-                        {formatDate(selectedDate)} at {selectedTime}
-                    </div>
-                    <div className="text-gray-300 font-inter mt-2">${selectedService?.price}</div>
+            <div className="booking-summary">
+                <div className="summary-service">{selectedService?.name}</div>
+                <div className="summary-details">
+                    {formatDate(selectedDate)} at {selectedTime}
                 </div>
+                <div className="summary-price">${selectedService?.price}</div>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-amber-200 mb-2 font-inter text-sm">First Name</label>
+            <form onSubmit={handleSubmit} className="booking-form">
+                <div className="form-grid">
+                    <div className="form-group">
+                        <label>First Name</label>
                         <UncontrolledInput
                             type="text"
                             name="firstName"
                             defaultValue=""
                             onValueChange={handleFieldChange}
                             required
-                            className="w-full bg-gray-700/50 border border-amber-500/30 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 backdrop-blur-sm"
+                            className="form-input"
                             placeholder="John"
                             autoComplete="given-name"
                         />
                     </div>
-                    <div>
-                        <label className="block text-amber-200 mb-2 font-inter text-sm">Last Name</label>
+                    <div className="form-group">
+                        <label>Last Name</label>
                         <UncontrolledInput
                             type="text"
                             name="lastName"
                             defaultValue=""
                             onValueChange={handleFieldChange}
                             required
-                            className="w-full bg-gray-700/50 border border-amber-500/30 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 backdrop-blur-sm"
+                            className="form-input"
                             placeholder="Doe"
                             autoComplete="family-name"
                         />
                     </div>
                 </div>
 
-                <div>
-                    <label className="block text-amber-200 mb-2 font-inter text-sm">Email</label>
+                <div className="form-group">
+                    <label>Email</label>
                     <UncontrolledInput
                         type="email"
                         name="email"
                         defaultValue=""
                         onValueChange={handleFieldChange}
                         required
-                        className="w-full bg-gray-700/50 border border-amber-500/30 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 backdrop-blur-sm"
+                        className="form-input"
                         placeholder="your.email@example.com"
                         autoComplete="email"
                     />
                 </div>
 
-                <div>
-                    <label className="block text-amber-200 mb-2 font-inter text-sm">Phone (Optional)</label>
+                <div className="form-group">
+                    <label>Phone (Optional)</label>
                     <UncontrolledInput
                         type="tel"
                         name="phone"
                         defaultValue=""
                         onValueChange={handleFieldChange}
-                        className="w-full bg-gray-700/50 border border-amber-500/30 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 backdrop-blur-sm"
+                        className="form-input"
                         placeholder="+1 (555) 123-4567"
                         autoComplete="tel"
                     />
                 </div>
 
                 {message && (
-                    <div className={`p-3 rounded-lg backdrop-blur-sm ${
-                        message.type === 'success'
-                            ? 'bg-green-900/50 text-green-200 border border-green-500/30'
-                            : 'bg-red-900/50 text-red-200 border border-red-500/30'
-                    }`}>
+                    <div className={`message ${message.type}`}>
                         {message.text}
                     </div>
                 )}
 
-                <button
+                <motion.button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full bg-amber-500 text-gray-900 py-4 rounded-lg font-semibold font-inter hover:bg-amber-400 transition-all duration-300 disabled:opacity-50 transform hover:scale-105 backdrop-blur-sm"
+                    className="submit-button"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                 >
                     {isSubmitting ? 'Confirming...' : 'Confirm Booking'}
-                </button>
+                </motion.button>
             </form>
         </div>
     );
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-            <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto border border-amber-500/20">
-                <div className="p-6">
-                    {/* Header avec progression */}
-                    <div className="flex justify-between items-center mb-8">
-                        <button
-                            onClick={onClose}
-                            className="text-amber-400 hover:text-amber-300 text-xl transition-colors"
-                        >
-                            ×
-                        </button>
-                        <div className="flex items-center space-x-2">
-                            {[1, 2, 3, 4].map(s => (
-                                <div
-                                    key={s}
-                                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                                        step >= s ? 'bg-amber-500' : 'bg-amber-500/30'
-                                    }`}
-                                />
-                            ))}
-                        </div>
-                        <button
-                            onClick={resetSelection}
-                            className="text-amber-400 hover:text-amber-300 font-inter text-sm"
-                        >
-                            Restart
-                        </button>
+        <motion.div
+            className="booking-wizard-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+        >
+            <motion.div
+                className="booking-wizard-container"
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+            >
+                <div className="booking-wizard-header">
+                    <button onClick={onClose} className="close-button">
+                        ×
+                    </button>
+                    <div className="progress-indicators">
+                        {[1, 2, 3, 4].map(s => (
+                            <div
+                                key={s}
+                                className={`progress-dot ${step >= s ? 'active' : ''}`}
+                            />
+                        ))}
                     </div>
+                    <button onClick={resetSelection} className="reset-button">
+                        Restart
+                    </button>
+                </div>
 
-                    {/* Contenu des étapes */}
+                <div className="booking-wizard-content">
                     {step === 1 && <Step1 />}
                     {step === 2 && <Step2 />}
                     {step === 3 && <Step3 />}
                     {step === 4 && <Step4 />}
                 </div>
-            </div>
-        </div>
+            </motion.div>
+        </motion.div>
     );
 }
 
@@ -590,77 +554,128 @@ export default function Pricing() {
 
     return (
         <PageTransition>
-            <div className="min-h-screen bg-gray-900 text-white relative overflow-hidden">
+            <div className="pricing-page">
                 <Navbar />
 
-                {/* Hero Section */}
-                <header className="pricing-hero">
-                    <div className="pricing-hero-content">
-                        <motion.h1
-                            className="font-cinzel"
-                            initial={{ opacity: 0, y: 50 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.8, ease: [0.6, 0.05, 0.01, 0.9] }}
-                        >
-                            Investment in Art
-                        </motion.h1>
-                        <motion.p
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.3, duration: 0.8 }}
-                        >
-                            Each photograph tells a story, each story has its value
-                        </motion.p>
-
-                        <motion.button
-                            onClick={() => setIsBooking(true)}
-                            className="booking-btn primary mt-8"
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: 0.6, duration: 0.5 }}
-                            whileHover={{ scale: 1.05, y: -5 }}
-                            whileTap={{ scale: 0.95 }}
-                        >
-                            Book Your Session
-                        </motion.button>
+                {/* Hero Section avec image de fond */}
+                <header className="pricing-hero-modern">
+                    <div className="pricing-hero-background">
+                        {/* Image de fond ajoutée ici */}
+                        <div
+                            className="hero-background-image"
+                            style={{
+                                backgroundImage: `url('https://images.unsplash.com/photo-1452587925148-ce544e77e70d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80')`
+                            }}
+                        ></div>
+                        <div className="hero-overlay"></div>
+                        {/* Effets de lumière supplémentaires */}
+                        <div className="hero-light-effects">
+                            <div className="light-effect light-1"></div>
+                            <div className="light-effect light-2"></div>
+                            <div className="light-effect light-3"></div>
+                        </div>
                     </div>
-                    <div className="section-overlay absolute inset-0"></div>
+                    <div className="container">
+                        <div className="pricing-hero-content">
+                            <motion.h1
+                                className="pricing-hero-title"
+                                initial={{ opacity: 0, y: 50 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.8, ease: [0.6, 0.05, 0.01, 0.9] }}
+                            >
+                                Investment in <span className="text-accent">Art</span>
+                            </motion.h1>
+                            <motion.p
+                                className="pricing-hero-subtitle"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: 0.3, duration: 0.8 }}
+                            >
+                                Each photograph tells a story, each story has its value.
+                                Transparent pricing for exceptional artistic experiences.
+                            </motion.p>
+                            <motion.div
+                                className="pricing-hero-actions"
+                                initial={{ opacity: 0, y: 30 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.6, duration: 0.5 }}
+                            >
+                                <motion.button
+                                    onClick={() => setIsBooking(true)}
+                                    className="btn btn-primary"
+                                    whileHover={{ scale: 1.05, y: -2 }}
+                                    whileTap={{ scale: 0.95 }}
+                                >
+                                    Book Your Session
+                                </motion.button>
+                                <Link to="/gallery" className="btn btn-secondary">
+                                    View Our Work
+                                </Link>
+                            </motion.div>
+                        </div>
+                    </div>
+                    {/* Élément décoratif flottant */}
+                    <div className="hero-floating-elements">
+                        <div className="floating-element element-1">📸</div>
+                        <div className="floating-element element-2">✨</div>
+                        <div className="floating-element element-3">🎨</div>
+                    </div>
                 </header>
 
-                {/* Pricing Cards */}
-                <AnimatedSection className="pricing-section">
+                {/* Stats Section */}
+                <section className="pricing-stats-section">
                     <div className="container">
-                        <motion.h2
-                            className="section-title font-cinzel"
-                            initial={{ opacity: 0, y: 30 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true, margin: "-100px" }}
-                            transition={{ duration: 0.6 }}
-                        >
-                            Photography Services
-                        </motion.h2>
+                        <div className="pricing-stats-grid">
+                            <div className="stat-item">
+                                <div className="stat-number">100%</div>
+                                <div className="stat-label">Client Satisfaction</div>
+                            </div>
+                            <div className="stat-item">
+                                <div className="stat-number">500+</div>
+                                <div className="stat-label">Sessions Completed</div>
+                            </div>
+                            <div className="stat-item">
+                                <div className="stat-number">8+</div>
+                                <div className="stat-label">Years Experience</div>
+                            </div>
+                            <div className="stat-item">
+                                <div className="stat-number">50+</div>
+                                <div className="stat-label">Exhibitions</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
 
-                        <div className="pricing-cards">
+                {/* Pricing Cards */}
+                <AnimatedSection className="pricing-section-modern">
+                    <div className="container">
+                        <div className="pricing-section-header">
+                            <div className="section-badge">Services</div>
+                            <h2 className="section-title-modern">
+                                Photography <span className="text-accent">Experiences</span>
+                            </h2>
+                            <p className="section-subtitle">
+                                Choose the perfect session that matches your vision and creative needs
+                            </p>
+                        </div>
+                        <div className="pricing-cards-modern">
                             {SERVICES.map((service, index) => (
                                 <motion.div
                                     key={service.id}
-                                    className={`pricing-card ${
-                                        service.id === "artistic" ? "featured" : ""
-                                    }`}
-                                    initial={{ opacity: 0, y: 50, rotateX: -10 }}
-                                    whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
-                                    viewport={{ once: true, margin: "-100px" }}
+                                    className={`pricing-card-modern ${service.id === "artistic" ? "featured" : ""}`}
+                                    initial={{ opacity: 0, y: 50 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    viewport={{ once: true, margin: "-50px" }}
                                     transition={{ delay: index * 0.15, duration: 0.6 }}
                                     whileHover={{
-                                        y: -15,
-                                        scale: 1.03,
-                                        boxShadow: "0 20px 60px rgba(245, 158, 11, 0.3)",
+                                        y: -10,
+                                        transition: { duration: 0.3 }
                                     }}
                                     onClick={() => setIsBooking(true)}
                                 >
                                     {service.id === "artistic" && (
                                         <motion.div
-                                            className="featured-badge"
+                                            className="featured-badge-modern"
                                             initial={{ scale: 0, rotate: -180 }}
                                             animate={{ scale: 1, rotate: 0 }}
                                             transition={{
@@ -672,24 +687,13 @@ export default function Pricing() {
                                             Most Popular
                                         </motion.div>
                                     )}
-                                    <div className="pricing-header">
-                                        <h3 className="font-cinzel">{service.name}</h3>
-                                        <motion.div
-                                            className="price font-cinzel"
-                                            initial={{ scale: 0.8, opacity: 0 }}
-                                            whileInView={{ scale: 1, opacity: 1 }}
-                                            viewport={{ once: true }}
-                                            transition={{
-                                                delay: index * 0.15 + 0.2,
-                                                type: "spring",
-                                                stiffness: 150,
-                                            }}
-                                        >
-                                            ${service.price}
-                                        </motion.div>
-                                        <p className="price-description">{service.description}</p>
+                                    <div className="pricing-header-modern">
+                                        <h3>{service.name}</h3>
+                                        <div className="price-modern">${service.price}</div>
+                                        <p className="price-description-modern">{service.description}</p>
+                                        <p className="service-duration-modern">{service.duration}</p>
                                     </div>
-                                    <div className="pricing-features">
+                                    <div className="pricing-features-modern">
                                         <ul>
                                             {service.features.map((feature, idx) => (
                                                 <motion.li
@@ -699,17 +703,16 @@ export default function Pricing() {
                                                     viewport={{ once: true }}
                                                     transition={{ delay: index * 0.15 + idx * 0.05 }}
                                                 >
+                                                    <span className="feature-icon">✓</span>
                                                     {feature}
                                                 </motion.li>
                                             ))}
                                         </ul>
                                     </div>
                                     <motion.button
-                                        className={`pricing-btn ${
-                                            service.id === "artistic" ? "featured-btn" : ""
-                                        }`}
-                                        whileHover={{ scale: 1.05 }}
-                                        whileTap={{ scale: 0.95 }}
+                                        className={`pricing-btn-modern ${service.id === "artistic" ? "featured-btn" : ""}`}
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
                                     >
                                         Book Session
                                     </motion.button>
@@ -720,31 +723,32 @@ export default function Pricing() {
                 </AnimatedSection>
 
                 {/* Additional Services */}
-                <AnimatedSection className="additional-services">
+                <AnimatedSection className="additional-services-modern">
                     <div className="container">
-                        <motion.h2
-                            className="section-title font-cinzel"
-                            initial={{ opacity: 0, y: 30 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true, margin: "-100px" }}
-                            transition={{ duration: 0.6 }}
-                        >
-                            Additional Services
-                        </motion.h2>
-                        <div className="services-grid">
+                        <div className="pricing-section-header">
+                            <div className="section-badge">Add-ons</div>
+                            <h2 className="section-title-modern">
+                                Additional <span className="text-accent">Services</span>
+                            </h2>
+                            <p className="section-subtitle">
+                                Enhance your experience with our premium additional services
+                            </p>
+                        </div>
+                        <div className="services-grid-modern">
                             {additionalServices.map((service, index) => (
                                 <motion.div
                                     key={index}
-                                    className="service-item"
-                                    initial={{ opacity: 0, y: 30, scale: 0.95 }}
-                                    whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                                    viewport={{ once: true, margin: "-100px" }}
+                                    className="service-item-modern"
+                                    initial={{ opacity: 0, y: 30 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    viewport={{ once: true, margin: "-50px" }}
                                     transition={{ delay: index * 0.1, duration: 0.5 }}
-                                    whileHover={{ y: -10, scale: 1.03 }}
+                                    whileHover={{ y: -5 }}
                                 >
-                                    <h3 className="font-cinzel">{service.title}</h3>
+                                    <div className="service-icon">{service.icon}</div>
+                                    <h3>{service.title}</h3>
                                     <p>{service.desc}</p>
-                                    <div className="service-price font-cinzel">
+                                    <div className="service-price-modern">
                                         {service.price}
                                     </div>
                                 </motion.div>
@@ -753,57 +757,128 @@ export default function Pricing() {
                     </div>
                 </AnimatedSection>
 
-                {/* CTA Section */}
-                <AnimatedSection className="booking-section">
+                {/* FAQ Section */}
+                <AnimatedSection className="faq-section">
                     <div className="container">
-                        <motion.div
-                            className="booking-content"
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            whileInView={{ opacity: 1, scale: 1 }}
-                            viewport={{ once: true, margin: "-100px" }}
-                            transition={{ duration: 0.6 }}
-                        >
-                            <h2 className="font-cinzel">Ready to Create Magic?</h2>
-                            <p>
-                                Let's discuss your vision and create something extraordinary
-                                together.
-                            </p>
-                            <div className="booking-buttons">
+                        <div className="pricing-section-header">
+                            <div className="section-badge">FAQ</div>
+                            <h2 className="section-title-modern">
+                                Common <span className="text-accent">Questions</span>
+                            </h2>
+                        </div>
+                        <div className="faq-grid">
+                            <div className="faq-item">
+                                <h4>How far in advance should I book?</h4>
+                                <p>We recommend booking 4-6 weeks in advance for the best availability, especially for weekend sessions.</p>
+                            </div>
+                            <div className="faq-item">
+                                <h4>What's included in the session fee?</h4>
+                                <p>The session fee includes the photographer's time, talent, and basic editing. Prints and products are additional.</p>
+                            </div>
+                            <div className="faq-item">
+                                <h4>Do you offer payment plans?</h4>
+                                <p>Yes! We offer flexible payment plans for sessions over $500. Contact us to discuss options.</p>
+                            </div>
+                            <div className="faq-item">
+                                <h4>What is your cancellation policy?</h4>
+                                <p>We require 48 hours notice for cancellations. Rescheduling is free with proper notice.</p>
+                            </div>
+                        </div>
+                    </div>
+                </AnimatedSection>
+
+                {/* CTA Section */}
+                <AnimatedSection className="cta-section-modern">
+                    <div className="container">
+                        <div className="cta-content-modern">
+                            <motion.h2
+                                className="cta-title"
+                                initial={{ opacity: 0, y: 30 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ duration: 0.6 }}
+                            >
+                                Ready to Create Timeless Art?
+                            </motion.h2>
+                            <motion.p
+                                className="cta-description"
+                                initial={{ opacity: 0 }}
+                                whileInView={{ opacity: 1 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: 0.2, duration: 0.6 }}
+                            >
+                                Let's discuss your vision and create something extraordinary together.
+                                Your timeless art awaits.
+                            </motion.p>
+                            <motion.div
+                                className="cta-actions-modern"
+                                initial={{ opacity: 0, y: 30 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: 0.4, duration: 0.6 }}
+                            >
                                 <motion.button
                                     onClick={() => setIsBooking(true)}
-                                    className="booking-btn primary"
-                                    whileHover={{ scale: 1.05, y: -3 }}
+                                    className="btn btn-primary btn-large"
+                                    whileHover={{ scale: 1.05, y: -2 }}
                                     whileTap={{ scale: 0.95 }}
                                 >
                                     Start Your Project
                                 </motion.button>
                                 <motion.a
                                     href="mailto:hello@fireflyofsoul.com"
-                                    className="booking-btn secondary"
-                                    whileHover={{ scale: 1.05, y: -3 }}
+                                    className="btn btn-secondary btn-large"
+                                    whileHover={{ scale: 1.05, y: -2 }}
                                     whileTap={{ scale: 0.95 }}
                                 >
                                     Email Inquiry
                                 </motion.a>
-                            </div>
-                        </motion.div>
+                            </motion.div>
+                        </div>
                     </div>
                 </AnimatedSection>
 
                 {/* Footer */}
                 <motion.footer
-                    className="footer-pricing"
+                    className="footer-pricing-modern"
                     initial={{ opacity: 0 }}
                     whileInView={{ opacity: 1 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.6 }}
                 >
-                    <div className="logo font-cinzel">Firefly of Soul</div>
-                    <p>&copy; 2025 Firefly of Soul Studio. All moments preserved.</p>
+                    <div className="container">
+                        <div className="footer-content-modern">
+                            <div className="footer-brand">
+                                <div className="footer-logo">Firefly of Soul</div>
+                                <p className="footer-tagline">
+                                    Capturing the poetry of light and shadow since 2016
+                                </p>
+                            </div>
+                            <div className="footer-links">
+                                <div className="footer-column">
+                                    <h4>Navigation</h4>
+                                    <Link to="/">Home</Link>
+                                    <Link to="/gallery">Gallery</Link>
+                                    <Link to="/pricing">Pricing</Link>
+                                </div>
+                                <div className="footer-column">
+                                    <h4>Connect</h4>
+                                    <a href="mailto:hello@fireflyofsoul.com">Email</a>
+                                    <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">Instagram</a>
+                                    <a href="https://pinterest.com" target="_blank" rel="noopener noreferrer">Pinterest</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="footer-bottom">
+                            <p>&copy; 2025 Firefly of Soul Studio. All moments preserved with artistic integrity.</p>
+                        </div>
+                    </div>
                 </motion.footer>
 
                 {/* Booking Wizard */}
-                {isBooking && <BookingWizard onClose={() => setIsBooking(false)} />}
+                <AnimatePresence>
+                    {isBooking && <BookingWizard onClose={() => setIsBooking(false)} />}
+                </AnimatePresence>
             </div>
         </PageTransition>
     );
