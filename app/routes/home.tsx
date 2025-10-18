@@ -216,7 +216,6 @@ export default function Home() {
                                     <h4>Connect</h4>
                                     <a href="mailto:hello@fireflyofsoul.com">Email</a>
                                     <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">Instagram</a>
-                                    <a href="https://pinterest.com" target="_blank" rel="noopener noreferrer">Pinterest</a>
                                 </div>
                             </div>
                         </div>

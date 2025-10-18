@@ -121,22 +121,6 @@ export default function About() {
                     </div>
                 </header>
 
-                {/* Stats Section - Plus aérée */}
-                <section className="about-stats-section">
-                    <div className="container">
-                        <div className="about-stats-grid">
-                            {stats.map((stat, index) => (
-                                <AnimatedSection key={index} delay={index * 0.1} direction="up">
-                                    <div className="stat-item">
-                                        <div className="stat-number">{stat.number}</div>
-                                        <div className="stat-label">{stat.label}</div>
-                                    </div>
-                                </AnimatedSection>
-                            ))}
-                        </div>
-                    </div>
-                </section>
-
                 {/* Story Section - Simplifiée et aérée */}
                 <section className="story-section-modern">
                     <div className="container">
@@ -306,7 +290,6 @@ export default function About() {
                                     <h4>Connect</h4>
                                     <a href="mailto:hello@fireflyofsoul.com">Email</a>
                                     <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">Instagram</a>
-                                    <a href="https://pinterest.com" target="_blank" rel="noopener noreferrer">Pinterest</a>
                                 </div>
                             </div>
                         </div>

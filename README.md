@@ -52,12 +52,12 @@ https://github.com/MoshiDuck/FireflyOfSoulStudio
     ```
 2. Commit
     ```bash
-    git commit -m "[FAIT] - Page about "
+    git commit -m "[FAIT] - Page FAQ "
     ```
 
 3. Version
    ```bash
-   git tag 0.0.0.1
+   git tag 0.0.0.2
    ```
 
 4. Force le push
@@ -90,9 +90,10 @@ Objectif:
 
 - ajoutez different pricing
 - page pour recuperer photos apres shoot
-- Page FAQ
+- 
 - Chercher images dans lucioles
 - animations lucioles
+- adapter le code et images selons mes donnees personnel 
 
 
 ---

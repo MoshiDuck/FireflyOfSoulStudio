@@ -724,36 +724,6 @@ export default function Pricing() {
                     </div>
                 </AnimatedSection>
 
-                {/* FAQ Section */}
-                <AnimatedSection className="faq-section">
-                    <div className="container">
-                        <div className="pricing-section-header">
-                            <div className="section-badge">FAQ</div>
-                            <h2 className="section-title-modern">
-                                Common <span className="text-accent">Questions</span>
-                            </h2>
-                        </div>
-                        <div className="faq-grid">
-                            <div className="faq-item">
-                                <h4>How far in advance should I book?</h4>
-                                <p>We recommend booking 4-6 weeks in advance for the best availability, especially for weekend sessions.</p>
-                            </div>
-                            <div className="faq-item">
-                                <h4>What's included in the session fee?</h4>
-                                <p>The session fee includes the photographer's time, talent, and basic editing. Prints and products are additional.</p>
-                            </div>
-                            <div className="faq-item">
-                                <h4>Do you offer payment plans?</h4>
-                                <p>Yes! We offer flexible payment plans for sessions over $500. Contact us to discuss options.</p>
-                            </div>
-                            <div className="faq-item">
-                                <h4>What is your cancellation policy?</h4>
-                                <p>We require 48 hours notice for cancellations. Rescheduling is free with proper notice.</p>
-                            </div>
-                        </div>
-                    </div>
-                </AnimatedSection>
-
                 {/* CTA Section */}
                 <AnimatedSection className="cta-section-modern">
                     <div className="container">
@@ -832,7 +802,6 @@ export default function Pricing() {
                                     <h4>Connect</h4>
                                     <a href="mailto:hello@fireflyofsoul.com">Email</a>
                                     <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">Instagram</a>
-                                    <a href="https://pinterest.com" target="_blank" rel="noopener noreferrer">Pinterest</a>
                                 </div>
                             </div>
                         </div>
