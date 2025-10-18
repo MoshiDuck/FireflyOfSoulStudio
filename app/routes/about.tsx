@@ -275,7 +275,7 @@ export default function About() {
                             <div className="footer-brand">
                                 <div className="logo">Firefly of Soul</div>
                                 <p className="footer-tagline">
-                                    Capturing the poetry of light and shadow since 2016
+                                    Capturing the poetry of light and shadow since 2024
                                 </p>
                             </div>
                             <div className="footer-links">
