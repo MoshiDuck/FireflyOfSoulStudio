@@ -6,5 +6,6 @@ export default [
     route("gallery", "routes/gallery.tsx"),
     route("pricing", "routes/pricing.tsx"),
     route("about", "routes/about.tsx"),
+    route("testimonials", "routes/testimonials.tsx"),
     route("faq", "routes/faq.tsx"),
 ] satisfies RouteConfig;

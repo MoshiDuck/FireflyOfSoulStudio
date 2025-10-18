@@ -25,6 +25,7 @@ export function Navbar() {
         { path: "/gallery", label: "Gallery" },
         { path: "/pricing", label: "Pricing" },
         { path: "/faq", label: "FAQ" },
+        { path: "/testimonials", label: "Reviews" },
         { path: "/about", label: "About" },
     ];
 

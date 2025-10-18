@@ -89,8 +89,9 @@ Corriger :
 Objectif:
 
 - ajoutez different pricing
-- page pour recuperer photos apres shoot
-- 
+- Modifier gallery pour pouvoir telecharger l'image avce mot de passe 
+- Mettre page boutique
+- Mettre page avis clients / temoignage
 - Chercher images dans lucioles
 - animations lucioles
 - adapter le code et images selons mes donnees personnel 
