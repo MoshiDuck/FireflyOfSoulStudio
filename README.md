@@ -52,12 +52,12 @@ https://github.com/MoshiDuck/FireflyOfSoulStudio
     ```
 2. Commit
     ```bash
-    git commit -m "[FAIT] - Page FAQ "
+    git commit -m "[FAIT] - Mettre page Price modifier"
     ```
 
 3. Version
    ```bash
-   git tag 0.0.0.3
+   git tag 0.0.0.5
    ```
 
 4. Force le push
@@ -88,11 +88,13 @@ Corriger :
 
 Objectif:
 
+- Ajouter differents languages
 - ajoutez different pricing
-- Modifier gallery pour pouvoir telecharger l'image avce mot de passe 
+- Modifier gallery pour pouvoir telecharger l'image avec mot de passe 
 - Mettre page boutique
-- Mettre page avis clients / temoignage
 - Chercher images dans lucioles
+- ajoutez page secret developpement pour voir tout les commande, les horaires ou je suis dispo ou non, 
+      facture qui sort automatiquement dont j'ai juste a envoyer a l'utilisateur etc.. 
 - animations lucioles
 - adapter le code et images selons mes donnees personnel 
 
