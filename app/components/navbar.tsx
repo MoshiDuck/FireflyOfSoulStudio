@@ -23,7 +23,8 @@ export function Navbar() {
     const navItems = [
         { path: "/", label: "Home" },
         { path: "/gallery", label: "Gallery" },
-        { path: "/pricing", label: "Pricing" },
+        { path: "/shootings", label: "Shootings" },
+        { path: "/store", label: "Store" },
         { path: "/faq", label: "FAQ" },
         { path: "/testimonials", label: "Reviews" },
         { path: "/about", label: "About" },

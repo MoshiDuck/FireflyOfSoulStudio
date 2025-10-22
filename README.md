@@ -93,6 +93,8 @@ Objectif:
 - Modifier gallery pour pouvoir telecharger l'image avec mot de passe 
 - Mettre page boutique
 - Chercher images dans lucioles
+- Mettre une page pour shooting et une page pour boutique
+- Mettre une page dedier au parametre, about, contact, etc... 
 - ajoutez page secret developpement pour voir tout les commande, les horaires ou je suis dispo ou non, 
       facture qui sort automatiquement dont j'ai juste a envoyer a l'utilisateur etc.. 
 - animations lucioles
