@@ -52,12 +52,12 @@ https://github.com/MoshiDuck/FireflyOfSoulStudio
     ```
 2. Commit
     ```bash
-    git commit -m "[FAIT] - Mettre page Price modifier"
+    git commit -m "[FAIT] - Mettre More dans la navbar pour rendre la bar plus presentable"
     ```
 
 3. Version
    ```bash
-   git tag 0.0.0.5
+   git tag 0.0.0.6
    ```
 
 4. Force le push
@@ -90,10 +90,12 @@ Objectif:
 
 - Ajouter differents languages
 - ajoutez different pricing
-- Modifier gallery pour pouvoir telecharger l'image avec mot de passe 
-- Mettre page boutique
+- Ajouter stripe 
+- Faire 30% pour accompte
+- ajouter prix pour frame
+- ajouter api pour album et photo
+- Modifier gallery pour pouvoir telecharger l'image avec mot de passe
 - Chercher images dans lucioles
-- Mettre une page pour shooting et une page pour boutique
 - Mettre une page dedier au parametre, about, contact, etc... 
 - ajoutez page secret developpement pour voir tout les commande, les horaires ou je suis dispo ou non, 
       facture qui sort automatiquement dont j'ai juste a envoyer a l'utilisateur etc.. 
