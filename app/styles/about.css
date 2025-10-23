@@ -3,7 +3,6 @@
     overflow-x: hidden;
 }
 
-/* ===== VARIABLES RESPONSIVES ===== */
 :root {
     --deep-night: #0D0D0D;
     --dark-blue: #121212;
@@ -11,7 +10,6 @@
     --amber-light: #FFCA28;
     --soft-gray: #e0e0e0;
 
-    /* Variables responsives */
     --page-padding-mobile: 1rem;
     --page-padding-tablet: 2rem;
     --page-padding-desktop: clamp(2rem, 4vw, 4rem);
@@ -28,7 +26,6 @@
     --element-border-radius: 8px;
 }
 
-/* ===== ABOUT HERO MODERN - SIMPLIFIÉ ===== */
 .about-hero-modern {
     min-height: 100vh;
     display: flex;
@@ -155,42 +152,6 @@
     transform: translateX(-50%) rotate(45deg);
 }
 
-/* ===== ABOUT STATS ===== */
-.about-stats-section {
-    background: var(--dark-blue);
-    padding: var(--section-padding-mobile) var(--page-padding-mobile);
-}
-
-.about-stats-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--grid-gap-mobile);
-    text-align: center;
-    max-width: 800px;
-    margin: 0 auto;
-}
-
-.stat-item {
-    padding: 2rem 1rem;
-}
-
-.stat-number {
-    font-family: 'Cinzel', serif;
-    font-size: 2.75rem;
-    color: var(--warm-gold);
-    margin-bottom: 0.75rem;
-    font-weight: 600;
-    line-height: 1;
-}
-
-.stat-label {
-    color: var(--soft-gray);
-    font-size: 1rem;
-    opacity: 0.9;
-    line-height: 1.4;
-}
-
-/* ===== STORY SECTION MODERN AVEC EFFET NOIR ET BLANC ===== */
 .story-section-modern {
     background: var(--deep-night);
     padding: var(--section-padding-mobile) var(--page-padding-mobile);
@@ -310,29 +271,6 @@
     transform: scale(1);
 }
 
-.color-overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-            135deg,
-            rgba(255, 213, 128, 0.1) 0%,
-            rgba(255, 202, 40, 0.05) 50%,
-            transparent 100%
-    );
-    opacity: 0;
-    transition: all 0.8s ease;
-    pointer-events: none;
-}
-
-.portrait-container-modern:hover .artist-portrait-modern {
-    transform: scale(1.02);
-    filter: grayscale(0%) contrast(100%) brightness(1);
-}
-
-.portrait-container-modern:hover .color-overlay {
-    opacity: 1;
-}
-
 .portrait-frame-modern {
     position: absolute;
     inset: 0;
@@ -342,11 +280,15 @@
     transition: border-color 0.8s ease;
 }
 
+.portrait-container-modern:hover .artist-portrait-modern {
+    transform: scale(1.02);
+    filter: grayscale(0%) contrast(100%) brightness(1);
+}
+
 .portrait-container-modern:hover .portrait-frame-modern {
     border-color: rgba(255, 213, 128, 0.6);
 }
 
-/* ===== VALUES SECTION MODERN ===== */
 .values-section-modern {
     background: var(--dark-blue);
     padding: var(--section-padding-mobile) var(--page-padding-mobile);
@@ -419,7 +361,6 @@
     font-size: 1.05rem;
 }
 
-/* ===== TIMELINE MODERN - AÉRÉE ===== */
 .timeline-section-modern {
     background: var(--deep-night);
     padding: var(--section-padding-mobile) var(--page-padding-mobile);
@@ -513,7 +454,6 @@
     left: -58px;
 }
 
-/* ===== ABOUT CTA SECTION MODERN ===== */
 .about-cta-section-modern {
     background: linear-gradient(135deg, var(--dark-blue) 0%, var(--deep-night) 100%);
     text-align: center;
@@ -554,7 +494,6 @@
     flex-wrap: wrap;
 }
 
-/* ===== ABOUT FOOTER ===== */
 .footer-modern-about {
     background: var(--deep-night);
     border-top: 1px solid rgba(255, 213, 128, 0.1);
@@ -624,7 +563,6 @@
     font-size: 0.95rem;
 }
 
-/* ===== BUTTON STYLES ===== */
 .btn {
     display: inline-flex;
     align-items: center;
@@ -682,7 +620,6 @@
     min-width: 180px;
 }
 
-/* ===== ANIMATIONS ===== */
 @keyframes backgroundZoom {
     0%, 100% {
         transform: scale(1);
@@ -713,9 +650,6 @@
     animation: subtleAppear 1s ease-out;
 }
 
-/* ===== RESPONSIVE DESIGN ===== */
-
-/* Tablette (768px and up) */
 @media (min-width: 768px) {
     .about-hero-modern {
         padding: 0 var(--page-padding-tablet);
@@ -725,30 +659,11 @@
         padding: 3rem 0;
     }
 
-    .about-stats-section,
     .story-section-modern,
     .values-section-modern,
     .timeline-section-modern,
     .about-cta-section-modern {
         padding: var(--section-padding-tablet) var(--page-padding-tablet);
-    }
-
-    .about-stats-grid {
-        grid-template-columns: repeat(4, 1fr);
-        gap: var(--grid-gap-tablet);
-        max-width: 1000px;
-    }
-
-    .stat-item {
-        padding: 2.5rem 1rem;
-    }
-
-    .stat-number {
-        font-size: 3rem;
-    }
-
-    .stat-label {
-        font-size: 1.1rem;
     }
 
     .story-content-modern {
@@ -802,7 +717,6 @@
     }
 }
 
-/* Desktop (1024px and up) */
 @media (min-width: 1024px) {
     .about-hero-modern {
         padding: 0 var(--page-padding-desktop);
@@ -812,7 +726,6 @@
         padding: 4rem 0;
     }
 
-    .about-stats-section,
     .story-section-modern,
     .values-section-modern,
     .timeline-section-modern,
@@ -838,13 +751,11 @@
     }
 }
 
-/* Large Desktop (1440px and up) */
 @media (min-width: 1440px) {
     .about-hero-content {
         max-width: 1400px;
     }
 
-    .about-stats-grid,
     .story-content-modern,
     .values-grid-modern,
     .footer-content {
@@ -852,7 +763,6 @@
     }
 }
 
-/* ===== PERFORMANCE OPTIMIZATIONS ===== */
 @media (prefers-reduced-motion: reduce) {
     .hero-background-image,
     .value-card-modern,
@@ -870,7 +780,6 @@
     }
 }
 
-/* ===== TOUCH DEVICE OPTIMIZATIONS ===== */
 @media (hover: none) and (pointer: coarse) {
     .value-card-modern:hover,
     .timeline-item-modern:hover,
@@ -889,19 +798,4 @@
     .artist-portrait-modern {
         filter: grayscale(0%) contrast(100%) brightness(1);
     }
-
-    .color-overlay {
-        opacity: 1;
-    }
-}
-
-/* ===== SUPPRESSION DES ÉLÉMENTS VISUELS COMPLEXES ===== */
-.about-hero-visual,
-.floating-cards,
-.floating-card,
-.hero-light-effects,
-.light-effect,
-.experience-badge-modern,
-.signature-section {
-    display: none !important;
 }

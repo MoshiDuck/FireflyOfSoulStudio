@@ -17,23 +17,12 @@ export function Navbar() {
     const dropdownRef = useRef<HTMLLIElement>(null);
     const [isDevAllowed, setIsDevAllowed] = useState(false);
 
-    console.log('🔍 Navbar - Composant monté, location:', location.pathname);
-
-    // Ajoutez cet useEffect dans le composant Navbar
     useEffect(() => {
-        console.log('🔍 Navbar - useEffect checkDevAccess déclenché');
-
         const checkDevAccess = async () => {
             try {
-                console.log('🔍 Navbar - Début de checkDevAccess');
                 const response = await fetch('/api/check-ip');
-                console.log('🔍 Navbar - Réponse reçue, status:', response.status);
-
                 const data: CheckIPResponse = await response.json();
-                console.log('🔍 Navbar - Données reçues:', data);
-
                 setIsDevAllowed(data.allowed);
-                console.log('🔍 Navbar - isDevAllowed mis à jour:', data.allowed);
             } catch (error) {
                 console.error('❌ Navbar - Error checking dev access:', error);
                 setIsDevAllowed(false);
@@ -44,8 +33,6 @@ export function Navbar() {
     }, []);
 
     useEffect(() => {
-        console.log('🔍 Navbar - useEffect scroll déclenché');
-
         const handleScroll = () => {
             const scrollTop = window.scrollY;
             setIsScrolled(scrollTop > 50);
@@ -56,8 +43,6 @@ export function Navbar() {
     }, []);
 
     useEffect(() => {
-        console.log('🔍 Navbar - useEffect click outside déclenché');
-
         const handleClickOutside = (event: MouseEvent) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
                 setIsMoreOpen(false);
@@ -83,9 +68,6 @@ export function Navbar() {
         { path: "/faq", label: "FAQ" },
         ...(isDevAllowed ? [{ path: "/dev", label: "Developer" }] : [])
     ];
-
-    console.log('🔍 Navbar - Rendu, isDevAllowed:', isDevAllowed);
-    console.log('🔍 Navbar - Secondary items:', secondaryItems);
 
     return (
         <motion.nav
@@ -119,7 +101,6 @@ export function Navbar() {
                         </motion.li>
                     ))}
 
-                    {/* Dropdown pour les pages secondaires */}
                     <motion.li
                         className="navbar-item dropdown"
                         ref={dropdownRef}

@@ -17,13 +17,6 @@ export function meta({}: Route.MetaArgs) {
     ];
 }
 
-const stats = [
-    { number: "8+", label: "Years Experience" },
-    { number: "500+", label: "Portraits Captured" },
-    { number: "50+", label: "Exhibitions" },
-    { number: "100%", label: "Client Satisfaction" }
-];
-
 const values = [
     {
         icon: "🎨",
@@ -55,31 +48,12 @@ const milestones = [
     { year: "2024", event: "500+ Client Sessions Completed" }
 ];
 
-const signatureWorks = [
-    {
-        src: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-        title: "Eternal Gaze",
-        category: "Portrait"
-    },
-    {
-        src: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-        title: "Nocturnal Dreams",
-        category: "Fine Art"
-    },
-    {
-        src: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-        title: "Forest Whispers",
-        category: "Nature"
-    }
-];
-
 export default function About() {
     return (
         <PageTransition>
             <div className="about-page">
                 <Navbar />
 
-                {/* Hero Section - Même style que Gallery et Pricing */}
                 <header className="about-hero-modern">
                     <div className="about-hero-background">
                         <div
@@ -109,7 +83,7 @@ export default function About() {
                                     <Link to="/gallery" className="btn btn-primary">
                                         View My Work
                                     </Link>
-                                    <Link to="/pricing" className="btn btn-secondary">
+                                    <Link to="/shootings" className="btn btn-secondary">
                                         Book a Session
                                     </Link>
                                 </div>
@@ -121,7 +95,6 @@ export default function About() {
                     </div>
                 </header>
 
-                {/* Story Section - Simplifiée et aérée */}
                 <section className="story-section-modern">
                     <div className="container">
                         <div className="story-content-modern">
@@ -178,7 +151,6 @@ export default function About() {
                     </div>
                 </section>
 
-                {/* Values Section */}
                 <AnimatedSection className="values-section-modern">
                     <div className="container">
                         <div className="section-header-modern">
@@ -211,7 +183,6 @@ export default function About() {
                     </div>
                 </AnimatedSection>
 
-                {/* Timeline Section - Simplifiée */}
                 <AnimatedSection className="timeline-section-modern">
                     <div className="container">
                         <div className="section-header-modern">
@@ -245,7 +216,6 @@ export default function About() {
                     </div>
                 </AnimatedSection>
 
-                {/* CTA Section */}
                 <section className="about-cta-section-modern">
                     <div className="container">
                         <AnimatedSection>
@@ -256,7 +226,7 @@ export default function About() {
                                     Your timeless portrait awaits.
                                 </p>
                                 <div className="cta-actions">
-                                    <Link to="/pricing" className="btn btn-primary btn-large">
+                                    <Link to="/shootings" className="btn btn-primary btn-large">
                                         Book Your Session
                                     </Link>
                                     <Link to="/gallery" className="btn btn-outline btn-large">
@@ -268,7 +238,6 @@ export default function About() {
                     </div>
                 </section>
 
-                {/* Footer */}
                 <footer className="footer-modern-about">
                     <div className="container">
                         <div className="footer-content">
@@ -284,7 +253,7 @@ export default function About() {
                                     <Link to="/">Home</Link>
                                     <Link to="/about">About</Link>
                                     <Link to="/gallery">Gallery</Link>
-                                    <Link to="/pricing">Pricing</Link>
+                                    <Link to="/shootings">Shootings</Link>
                                 </div>
                                 <div className="footer-column">
                                     <h4>Connect</h4>

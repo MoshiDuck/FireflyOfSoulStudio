@@ -7,7 +7,7 @@ interface AnimatedSectionProps {
     className?: string;
     delay?: number;
     direction?: "up" | "down" | "left" | "right" | "fade";
-    id?: string;  // ✅ Ajout de la prop id
+    id?: string;
 }
 
 export function AnimatedSection({
@@ -15,7 +15,7 @@ export function AnimatedSection({
                                     className = "",
                                     delay = 0,
                                     direction = "up",
-                                    id,  // ✅ Déstructuration de id
+                                    id,
                                 }: AnimatedSectionProps) {
     const [isVisible, setIsVisible] = useState(false);
     const ref = useRef<HTMLDivElement>(null);
@@ -64,7 +64,7 @@ export function AnimatedSection({
     return (
         <motion.div
             ref={ref}
-            id={id}  // ✅ Ajout de l'attribut id
+            id={id}
             className={className}
             initial={{ opacity: 0, ...directionValues }}
             animate={

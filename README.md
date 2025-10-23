@@ -65,6 +65,17 @@ https://github.com/MoshiDuck/FireflyOfSoulStudio
     git push --force origin main
     ```
 
+### Revenir en arriere
+
+1. Ajoutez les dossiers
+    ```bash
+    git fetch origin
+    ```
+2. Commit
+    ```bash
+    git reset --hard origin/main
+    ```
+
 ---
 
 ## CloudFlare

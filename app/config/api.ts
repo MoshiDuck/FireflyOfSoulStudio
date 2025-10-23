@@ -27,7 +27,7 @@ export async function apiRequest<T>(
     if (!response.ok) {
         const error = await response.json().catch(() => ({
             error: 'An error occurred',
-        })) as { error?: string };  // ✅ Type assertion ajouté
+        })) as { error?: string };
         throw new Error(error.error || 'Network error');
     }
 
