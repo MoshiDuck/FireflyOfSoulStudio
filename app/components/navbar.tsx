@@ -79,7 +79,7 @@ export function Navbar() {
 
     const secondaryItems = [
         { path: "/about", label: "About" },
-        { path: "/testimonials", label: "Reviews" },
+        { path: "/reviews", label: "Reviews" },
         { path: "/faq", label: "FAQ" },
         ...(isDevAllowed ? [{ path: "/dev", label: "Developer" }] : [])
     ];

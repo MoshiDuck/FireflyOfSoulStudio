@@ -1,23 +1,23 @@
-// Todo : app/routes/testimonials.tsx
+// Todo : app/routes/reviews.tsx
 import type { Route } from "./+types/home";
 import { Navbar } from "~/components/navbar";
 import { PageTransition } from "~/components/PageTransition";
 import { AnimatedSection } from "~/components/AnimatedSection";
 import { Link } from "react-router";
 import { motion } from "motion/react";
-import "../styles/testimonials.css";
+import "../styles/reviews.css";
 
 export function meta({}: Route.MetaArgs) {
     return [
         { title: "Client Reviews | Firefly of Soul Studio" },
         {
             name: "description",
-            content: "Discover what our clients say about their photography experience - Authentic testimonials and reviews from Firefly of Soul Studio",
+            content: "Discover what our clients say about their photography experience - Authentic reviews and reviews from Firefly of Soul Studio",
         },
     ];
 }
 
-const testimonials = [
+const reviews = [
     {
         id: 1,
         name: "Sarah & James",
@@ -76,15 +76,15 @@ const stats = [
     { number: "50+", label: "5-Star Reviews" }
 ];
 
-export default function Testimonials() {
+export default function Reviews() {
     return (
         <PageTransition>
-            <div className="testimonials-page">
+            <div className="reviews-page">
                 <Navbar />
 
                 {/* Hero Section - Même style que les autres pages */}
-                <header className="testimonials-hero-modern">
-                    <div className="testimonials-hero-background">
+                <header className="reviews-hero-modern">
+                    <div className="reviews-hero-background">
                         <div
                             className="hero-background-image"
                             style={{
@@ -94,21 +94,21 @@ export default function Testimonials() {
                         <div className="hero-overlay"></div>
                     </div>
                     <div className="container">
-                        <div className="testimonials-hero-content">
+                        <div className="reviews-hero-content">
                             <motion.div
-                                className="testimonials-hero-text"
+                                className="reviews-hero-text"
                                 initial={{ opacity: 0, y: 50 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.8, ease: [0.6, 0.05, 0.01, 0.9] }}
                             >
-                                <h1 className="testimonials-hero-title">
+                                <h1 className="reviews-hero-title">
                                     Voices of <span className="text-accent">Experience</span>
                                 </h1>
-                                <p className="testimonials-hero-subtitle">
+                                <p className="reviews-hero-subtitle">
                                     Discover the stories behind the lens through the eyes of those who've experienced
                                     the magic of Firefly of Soul Studio firsthand.
                                 </p>
-                                <div className="testimonials-hero-actions">
+                                <div className="reviews-hero-actions">
                                     <Link to="/pricing" className="btn btn-primary">
                                         Book Your Session
                                     </Link>
@@ -125,9 +125,9 @@ export default function Testimonials() {
                 </header>
 
                 {/* Stats Section */}
-                <AnimatedSection className="testimonials-stats-section">
+                <AnimatedSection className="reviews-stats-section">
                     <div className="container">
-                        <div className="testimonials-stats-grid">
+                        <div className="reviews-stats-grid">
                             {stats.map((stat, index) => (
                                 <motion.div
                                     key={index}
@@ -159,7 +159,7 @@ export default function Testimonials() {
                         </div>
 
                         <div className="featured-testimonial-modern">
-                            {testimonials.filter(t => t.featured).map((testimonial) => (
+                            {reviews.filter(t => t.featured).map((testimonial) => (
                                 <motion.div
                                     key={testimonial.id}
                                     className="featured-testimonial-card"
@@ -196,8 +196,8 @@ export default function Testimonials() {
                     </div>
                 </AnimatedSection>
 
-                {/* Testimonials Grid */}
-                <AnimatedSection className="testimonials-grid-section" id="reviews">
+                {/* reviews Grid */}
+                <AnimatedSection className="reviews-grid-section" id="reviews">
                     <div className="container">
                         <div className="section-header-modern">
                             <div className="section-badge">Client Stories</div>
@@ -209,8 +209,8 @@ export default function Testimonials() {
                             </p>
                         </div>
 
-                        <div className="testimonials-grid-modern">
-                            {testimonials.filter(t => !t.featured).map((testimonial, index) => (
+                        <div className="reviews-grid-modern">
+                            {reviews.filter(t => !t.featured).map((testimonial, index) => (
                                 <motion.div
                                     key={testimonial.id}
                                     className="testimonial-card-modern"
@@ -247,9 +247,9 @@ export default function Testimonials() {
                 </AnimatedSection>
 
                 {/* CTA Section */}
-                <AnimatedSection className="cta-section-testimonials">
+                <AnimatedSection className="cta-section-reviews">
                     <div className="container">
-                        <div className="cta-content-testimonials">
+                        <div className="cta-content-reviews">
                             <h2 className="cta-title">Ready to Create Your Story?</h2>
                             <p className="cta-description">
                                 Join our family of satisfied clients and let us capture your unique journey through the art of photography.
@@ -267,7 +267,7 @@ export default function Testimonials() {
                 </AnimatedSection>
 
                 {/* Footer */}
-                <footer className="footer-modern-testimonials">
+                <footer className="footer-modern-reviews">
                     <div className="container">
                         <div className="footer-content">
                             <div className="footer-brand">
@@ -283,7 +283,7 @@ export default function Testimonials() {
                                     <Link to="/about">About</Link>
                                     <Link to="/gallery">Gallery</Link>
                                     <Link to="/pricing">Pricing</Link>
-                                    <Link to="/testimonials">Reviews</Link>
+                                    <Link to="/reviews">Reviews</Link>
                                 </div>
                                 <div className="footer-column">
                                     <h4>Connect</h4>

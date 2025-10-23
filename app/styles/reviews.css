@@ -1,5 +1,5 @@
-/* Todo : app/styles/testimonials.css */
-.testimonials-page {
+/* Todo : app/styles/reviews.css */
+.reviews-page {
     overflow-x: hidden;
 }
 
@@ -27,8 +27,8 @@
     --element-border-radius: 8px;
 }
 
-/* ===== TESTIMONIALS HERO MODERN ===== */
-.testimonials-hero-modern {
+/* ===== reviews HERO MODERN ===== */
+.reviews-hero-modern {
     min-height: 80vh;
     display: flex;
     flex-direction: column;
@@ -39,7 +39,7 @@
     padding: 0 var(--page-padding-mobile);
 }
 
-.testimonials-hero-background {
+.reviews-hero-background {
     position: absolute;
     inset: 0;
     z-index: 1;
@@ -67,7 +67,7 @@
     z-index: 2;
 }
 
-.testimonials-hero-content {
+.reviews-hero-content {
     position: relative;
     z-index: 4;
     display: flex;
@@ -80,12 +80,12 @@
     margin: 0 auto;
 }
 
-.testimonials-hero-text {
+.reviews-hero-text {
     max-width: 800px;
     padding: 0 1rem;
 }
 
-.testimonials-hero-title {
+.reviews-hero-title {
     font-family: 'Cinzel', serif;
     font-size: clamp(2.5rem, 8vw, 4.5rem);
     font-weight: 400;
@@ -104,7 +104,7 @@
     text-shadow: 0 2px 20px rgba(255, 213, 128, 0.3);
 }
 
-.testimonials-hero-subtitle {
+.reviews-hero-subtitle {
     font-size: clamp(1.1rem, 4vw, 1.5rem);
     line-height: 1.6;
     color: var(--soft-gray);
@@ -116,7 +116,7 @@
     text-shadow: 0 1px 5px rgba(0, 0, 0, 0.3);
 }
 
-.testimonials-hero-actions {
+.reviews-hero-actions {
     display: flex;
     gap: 1.5rem;
     flex-wrap: wrap;
@@ -153,13 +153,13 @@
     transform: translateX(-50%) rotate(45deg);
 }
 
-/* ===== TESTIMONIALS STATS ===== */
-.testimonials-stats-section {
+/* ===== reviews STATS ===== */
+.reviews-stats-section {
     background: var(--dark-blue);
     padding: var(--section-padding-mobile) var(--page-padding-mobile);
 }
 
-.testimonials-stats-grid {
+.reviews-stats-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: var(--grid-gap-mobile);
@@ -333,13 +333,13 @@
     font-size: 0.95rem;
 }
 
-/* ===== TESTIMONIALS GRID ===== */
-.testimonials-grid-section {
+/* ===== reviews GRID ===== */
+.reviews-grid-section {
     background: var(--dark-blue);
     padding: var(--section-padding-mobile) var(--page-padding-mobile);
 }
 
-.testimonials-grid-modern {
+.reviews-grid-modern {
     display: grid;
     grid-template-columns: 1fr;
     gap: var(--grid-gap-mobile);
@@ -443,14 +443,14 @@
     font-family: serif;
 }
 
-/* ===== TESTIMONIALS CTA SECTION ===== */
-.cta-section-testimonials {
+/* ===== reviews CTA SECTION ===== */
+.cta-section-reviews {
     background: linear-gradient(135deg, var(--dark-blue) 0%, var(--deep-night) 100%);
     text-align: center;
     padding: var(--section-padding-mobile) var(--page-padding-mobile);
 }
 
-.cta-content-testimonials {
+.cta-content-reviews {
     max-width: 800px;
     margin: 0 auto;
     padding: 0 1rem;
@@ -478,8 +478,8 @@
     flex-wrap: wrap;
 }
 
-/* ===== TESTIMONIALS FOOTER ===== */
-.footer-modern-testimonials {
+/* ===== reviews FOOTER ===== */
+.footer-modern-reviews {
     background: var(--deep-night);
     border-top: 1px solid rgba(255, 213, 128, 0.1);
     padding: 3rem var(--page-padding-mobile) 1.5rem;
@@ -626,19 +626,19 @@
 
 /* Tablette (768px and up) */
 @media (min-width: 768px) {
-    .testimonials-hero-modern {
+    .reviews-hero-modern {
         padding: 0 var(--page-padding-tablet);
         min-height: 90vh;
     }
 
-    .testimonials-stats-section,
+    .reviews-stats-section,
     .featured-testimonial-section,
-    .testimonials-grid-section,
-    .cta-section-testimonials {
+    .reviews-grid-section,
+    .cta-section-reviews {
         padding: var(--section-padding-tablet) var(--page-padding-tablet);
     }
 
-    .testimonials-stats-grid {
+    .reviews-stats-grid {
         grid-template-columns: repeat(4, 1fr);
         gap: var(--grid-gap-tablet);
         max-width: 1000px;
@@ -660,12 +660,12 @@
         grid-template-columns: 1fr 1fr;
     }
 
-    .testimonials-grid-modern {
+    .reviews-grid-modern {
         grid-template-columns: repeat(2, 1fr);
         gap: var(--grid-gap-tablet);
     }
 
-    .footer-modern-testimonials {
+    .footer-modern-reviews {
         padding: 4rem var(--page-padding-tablet) 2rem;
     }
 
@@ -699,24 +699,24 @@
 
 /* Desktop (1024px and up) */
 @media (min-width: 1024px) {
-    .testimonials-hero-modern {
+    .reviews-hero-modern {
         padding: 0 var(--page-padding-desktop);
         min-height: 100vh;
     }
 
-    .testimonials-stats-section,
+    .reviews-stats-section,
     .featured-testimonial-section,
-    .testimonials-grid-section,
-    .cta-section-testimonials {
+    .reviews-grid-section,
+    .cta-section-reviews {
         padding: var(--section-padding-desktop) var(--page-padding-desktop);
     }
 
-    .testimonials-grid-modern {
+    .reviews-grid-modern {
         grid-template-columns: repeat(3, 1fr);
         gap: var(--grid-gap-desktop);
     }
 
-    .footer-modern-testimonials {
+    .footer-modern-reviews {
         padding: 5rem var(--page-padding-desktop) 2.5rem;
     }
 
@@ -727,9 +727,9 @@
 
 /* Large Desktop (1440px and up) */
 @media (min-width: 1440px) {
-    .testimonials-stats-grid,
+    .reviews-stats-grid,
     .featured-testimonial-modern,
-    .testimonials-grid-modern,
+    .reviews-grid-modern,
     .footer-content {
         max-width: 1400px;
     }
