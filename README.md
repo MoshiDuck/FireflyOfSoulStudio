@@ -2,6 +2,17 @@
 
 https://github.com/MoshiDuck/FireflyOfSoulStudio
 
+### Revenir en arriere
+
+1. Ajoutez les dossiers
+    ```bash
+    git fetch origin
+    ```
+2. Commit
+    ```bash
+    git reset --hard origin/main
+    ```
+
 ### Utiliser code onlime pour remplacer code offline
 
 1. Crée une sauvegarde de ton code actuel
@@ -52,28 +63,17 @@ https://github.com/MoshiDuck/FireflyOfSoulStudio
     ```
 2. Commit
     ```bash
-    git commit -m "[FAIT] - Page dev"
+    git commit -m "[FAIT] - Creer footer et factoriser code "
     ```
 
 3. Version
    ```bash
-   git tag 0.0.0.7
+   git tag 0.0.0.8
    ```
 
 4. Force le push
     ```bash
     git push --force origin main
-    ```
-
-### Revenir en arriere
-
-1. Ajoutez les dossiers
-    ```bash
-    git fetch origin
-    ```
-2. Commit
-    ```bash
-    git reset --hard origin/main
     ```
 
 ---
