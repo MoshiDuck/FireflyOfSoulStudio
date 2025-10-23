@@ -1,5 +1,4 @@
 // Todo : app/routes/reviews.tsx
-import type { Route } from "./+types/home";
 import { Navbar } from "~/components/navbar";
 import { PageTransition } from "~/components/PageTransition";
 import { AnimatedSection } from "~/components/AnimatedSection";
@@ -7,16 +6,6 @@ import { Link } from "react-router";
 import { motion } from "motion/react";
 import "../styles/reviews.css";
 import {Footer} from "~/components/Footer";
-
-export function meta({}: Route.MetaArgs) {
-    return [
-        { title: "Client Reviews | Firefly of Soul Studio" },
-        {
-            name: "description",
-            content: "Discover what our clients say about their photography experience - Authentic reviews and reviews from Firefly of Soul Studio",
-        },
-    ];
-}
 
 const reviews = [
     {

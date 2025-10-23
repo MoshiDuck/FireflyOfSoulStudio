@@ -1,5 +1,4 @@
 // Todo : app/routes/about.tsx
-import type { Route } from "./+types/home";
 import { Navbar } from "~/components/navbar";
 import { PageTransition } from "~/components/PageTransition";
 import { AnimatedSection } from "~/components/AnimatedSection";
@@ -7,16 +6,6 @@ import { Link } from "react-router";
 import { motion } from "motion/react";
 import "../styles/about.css";
 import {Footer} from "~/components/Footer";
-
-export function meta({}: Route.MetaArgs) {
-    return [
-        { title: "About | Firefly of Soul Studio" },
-        {
-            name: "description",
-            content: "Meet the artist behind Firefly of Soul Studio - Professional photographer with 8+ years of experience in fine art photography",
-        },
-    ];
-}
 
 const values = [
     {

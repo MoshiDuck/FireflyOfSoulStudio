@@ -1,6 +1,5 @@
 // Todo : app/routes/store.tsx
 import React, { useState, useRef, useCallback, useEffect } from "react";
-import type { Route } from "./+types/home";
 import "../styles/store.css";
 import { Navbar } from "~/components/navbar";
 import { AnimatedSection } from "~/components/AnimatedSection";
@@ -9,17 +8,6 @@ import { motion } from "motion/react";
 import { Link } from "react-router";
 import {Footer} from "~/components/Footer";
 
-export function meta({}: Route.MetaArgs) {
-    return [
-        { title: "Boutique de Produits Premium | Firefly of Soul Studio" },
-        {
-            name: "description",
-            content: "Produits d'exception pour mettre en valeur vos photos. Albums premium, impressions fine art, fichiers RAW et clés USB gravées.",
-        },
-    ];
-}
-
-// ✅ COMPOSANTS PARTAGÉS POUR LE FOCUS
 function UncontrolledInput({
                                name,
                                defaultValue = "",

@@ -1,5 +1,4 @@
 // Todo : app/routes/dev.tsx
-import type { Route } from "./+types/home";
 import { Navbar } from "~/components/navbar";
 import { PageTransition } from "~/components/PageTransition";
 import { AnimatedSection } from "~/components/AnimatedSection";
@@ -7,16 +6,6 @@ import { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { useDevAccess } from "~/hooks/useDevAccess";
 import "../styles/dev.css";
-
-export function meta({}: Route.MetaArgs) {
-    return [
-        { title: "Developer Panel | Firefly of Soul Studio" },
-        {
-            name: "description",
-            content: "Developer tools and administration panel",
-        },
-    ];
-}
 
 interface SystemInfo {
     timestamp: string;

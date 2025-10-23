@@ -1,6 +1,5 @@
 // Todo : app/routes/shootings.tsx
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import type { Route } from "./+types/home";
 import "../styles/shootings.css";
 import { Navbar } from "~/components/navbar";
 import { AnimatedSection } from "~/components/AnimatedSection";
@@ -9,16 +8,6 @@ import { motion } from "motion/react";
 import { Link } from "react-router";
 import { API_ENDPOINTS } from "~/config/api";
 import {Footer} from "~/components/Footer";
-
-export function meta({}: Route.MetaArgs) {
-    return [
-        { title: "Séances Photo Professionnelles | Firefly of Soul Studio" },
-        {
-            name: "description",
-            content: "Séances photo artistiques sur mesure. Portrait, série artistique et projets éditoriaux. Réservez votre expérience créative.",
-        },
-    ];
-}
 
 // ✅ Types pour l'API
 interface ApiSuccessResponse {

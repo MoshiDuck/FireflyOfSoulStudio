@@ -1,21 +1,10 @@
 // Todo : app/routes/gallery.tsx
-import type { Route } from "./+types/home";
 import "../styles/gallery.css";
 import { Navbar } from "~/components/navbar";
 import { PageTransition } from "~/components/PageTransition";
 import { useState } from "react";
 import { Link } from "react-router";
 import {Footer} from "~/components/Footer";
-
-export function meta({}: Route.MetaArgs) {
-    return [
-        { title: "Gallery | Firefly of Soul Studio" },
-        {
-            name: "description",
-            content: "Discover our visual poetry and photography collections - Fine art photography showcasing portraits, nature, and urban landscapes",
-        },
-    ];
-}
 
 const albums = [
     {

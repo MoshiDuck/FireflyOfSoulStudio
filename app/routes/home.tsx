@@ -1,20 +1,9 @@
 // Todo : app/routes/home.tsx
-import type { Route } from "./+types/home";
 import { Navbar } from "~/components/navbar";
 import "../styles/home.css";
 import { PageTransition } from "~/components/PageTransition";
 import { Link } from "react-router";
 import {Footer} from "~/components/Footer";
-
-export function meta({}: Route.MetaArgs) {
-    return [
-        { title: "Firefly of Soul Studio | Capturing Souls Through Light" },
-        {
-            name: "description",
-            content: "Professional photography studio specializing in artistic portraits, fine art photography, and capturing the essence of human soul through light",
-        },
-    ];
-}
 
 const galleryImages = [
     {
@@ -37,13 +26,6 @@ const galleryImages = [
         title: "Forest Dream",
         category: "Fine Art"
     },
-];
-
-const stats = [
-    { number: "500+", label: "Portraits Captured" },
-    { number: "8", label: "Years of Experience" },
-    { number: "50+", label: "Exhibitions" },
-    { number: "100%", label: "Client Satisfaction" }
 ];
 
 export default function Home() {

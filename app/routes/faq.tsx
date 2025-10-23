@@ -1,5 +1,4 @@
 // Todo : app/routes/faq.tsx
-import type { Route } from "./+types/home";
 import { Navbar } from "~/components/navbar";
 import { PageTransition } from "~/components/PageTransition";
 import { AnimatedSection } from "~/components/AnimatedSection";
@@ -8,16 +7,6 @@ import { Link } from "react-router";
 import { useState } from "react";
 import "../styles/faq.css";
 import {Footer} from "~/components/Footer";
-
-export function meta({}: Route.MetaArgs) {
-    return [
-        { title: "FAQ | Firefly of Soul Studio" },
-        {
-            name: "description",
-            content: "Frequently asked questions about photography sessions, booking process, pricing, and artistic approach at Firefly of Soul Studio",
-        },
-    ];
-}
 
 const faqCategories = [
     {
