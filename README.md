@@ -52,12 +52,12 @@ https://github.com/MoshiDuck/FireflyOfSoulStudio
     ```
 2. Commit
     ```bash
-    git commit -m "[FAIT] - Mettre More dans la navbar pour rendre la bar plus presentable"
+    git commit -m "[FAIT] - Page dev"
     ```
 
 3. Version
    ```bash
-   git tag 0.0.0.6
+   git tag 0.0.0.7
    ```
 
 4. Force le push
@@ -89,6 +89,7 @@ Corriger :
 Objectif:
 
 - Ajouter differents languages
+- Mettre la bar du bat dans un plugin pour eviter la duplication de code 
 - ajoutez different pricing
 - Ajouter stripe 
 - Faire 30% pour accompte

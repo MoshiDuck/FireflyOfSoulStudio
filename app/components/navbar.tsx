@@ -1,16 +1,51 @@
-// app/components/navbar.tsx
+// Todo : app/components/navbar.tsx
 import { Link, useLocation } from "react-router";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import "../styles/navbar.css";
+
+interface CheckIPResponse {
+    allowed: boolean;
+    clientIP?: string;
+    error?: string;
+}
 
 export function Navbar() {
     const location = useLocation();
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMoreOpen, setIsMoreOpen] = useState(false);
     const dropdownRef = useRef<HTMLLIElement>(null);
+    const [isDevAllowed, setIsDevAllowed] = useState(false);
+
+    console.log('🔍 Navbar - Composant monté, location:', location.pathname);
+
+    // Ajoutez cet useEffect dans le composant Navbar
+    useEffect(() => {
+        console.log('🔍 Navbar - useEffect checkDevAccess déclenché');
+
+        const checkDevAccess = async () => {
+            try {
+                console.log('🔍 Navbar - Début de checkDevAccess');
+                const response = await fetch('/api/check-ip');
+                console.log('🔍 Navbar - Réponse reçue, status:', response.status);
+
+                const data: CheckIPResponse = await response.json();
+                console.log('🔍 Navbar - Données reçues:', data);
+
+                setIsDevAllowed(data.allowed);
+                console.log('🔍 Navbar - isDevAllowed mis à jour:', data.allowed);
+            } catch (error) {
+                console.error('❌ Navbar - Error checking dev access:', error);
+                setIsDevAllowed(false);
+            }
+        };
+
+        checkDevAccess();
+    }, []);
 
     useEffect(() => {
+        console.log('🔍 Navbar - useEffect scroll déclenché');
+
         const handleScroll = () => {
             const scrollTop = window.scrollY;
             setIsScrolled(scrollTop > 50);
@@ -21,6 +56,8 @@ export function Navbar() {
     }, []);
 
     useEffect(() => {
+        console.log('🔍 Navbar - useEffect click outside déclenché');
+
         const handleClickOutside = (event: MouseEvent) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
                 setIsMoreOpen(false);
@@ -43,8 +80,12 @@ export function Navbar() {
     const secondaryItems = [
         { path: "/about", label: "About" },
         { path: "/testimonials", label: "Reviews" },
-        { path: "/faq", label: "FAQ" }
+        { path: "/faq", label: "FAQ" },
+        ...(isDevAllowed ? [{ path: "/dev", label: "Developer" }] : [])
     ];
+
+    console.log('🔍 Navbar - Rendu, isDevAllowed:', isDevAllowed);
+    console.log('🔍 Navbar - Secondary items:', secondaryItems);
 
     return (
         <motion.nav

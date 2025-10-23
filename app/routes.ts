@@ -9,4 +9,6 @@ export default [
     route("about", "routes/about.tsx"),
     route("testimonials", "routes/testimonials.tsx"),
     route("faq", "routes/faq.tsx"),
+    route("dev", "routes/dev.tsx"),
+    route("api/check-ip", "routes/api.check-ip.tsx"),
 ] satisfies RouteConfig;

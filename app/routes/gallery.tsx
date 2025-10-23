@@ -1,4 +1,4 @@
-// app/routes/gallery.tsx
+// Todo : app/routes/gallery.tsx
 import type { Route } from "./+types/home";
 import "../styles/gallery.css";
 import { Navbar } from "~/components/navbar";

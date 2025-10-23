@@ -1,4 +1,4 @@
-// app/routes/shootings.tsx
+// Todo : app/routes/shootings.tsx
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import type { Route } from "./+types/home";
 import "../styles/shootings.css";

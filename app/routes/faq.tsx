@@ -1,4 +1,4 @@
-// app/routes/faq.tsx
+// Todo : app/routes/faq.tsx
 import type { Route } from "./+types/home";
 import { Navbar } from "~/components/navbar";
 import { PageTransition } from "~/components/PageTransition";
