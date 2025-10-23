@@ -9,8 +9,11 @@ import {
 } from "react-router";
 import type {Route} from "./+types/root";
 
+import stylesUrl from "./styles/app.css?url";
+
 export const links: Route.LinksFunction = () => [
     {rel: "preconnect", href: "https://fonts.googleapis.com"},
+    { rel: "stylesheet", href: stylesUrl },
     {
         rel: "preconnect",
         href: "https://fonts.gstatic.com",
@@ -131,7 +134,6 @@ export function Layout({children}: { children: React.ReactNode }) {
         </div>
         <ScrollRestoration/>
         <Scripts/>
-        <link rel="stylesheet" href="/styles/app.css"/>
         </body>
         </html>
     );

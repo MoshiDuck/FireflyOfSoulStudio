@@ -753,76 +753,6 @@
     flex-wrap: wrap;
 }
 
-/* ===== FOOTER MODERN ===== */
-.footer-modern {
-    background: var(--deep-night);
-    border-top: 1px solid rgba(255, 213, 128, 0.1);
-    padding: 3rem var(--page-padding-mobile) 1.5rem;
-}
-
-.footer-content {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 2rem;
-    margin-bottom: 2rem;
-    max-width: 1200px;
-    margin-left: auto;
-    margin-right: auto;
-    text-align: center;
-}
-
-.footer-brand .logo {
-    font-family: 'Cinzel', serif;
-    font-size: 1.75rem;
-    color: var(--warm-gold);
-    margin-bottom: 1rem;
-}
-
-.footer-tagline {
-    color: var(--soft-gray);
-    opacity: 0.8;
-    font-size: 1rem;
-    line-height: 1.5;
-}
-
-.footer-links {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 2rem;
-}
-
-.footer-column h4 {
-    color: white;
-    margin-bottom: 1rem;
-    font-family: 'Cinzel', serif;
-    font-size: 1.1rem;
-}
-
-.footer-column a {
-    display: block;
-    color: var(--soft-gray);
-    text-decoration: none;
-    margin-bottom: 0.5rem;
-    transition: color 0.3s ease;
-    font-size: 0.95rem;
-}
-
-.footer-column a:hover {
-    color: var(--warm-gold);
-}
-
-.footer-bottom {
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    padding-top: 1.5rem;
-    text-align: center;
-    color: var(--soft-gray);
-    opacity: 0.7;
-    max-width: 1200px;
-    margin-left: auto;
-    margin-right: auto;
-    font-size: 0.9rem;
-}
-
 /* ===== MEDIA QUERIES ===== */
 @media (min-width: 768px) {
     .hero-modern {
@@ -940,25 +870,6 @@
         font-size: clamp(1.5rem, 3vw, 1.9rem);
     }
 
-    .footer-modern {
-        padding: 3.5rem var(--page-padding-tablet) 2rem;
-    }
-
-    .footer-content {
-        grid-template-columns: 1fr 1fr;
-        gap: 3rem;
-        text-align: left;
-    }
-
-    .footer-brand {
-        text-align: left;
-    }
-
-    .footer-links {
-        grid-template-columns: 1fr 1fr;
-        gap: 2rem;
-    }
-
     .btn {
         padding: 1rem 2rem;
         font-size: 1rem;
@@ -1041,14 +952,6 @@
     .floating-card:hover {
         transform: rotate(0deg) scale(1.08);
     }
-
-    .footer-modern {
-        padding: 4rem var(--page-padding-desktop) 2rem;
-    }
-
-    .footer-content {
-        gap: 4rem;
-    }
 }
 
 @media (min-width: 1440px) {
@@ -1058,8 +961,7 @@
 
     .stats-grid,
     .about-content-modern,
-    .gallery-grid-modern,
-    .footer-content {
+    .gallery-grid-modern {
         max-width: 1400px;
     }
 

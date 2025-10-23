@@ -8,6 +8,7 @@ import { PageTransition } from "~/components/PageTransition";
 import { motion } from "motion/react";
 import { Link } from "react-router";
 import { API_ENDPOINTS } from "~/config/api";
+import {Footer} from "~/components/Footer";
 
 export function meta({}: Route.MetaArgs) {
     return [
@@ -930,43 +931,7 @@ export default function Shootings() {
                         </div>
                     </AnimatedSection>
                 )}
-
-                {/* Footer */}
-                <motion.footer
-                    className="footer-tarifs"
-                    initial={{ opacity: 0 }}
-                    whileInView={{ opacity: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6 }}
-                >
-                    <div className="container">
-                        <div className="footer-content">
-                            <div className="footer-brand">
-                                <div className="footer-logo">Firefly of Soul</div>
-                                <p className="footer-tagline">
-                                    Capturer la poésie de la lumière et de l'ombre depuis 2024
-                                </p>
-                            </div>
-                            <div className="footer-links">
-                                <div className="footer-column">
-                                    <h4>Navigation</h4>
-                                    <Link to="/">Accueil</Link>
-                                    <Link to="/shootings">Séances</Link>
-                                    <Link to="/store">Boutique</Link>
-                                    <Link to="/gallery">Galerie</Link>
-                                </div>
-                                <div className="footer-column">
-                                    <h4>Contact</h4>
-                                    <a href="mailto:hello@fireflyofsoul.com">Email</a>
-                                    <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">Instagram</a>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="footer-bottom">
-                            <p>&copy; 2025 Firefly of Soul Studio. Tous les moments préservés avec intégrité artistique.</p>
-                        </div>
-                    </div>
-                </motion.footer>
+                <Footer />
             </div>
         </PageTransition>
     );

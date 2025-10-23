@@ -494,75 +494,6 @@
     flex-wrap: wrap;
 }
 
-.footer-modern-about {
-    background: var(--deep-night);
-    border-top: 1px solid rgba(255, 213, 128, 0.1);
-    padding: 4rem var(--page-padding-mobile) 2rem;
-}
-
-.footer-content {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 3rem;
-    margin-bottom: 3rem;
-    max-width: 1200px;
-    margin-left: auto;
-    margin-right: auto;
-    text-align: center;
-}
-
-.footer-brand .logo {
-    font-family: 'Cinzel', serif;
-    font-size: 2rem;
-    color: var(--warm-gold);
-    margin-bottom: 1.5rem;
-}
-
-.footer-tagline {
-    color: var(--soft-gray);
-    opacity: 0.8;
-    font-size: 1.1rem;
-    line-height: 1.6;
-}
-
-.footer-links {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 3rem;
-}
-
-.footer-column h4 {
-    color: white;
-    margin-bottom: 1.5rem;
-    font-family: 'Cinzel', serif;
-    font-size: 1.25rem;
-}
-
-.footer-column a {
-    display: block;
-    color: var(--soft-gray);
-    text-decoration: none;
-    margin-bottom: 0.75rem;
-    transition: color 0.3s ease;
-    font-size: 1rem;
-}
-
-.footer-column a:hover {
-    color: var(--warm-gold);
-}
-
-.footer-bottom {
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    padding-top: 2rem;
-    text-align: center;
-    color: var(--soft-gray);
-    opacity: 0.7;
-    max-width: 1200px;
-    margin-left: auto;
-    margin-right: auto;
-    font-size: 0.95rem;
-}
-
 .btn {
     display: inline-flex;
     align-items: center;
@@ -685,25 +616,6 @@
         gap: var(--grid-gap-tablet);
     }
 
-    .footer-modern-about {
-        padding: 5rem var(--page-padding-tablet) 2.5rem;
-    }
-
-    .footer-content {
-        grid-template-columns: 1fr 1fr;
-        gap: 4rem;
-        text-align: left;
-    }
-
-    .footer-brand {
-        text-align: left;
-    }
-
-    .footer-links {
-        grid-template-columns: 1fr 1fr;
-        gap: 3rem;
-    }
-
     .btn {
         padding: 1.125rem 2.25rem;
         font-size: 1.05rem;
@@ -741,14 +653,6 @@
     .story-content-modern {
         gap: var(--grid-gap-desktop);
     }
-
-    .footer-modern-about {
-        padding: 6rem var(--page-padding-desktop) 3rem;
-    }
-
-    .footer-content {
-        gap: 5rem;
-    }
 }
 
 @media (min-width: 1440px) {
@@ -757,8 +661,7 @@
     }
 
     .story-content-modern,
-    .values-grid-modern,
-    .footer-content {
+    .values-grid-modern {
         max-width: 1400px;
     }
 }

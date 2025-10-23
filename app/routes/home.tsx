@@ -4,6 +4,7 @@ import { Navbar } from "~/components/navbar";
 import "../styles/home.css";
 import { PageTransition } from "~/components/PageTransition";
 import { Link } from "react-router";
+import {Footer} from "~/components/Footer";
 
 export function meta({}: Route.MetaArgs) {
     return [
@@ -195,35 +196,7 @@ export default function Home() {
                         </div>
                     </div>
                 </section>
-
-                <footer className="footer-modern">
-                    <div className="container">
-                        <div className="footer-content">
-                            <div className="footer-brand">
-                                <div className="logo">Firefly of Soul</div>
-                                <p className="footer-tagline">
-                                    Capturing the poetry of light and shadow since 2024
-                                </p>
-                            </div>
-                            <div className="footer-links">
-                                <div className="footer-column">
-                                    <h4>Navigation</h4>
-                                    <Link to="/">Home</Link>
-                                    <Link to="/gallery">Gallery</Link>
-                                    <Link to="/pricing">Pricing</Link>
-                                </div>
-                                <div className="footer-column">
-                                    <h4>Connect</h4>
-                                    <a href="mailto:hello@fireflyofsoul.com">Email</a>
-                                    <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">Instagram</a>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="footer-bottom">
-                            <p>&copy; 2025 Firefly of Soul Studio. All moments preserved with artistic integrity.</p>
-                        </div>
-                    </div>
-                </footer>
+                <Footer />
             </div>
         </PageTransition>
     );
