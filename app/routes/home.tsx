@@ -1,9 +1,10 @@
 // Todo : app/routes/home.tsx
-import { Navbar } from "~/components/navbar";
-import "../styles/home.css";
-import { PageTransition } from "~/components/PageTransition";
+import { PageLayout } from "~/components/PageLayout";
+import { HeroSection } from "~/components/HeroSection";
+import { SectionHeader } from "~/components/SectionHeader";
+import { CTASection } from "~/components/CTASection";
 import { Link } from "react-router";
-import {Footer} from "~/components/Footer";
+import "../styles/home.css";
 
 const galleryImages = [
     {
@@ -30,156 +31,109 @@ const galleryImages = [
 
 export default function Home() {
     return (
-        <PageTransition>
-            <div className="home-page">
-                <Navbar />
+        <PageLayout className="home-page">
+            {/* Hero Section avec composant */}
+            <HeroSection
+                centered={false}
+                backgroundImage="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80"
+                titleLines={["Capturing Souls", "Through Light"]}
+                subtitle="Professional fine art photography that reveals the essence within. Where every shadow tells a story and every light reveals a soul."
+                buttons={[
+                    { text: "Explore Gallery", url: "/gallery", type: "primary" },
+                    { text: "Book Session", url: "/shootings", type: "secondary" }
+                ]}
+                floatingCards={[
+                    {
+                        src: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
+                        alt: "Portrait Art",
+                        className: "card-1"
+                    },
+                    {
+                        src: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
+                        alt: "Landscape Art",
+                        className: "card-2"
+                    }
+                ]}
+                showLightEffects={true}
+            />
 
-                {/* Hero Section avec image de fond */}
-                <header className="hero-modern">
-                    <div className="hero-background">
-                        {/* Image de fond ajoutée ici */}
-                        <div
-                            className="hero-background-image"
-                            style={{
-                                backgroundImage: `url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80')`
-                            }}
-                        ></div>
-                        <div className="hero-overlay"></div>
-                        {/* Effets de lumière supplémentaires */}
-                        <div className="hero-light-effects">
-                            <div className="light-effect light-1"></div>
-                            <div className="light-effect light-2"></div>
-                            <div className="light-effect light-3"></div>
-                        </div>
-                    </div>
-                    <div className="container">
-                        <div className="hero-content">
-                            <div className="hero-text">
-                                <h1 className="hero-title-main">
-                                    <span className="title-line">Capturing Souls</span>
-                                    <span className="title-line accent">Through Light</span>
-                                </h1>
-                                <p className="hero-subtitle">
-                                    Professional fine art photography that reveals the essence within.
-                                    Where every shadow tells a story and every light reveals a soul.
-                                </p>
-                                <div className="hero-actions">
-                                    <Link to="/gallery" className="btn btn-primary">
-                                        Explore Gallery
-                                    </Link>
-                                    <Link to="/pricing" className="btn btn-secondary">
-                                        Book Session
-                                    </Link>
-                                </div>
-                            </div>
-                            <div className="hero-visual">
-                                <div className="floating-card card-1">
+            {/* Gallery Section avec SectionHeader */}
+            <section id="gallery" className="section gallery-modern">
+                <div className="container">
+                    <SectionHeader
+                        badge="Portfolio"
+                        title="Moments of Eternity"
+                        accentWord="Eternity"
+                        subtitle="A curated selection of visual poetry that captures the essence of human experience"
+                    />
+                    <div className="gallery-grid-modern">
+                        {galleryImages.map((image, index) => (
+                            <div
+                                key={index}
+                                className="gallery-item-modern fade-in-up"
+                                style={{ animationDelay: `${index * 0.1}s` }}
+                            >
+                                <div className="gallery-image-container">
                                     <img
-                                        src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80"
-                                        alt="Portrait Art"
+                                        src={image.src}
+                                        alt={image.title}
+                                        className="gallery-image"
                                     />
-                                </div>
-                                <div className="floating-card card-2">
-                                    <img
-                                        src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80"
-                                        alt="Landscape Art"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="scroll-indicator">
-                        <div className="scroll-arrow"></div>
-                    </div>
-                </header>
-
-                <section id="gallery" className="section gallery-modern">
-                    <div className="container">
-                        <div className="section-header">
-                            <div className="section-badge">Portfolio</div>
-                            <h2 className="section-title-modern">
-                                Moments of <span className="text-accent">Eternity</span>
-                            </h2>
-                            <p className="section-subtitle">
-                                A curated selection of visual poetry that captures the essence of human experience
-                            </p>
-                        </div>
-                        <div className="gallery-grid-modern">
-                            {galleryImages.map((image, index) => (
-                                <div
-                                    key={index}
-                                    className="gallery-item-modern fade-in-up"
-                                    style={{ animationDelay: `${index * 0.1}s` }}
-                                >
-                                    <div className="gallery-image-container">
-                                        <img
-                                            src={image.src}
-                                            alt={image.title}
-                                            className="gallery-image"
-                                        />
-                                        <div className="gallery-overlay">
-                                            <div className="gallery-content">
-                                                <h3 className="gallery-title">{image.title}</h3>
-                                                <span className="gallery-category">{image.category}</span>
-                                                <Link to="/gallery" className="gallery-link">
-                                                    View Project →
-                                                </Link>
-                                            </div>
+                                    <div className="gallery-overlay">
+                                        <div className="gallery-content">
+                                            <h3 className="gallery-title">{image.title}</h3>
+                                            <span className="gallery-category">{image.category}</span>
+                                            <Link to="/gallery" className="gallery-link">
+                                                View Project →
+                                            </Link>
                                         </div>
                                     </div>
                                 </div>
-                            ))}
-                        </div>
+                            </div>
+                        ))}
                     </div>
-                </section>
+                </div>
+            </section>
 
-                <section id="philosophy" className="section philosophy-modern">
-                    <div className="container">
-                        <div className="philosophy-content">
-                            <div className="philosophy-text-modern">
-                                <div className="section-badge">Philosophy</div>
-                                <h2 className="section-title-modern">
-                                    The Art of <span className="text-accent">Perception</span>
-                                </h2>
-                                <div className="philosophy-quotes">
-                                    <blockquote className="quote fade-in-up">
-                                        "Every shadow holds a story waiting for its light,
-                                        every silence contains music yearning to be heard."
-                                    </blockquote>
-                                    <blockquote className="quote fade-in-up delay-1">
-                                        "In the brief flash of a firefly, eternity is captured—
-                                        moments suspended in the amber of perception."
-                                    </blockquote>
-                                    <blockquote className="quote fade-in-up delay-2">
-                                        "Where darkness meets illumination, souls are revealed,
-                                        and the ordinary transforms into extraordinary."
-                                    </blockquote>
-                                </div>
+            {/* Philosophy Section avec SectionHeader */}
+            <section id="philosophy" className="section philosophy-modern">
+                <div className="container">
+                    <div className="philosophy-content">
+                        <div className="philosophy-text-modern">
+                            <SectionHeader
+                                badge="Philosophy"
+                                title="The Art of Perception"
+                                accentWord="Perception"
+                                centered={false}
+                            />
+                            <div className="philosophy-quotes">
+                                <blockquote className="quote fade-in-up">
+                                    "Every shadow holds a story waiting for its light,
+                                    every silence contains music yearning to be heard."
+                                </blockquote>
+                                <blockquote className="quote fade-in-up delay-1">
+                                    "In the brief flash of a firefly, eternity is captured—
+                                    moments suspended in the amber of perception."
+                                </blockquote>
+                                <blockquote className="quote fade-in-up delay-2">
+                                    "Where darkness meets illumination, souls are revealed,
+                                    and the ordinary transforms into extraordinary."
+                                </blockquote>
                             </div>
                         </div>
                     </div>
-                </section>
+                </div>
+            </section>
 
-                <section className="cta-section">
-                    <div className="container">
-                        <div className="cta-content fade-in-up">
-                            <h2 className="cta-title">Ready to Create Timeless Art?</h2>
-                            <p className="cta-description">
-                                Let's collaborate to capture your unique story through the lens of artistic vision
-                            </p>
-                            <div className="cta-actions">
-                                <Link to="/pricing" className="btn btn-primary btn-large">
-                                    Start Your Journey
-                                </Link>
-                                <Link to="/gallery" className="btn btn-outline btn-large">
-                                    Explore Our Work
-                                </Link>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-                <Footer />
-            </div>
-        </PageTransition>
+            {/* CTA Section avec composant */}
+            <CTASection
+                title="Ready to Create Timeless Art?"
+                description="Let's collaborate to capture your unique story through the lens of artistic vision"
+                buttons={[
+                    { text: "Start Your Journey", url: "/shootings", type: "primary" },
+                    { text: "Explore Our Work", url: "/gallery", type: "outline" }
+                ]}
+            />
+        </PageLayout>
     );
 }

@@ -1,5 +1,11 @@
 /* Todo : app/styles/shootings.css */
+@import './global-components.css';
 @import './pricing-common.css';
+
+/* Page spécifique */
+.shootings-page {
+    overflow-x: hidden;
+}
 
 /* Process Section */
 .process-section {
@@ -48,34 +54,10 @@
     line-height: 1.6;
 }
 
-/* SUPPRESSION : Tous les styles de panier ont été retirés */
-/* .cart-sidebar, .cart-header, .cart-items, etc. */
-
-/* Animation pour le bouton de réservation (optionnel) */
+/* Animation pour le bouton de réservation */
 .service-btn.session-btn:hover {
     background: linear-gradient(135deg, var(--amber-light), var(--warm-gold));
     transform: translateY(-2px);
-}
-
-/* Responsive Design for Shootings */
-@media (min-width: 768px) {
-    .process-section {
-        padding: var(--section-padding-tablet) var(--page-padding-tablet);
-    }
-
-    .process-steps {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (min-width: 1024px) {
-    .process-section {
-        padding: var(--section-padding-desktop) var(--page-padding-desktop);
-    }
-
-    .process-steps {
-        grid-template-columns: repeat(4, 1fr);
-    }
 }
 
 /* Styles pour la sélection de date et heure */
@@ -404,15 +386,49 @@
     padding: 2rem;
 }
 
+/* CTA Section spécifique pour shootings */
+.cta-section-shootings {
+    background: linear-gradient(135deg, var(--dark-blue) 0%, var(--deep-night) 100%);
+}
+
+/* Responsive Design for Shootings */
+@media (min-width: 768px) {
+    .process-section {
+        padding: var(--section-padding-tablet) var(--page-padding-tablet);
+    }
+
+    .process-steps {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .date-selection-grid {
+        grid-template-columns: repeat(5, 1fr);
+    }
+
+    .time-selection-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (min-width: 1024px) {
+    .process-section {
+        padding: var(--section-padding-desktop) var(--page-padding-desktop);
+    }
+
+    .process-steps {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
 /* Responsive pour la sélection de date/heure */
 @media (max-width: 768px) {
     .date-selection-grid,
     .time-selection-grid {
         grid-template-columns: repeat(3, 1fr);
-    }
-
-    .form-grid {
-        grid-template-columns: 1fr;
     }
 
     .booking-step-header {
@@ -439,19 +455,5 @@
 
     .booking-step {
         padding: 1.5rem;
-    }
-}
-
-@media (min-width: 768px) {
-    .date-selection-grid {
-        grid-template-columns: repeat(5, 1fr);
-    }
-
-    .time-selection-grid {
-        grid-template-columns: repeat(4, 1fr);
-    }
-
-    .form-grid {
-        grid-template-columns: 1fr 1fr;
     }
 }

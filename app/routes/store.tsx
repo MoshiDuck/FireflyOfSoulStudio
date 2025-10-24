@@ -1,13 +1,15 @@
 // Todo : app/routes/store.tsx
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import "../styles/store.css";
-import { Navbar } from "~/components/navbar";
+import { PageLayout } from "~/components/PageLayout";
+import { HeroSection } from "~/components/HeroSection";
+import { SectionHeader } from "~/components/SectionHeader";
+import { CTASection } from "~/components/CTASection";
 import { AnimatedSection } from "~/components/AnimatedSection";
-import { PageTransition } from "~/components/PageTransition";
 import { motion } from "motion/react";
 import { Link } from "react-router";
-import {Footer} from "~/components/Footer";
 
+// ✅ COMPOSANTS NON-CONTRÔLÉS RÉTABLIS
 function UncontrolledInput({
                                name,
                                defaultValue = "",
@@ -375,7 +377,7 @@ function StoreCheckoutProcess({ cart, onBack, onComplete }: {
     const [step, setStep] = useState(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // ✅ CORRECTION : Utiliser l'approche non-contrôlée
+    // ✅ CORRECTION : Retour à l'approche non-contrôlée
     const { updateField, getFormData, reset } = useFormDataManager({
         name: '',
         email: '',
@@ -386,7 +388,7 @@ function StoreCheckoutProcess({ cart, onBack, onComplete }: {
         message: ''
     });
 
-    // ✅ CORRECTION : Gestionnaire de changement de champ
+    // ✅ CORRECTION : Gestionnaire de changement de champ non-contrôlé
     const handleFieldChange = useCallback((value: string, fieldName: string) => {
         updateField(fieldName, value);
     }, [updateField]);
@@ -673,196 +675,102 @@ export default function Store() {
     };
 
     return (
-        <PageTransition>
-            <div className="tarifs-page">
-                <Navbar />
+        <PageLayout className="store-page">
+            {/* Hero Section avec composant */}
+            <HeroSection
+                backgroundImage="https://images.unsplash.com/photo-1589994965851-a8f479c573a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80"
+                title="Boutique Premium"
+                accentWord="Premium"
+                subtitle="Des produits d'exception pour mettre en valeur vos photos. Albums luxueux, impressions qualité musée et collections digitales complètes."
+                buttons={[
+                    { text: "Réserver un Shooting", url: "/shootings", type: "secondary" }
+                ]}
+                className="store-hero"
+                showScrollIndicator={!isCheckingOut}
+            />
 
-                {/* Hero Section */}
-                <header className="tarifs-hero">
-                    <div className="tarifs-hero-background">
-                        <div
-                            className="hero-background-image"
-                            style={{
-                                backgroundImage: `url('https://images.unsplash.com/photo-1589994965851-a8f479c573a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80')`
-                            }}
-                        ></div>
-                        <div className="hero-overlay"></div>
-                    </div>
-                    <div className="container">
-                        <div className="tarifs-hero-content">
-                            {!isCheckingOut ? (
-                                <>
-                                    <motion.h1
-                                        className="tarifs-hero-title"
-                                        initial={{ opacity: 0, y: 50 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ duration: 0.8 }}
-                                    >
-                                        Boutique <span className="text-accent">Premium</span>
-                                    </motion.h1>
-                                    <motion.p
-                                        className="tarifs-hero-subtitle"
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        transition={{ delay: 0.3, duration: 0.8 }}
-                                    >
-                                        Des produits d'exception pour mettre en valeur vos photos.
-                                        Albums luxueux, impressions qualité musée et collections digitales complètes.
-                                    </motion.p>
-                                    <motion.div
-                                        className="hero-cta"
-                                        initial={{ opacity: 0, y: 30 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: 0.6, duration: 0.8 }}
-                                    >
-                                        <Link to="/shootings" className="btn btn-secondary btn-large">
-                                            Réserver un Shooting →
-                                        </Link>
-                                    </motion.div>
-                                </>
-                            ) : (
-                                <motion.div
-                                    initial={{ opacity: 0, y: 50 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.8 }}
-                                >
-                                    <h1 className="tarifs-hero-title">
-                                        Commande <span className="text-accent">en Cours</span>
-                                    </h1>
-                                    <p className="tarifs-hero-subtitle">
-                                        Complétez votre commande pour recevoir vos produits premium.
-                                    </p>
-                                </motion.div>
-                            )}
-                        </div>
-                    </div>
-                    {!isCheckingOut && (
-                        <div className="scroll-indicator">
-                            <div className="scroll-arrow"></div>
-                        </div>
-                    )}
-                </header>
-
-                {/* Afficher le processus de commande ou les produits */}
-                {isCheckingOut ? (
-                    <StoreCheckoutProcess
-                        cart={cart}
-                        onBack={() => setIsCheckingOut(false)}
-                        onComplete={handleOrderComplete}
-                    />
-                ) : (
-                    <>
-                        {/* Products Grid */}
-                        <AnimatedSection className="services-section">
-                            <div className="container">
-                                <div className="section-header">
-                                    <div className="section-badge">Nos Produits</div>
-                                    <h2 className="section-title">Excellence Matérielle & Digitale</h2>
-                                    <p className="section-subtitle">
-                                        Chaque produit est conçu avec le plus grand soin pour préserver
-                                        et magnifier vos souvenirs photographiques.
-                                    </p>
-                                </div>
-                                <div className="services-grid">
-                                    {STORE_PRODUCTS.map((product) => (
-                                        <ProductCard
-                                            key={product.id}
-                                            product={product}
-                                            onAddToCart={handleAddToCart}
-                                        />
-                                    ))}
-                                </div>
-                            </div>
-                        </AnimatedSection>
-
-                        {/* Quality Section */}
-                        <AnimatedSection className="quality-section">
-                            <div className="container">
-                                <div className="section-header">
-                                    <div className="section-badge">Notre Engagement</div>
-                                    <h2 className="section-title">Qualité Exceptionnelle</h2>
-                                </div>
-                                <div className="quality-features">
-                                    <div className="quality-feature">
-                                        <div className="quality-icon">🛠️</div>
-                                        <h3>Artisanat</h3>
-                                        <p>Matériaux premium et finitions impeccables pour une durabilité exceptionnelle</p>
-                                    </div>
-                                    <div className="quality-feature">
-                                        <div className="quality-icon">🎨</div>
-                                        <h3>Esthétique</h3>
-                                        <p>Design épuré et élégant qui met parfaitement en valeur vos images</p>
-                                    </div>
-                                    <div className="quality-feature">
-                                        <div className="quality-icon">📦</div>
-                                        <h3>Livraison</h3>
-                                        <p>Emballage soigné et livraison sécurisée pour une expérience complète</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </AnimatedSection>
-                    </>
-                )}
-
-                {/* Panier - Seulement visible quand on ne checkoute pas */}
-                {!isCheckingOut && cart.length > 0 && (
-                    <StoreCart
-                        cart={cart}
-                        onUpdateQuantity={handleUpdateQuantity}
-                        onRemoveItem={handleRemoveItem}
-                        onCheckout={handleCheckout}
-                    />
-                )}
-
-                {/* CTA Section - Seulement visible quand on ne checkoute pas */}
-                {!isCheckingOut && (
-                    <AnimatedSection className="cta-section">
+            {/* Afficher le processus de commande ou les produits */}
+            {isCheckingOut ? (
+                <StoreCheckoutProcess
+                    cart={cart}
+                    onBack={() => setIsCheckingOut(false)}
+                    onComplete={handleOrderComplete}
+                />
+            ) : (
+                <>
+                    {/* Products Grid avec SectionHeader */}
+                    <AnimatedSection className="services-section">
                         <div className="container">
-                            <div className="cta-content">
-                                <motion.h2
-                                    className="cta-title"
-                                    initial={{ opacity: 0, y: 30 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    viewport={{ once: true }}
-                                    transition={{ duration: 0.6 }}
-                                >
-                                    Prêt à Magnifier Vos Photos ?
-                                </motion.h2>
-                                <motion.p
-                                    className="cta-description"
-                                    initial={{ opacity: 0 }}
-                                    whileInView={{ opacity: 1 }}
-                                    viewport={{ once: true }}
-                                    transition={{ delay: 0.2, duration: 0.6 }}
-                                >
-                                    Choisissez les produits qui correspondent à votre style et donnez vie à vos images.
-                                    Chaque création mérite un écrin à sa hauteur.
-                                </motion.p>
-                                <motion.div
-                                    className="cta-actions"
-                                    initial={{ opacity: 0, y: 30 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    viewport={{ once: true }}
-                                    transition={{ delay: 0.4, duration: 0.6 }}
-                                >
-                                    <Link to="/shootings" className="btn btn-primary btn-large">
-                                        Réserver un Shooting
-                                    </Link>
-                                    <motion.a
-                                        href="mailto:hello@fireflyofsoul.com"
-                                        className="btn btn-secondary btn-large"
-                                        whileHover={{ scale: 1.05, y: -2 }}
-                                        whileTap={{ scale: 0.95 }}
-                                    >
-                                        Questions sur les Produits
-                                    </motion.a>
-                                </motion.div>
+                            <SectionHeader
+                                badge="Nos Produits"
+                                title="Excellence Matérielle & Digitale"
+                                accentWord="Digitale"
+                                subtitle="Chaque produit est conçu avec le plus grand soin pour préserver et magnifier vos souvenirs photographiques."
+                            />
+                            <div className="services-grid">
+                                {STORE_PRODUCTS.map((product) => (
+                                    <ProductCard
+                                        key={product.id}
+                                        product={product}
+                                        onAddToCart={handleAddToCart}
+                                    />
+                                ))}
                             </div>
                         </div>
                     </AnimatedSection>
-                )}
-                <Footer />
-            </div>
-        </PageTransition>
+
+                    {/* Quality Section avec SectionHeader */}
+                    <AnimatedSection className="quality-section">
+                        <div className="container">
+                            <SectionHeader
+                                badge="Notre Engagement"
+                                title="Qualité Exceptionnelle"
+                                accentWord="Exceptionnelle"
+                            />
+                            <div className="quality-features">
+                                <div className="quality-feature">
+                                    <div className="quality-icon">🛠️</div>
+                                    <h3>Artisanat</h3>
+                                    <p>Matériaux premium et finitions impeccables pour une durabilité exceptionnelle</p>
+                                </div>
+                                <div className="quality-feature">
+                                    <div className="quality-icon">🎨</div>
+                                    <h3>Esthétique</h3>
+                                    <p>Design épuré et élégant qui met parfaitement en valeur vos images</p>
+                                </div>
+                                <div className="quality-feature">
+                                    <div className="quality-icon">📦</div>
+                                    <h3>Livraison</h3>
+                                    <p>Emballage soigné et livraison sécurisée pour une expérience complète</p>
+                                </div>
+                            </div>
+                        </div>
+                    </AnimatedSection>
+                </>
+            )}
+
+            {/* Panier - Seulement visible quand on ne checkoute pas */}
+            {!isCheckingOut && cart.length > 0 && (
+                <StoreCart
+                    cart={cart}
+                    onUpdateQuantity={handleUpdateQuantity}
+                    onRemoveItem={handleRemoveItem}
+                    onCheckout={handleCheckout}
+                />
+            )}
+
+            {/* CTA Section avec composant - Seulement visible quand on ne checkoute pas */}
+            {!isCheckingOut && (
+                <CTASection
+                    title="Prêt à Magnifier Vos Photos ?"
+                    description="Choisissez les produits qui correspondent à votre style et donnez vie à vos images. Chaque création mérite un écrin à sa hauteur."
+                    buttons={[
+                        { text: "Réserver un Shooting", url: "/shootings", type: "primary" },
+                        { text: "Questions sur les Produits", url: "mailto:hello@fireflyofsoul.com", type: "outline" }
+                    ]}
+                    className="cta-section-store"
+                />
+            )}
+        </PageLayout>
     );
 }

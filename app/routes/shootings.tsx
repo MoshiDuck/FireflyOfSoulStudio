@@ -1,13 +1,14 @@
 // Todo : app/routes/shootings.tsx
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import "../styles/shootings.css";
-import { Navbar } from "~/components/navbar";
+import { PageLayout } from "~/components/PageLayout";
+import { HeroSection } from "~/components/HeroSection";
+import { SectionHeader } from "~/components/SectionHeader";
+import { CTASection } from "~/components/CTASection";
 import { AnimatedSection } from "~/components/AnimatedSection";
-import { PageTransition } from "~/components/PageTransition";
 import { motion } from "motion/react";
 import { Link } from "react-router";
 import { API_ENDPOINTS } from "~/config/api";
-import {Footer} from "~/components/Footer";
 
 // ✅ Types pour l'API
 interface ApiSuccessResponse {
@@ -41,7 +42,7 @@ interface BookedSlot {
     reservation_time: string;
 }
 
-// ✅ COMPOSANTS PARTAGÉS POUR LE FOCUS
+// ✅ COMPOSANTS PARTAGÉS POUR LE FOCUS (RÉTABLIS)
 function UncontrolledInput({
                                name,
                                defaultValue = "",
@@ -184,7 +185,7 @@ const SHOOTING_SERVICES: Service[] = [
     },
 ];
 
-// Composant Carte de Service pour shootings - BOUTON DIRECT VERS RÉSERVATION
+// Composant Carte de Service pour shootings
 function ShootingCard({ service, onDirectBooking }: {
     service: Service;
     onDirectBooking: (service: Service) => void;
@@ -251,7 +252,7 @@ function BookingProcess({ service, onBack, onComplete }: {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-    // ✅ CORRECTION : Utiliser l'approche non-contrôlée comme dans l'ancien code
+    // ✅ CORRECTION : Retour à l'approche non-contrôlée comme dans l'ancien code
     const { updateField, getFormData, reset } = useFormDataManager({
         firstName: '',
         lastName: '',
@@ -267,7 +268,7 @@ function BookingProcess({ service, onBack, onComplete }: {
         for (let i = 1; i <= 14; i++) {
             const date = new Date(today);
             date.setDate(today.getDate() + i);
-            if (date.getDay() !== 0 && date.getDay() !== 6) { // Exclure samedi et dimanche
+            if (date.getDay() !== 0 && date.getDay() !== 6) {
                 dates.push(date.toISOString().split('T')[0]);
             }
         }
@@ -284,7 +285,6 @@ function BookingProcess({ service, onBack, onComplete }: {
                         const bookedSlots = await response.json() as BookedSlot[];
                         const bookedTimes = bookedSlots.map(slot => slot.reservation_time);
 
-                        // Générer tous les créneaux possibles (9h-18h)
                         const allTimeSlots: TimeSlot[] = [];
                         for (let hour = 9; hour < 18; hour++) {
                             const time = `${hour.toString().padStart(2, '0')}:00`;
@@ -297,7 +297,6 @@ function BookingProcess({ service, onBack, onComplete }: {
                     }
                 } catch (error) {
                     console.error('Erreur réseau:', error);
-                    // En cas d'erreur, générer des créneaux par défaut
                     generateFallbackTimeSlots();
                 }
             }
@@ -317,7 +316,7 @@ function BookingProcess({ service, onBack, onComplete }: {
         fetchBookedSlots();
     }, [selectedDate]);
 
-    // ✅ CORRECTION : Gestionnaire de changement de champ
+    // ✅ CORRECTION : Gestionnaire de changement de champ non-contrôlé
     const handleFieldChange = useCallback((value: string, fieldName: string) => {
         updateField(fieldName, value);
     }, [updateField]);
@@ -340,7 +339,6 @@ function BookingProcess({ service, onBack, onComplete }: {
                 return;
             }
 
-            // Validation email
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(formData.email)) {
                 setMessage({
@@ -351,7 +349,6 @@ function BookingProcess({ service, onBack, onComplete }: {
                 return;
             }
 
-            // Validation date/heure
             if (!selectedDate || !selectedTime) {
                 setMessage({
                     type: 'error',
@@ -361,7 +358,6 @@ function BookingProcess({ service, onBack, onComplete }: {
                 return;
             }
 
-            // Vérifier que le créneau est toujours disponible
             const selectedSlot = availableTimes.find(slot => slot.time === selectedTime);
             if (selectedSlot && !selectedSlot.available) {
                 setMessage({
@@ -372,7 +368,6 @@ function BookingProcess({ service, onBack, onComplete }: {
                 return;
             }
 
-            // Préparer les données pour l'API
             const requestData = {
                 firstName: formData.firstName.trim(),
                 lastName: formData.lastName.trim(),
@@ -393,7 +388,6 @@ function BookingProcess({ service, onBack, onComplete }: {
 
             console.log('📤 Envoi des données:', requestData);
 
-            // Appel API avec typage correct
             const response = await fetch(API_ENDPOINTS.RESERVATIONS, {
                 method: 'POST',
                 headers: {
@@ -402,11 +396,9 @@ function BookingProcess({ service, onBack, onComplete }: {
                 body: JSON.stringify(requestData),
             });
 
-            // ✅ CORRECTION : Typage explicite de la réponse
             const result = await response.json() as ApiResponse;
 
             if (response.ok) {
-                // ✅ Vérification de type pour ApiSuccessResponse
                 if ('success' in result && result.success) {
                     setMessage({
                         type: 'success',
@@ -433,7 +425,6 @@ function BookingProcess({ service, onBack, onComplete }: {
                     setIsSubmitting(false);
                 }
             } else {
-                // ✅ Vérification de type pour ApiErrorResponse
                 const errorMessage = 'error' in result ? result.error : 'Erreur lors de la réservation';
                 setMessage({
                     type: 'error',
@@ -701,7 +692,6 @@ export default function Shootings() {
         setSelectedService(service);
         setIsCheckingOut(true);
 
-        // Scroll vers la section réservation
         setTimeout(() => {
             document.getElementById('booking-section')?.scrollIntoView({
                 behavior: 'smooth',
@@ -722,206 +712,99 @@ export default function Shootings() {
     };
 
     return (
-        <PageTransition>
-            <div className="tarifs-page">
-                <Navbar />
+        <PageLayout className="shootings-page">
+            {/* Hero Section avec composant */}
+            <HeroSection
+                backgroundImage="https://images.unsplash.com/photo-1452587925148-ce544e77e70d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80"
+                title="Séances Photo Artistiques"
+                accentWord="Artistiques"
+                subtitle="Des expériences photographiques uniques et personnalisées. Capturons ensemble votre essence et créons des œuvres intemporelles."
+                buttons={[
+                    { text: "Voir la Boutique", url: "/store", type: "secondary" }
+                ]}
+                className="shootings-hero"
+                showScrollIndicator={!isCheckingOut}
+            />
 
-                {/* Hero Section */}
-                <header className="tarifs-hero">
-                    <div className="tarifs-hero-background">
-                        <div
-                            className="hero-background-image"
-                            style={{
-                                backgroundImage: `url('https://images.unsplash.com/photo-1452587925148-ce544e77e70d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80')`
-                            }}
-                        ></div>
-                        <div className="hero-overlay"></div>
-                    </div>
-                    <div className="container">
-                        <div className="tarifs-hero-content">
-                            {!isCheckingOut ? (
-                                <>
-                                    <motion.h1
-                                        className="tarifs-hero-title"
-                                        initial={{ opacity: 0, y: 50 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ duration: 0.8 }}
-                                    >
-                                        Séances Photo <span className="text-accent">Artistiques</span>
-                                    </motion.h1>
-                                    <motion.p
-                                        className="tarifs-hero-subtitle"
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        transition={{ delay: 0.3, duration: 0.8 }}
-                                    >
-                                        Des expériences photographiques uniques et personnalisées.
-                                        Capturons ensemble votre essence et créons des œuvres intemporelles.
-                                    </motion.p>
-                                    <motion.div
-                                        className="hero-cta"
-                                        initial={{ opacity: 0, y: 30 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: 0.6, duration: 0.8 }}
-                                    >
-                                        <Link to="/store" className="btn btn-secondary btn-large">
-                                            Voir la Boutique →
-                                        </Link>
-                                    </motion.div>
-                                </>
-                            ) : selectedService ? (
-                                <motion.div
-                                    initial={{ opacity: 0, y: 50 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.8 }}
-                                >
-                                    <h1 className="tarifs-hero-title">
-                                        Réservation <span className="text-accent">{selectedService.name}</span>
-                                    </h1>
-                                    <p className="tarifs-hero-subtitle">
-                                        Complétez votre réservation pour confirmer votre séance photo.
-                                    </p>
-                                </motion.div>
-                            ) : (
-                                <motion.div
-                                    initial={{ opacity: 0, y: 50 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.8 }}
-                                >
-                                    <h1 className="tarifs-hero-title">
-                                        Réservation <span className="text-accent">en Cours</span>
-                                    </h1>
-                                    <p className="tarifs-hero-subtitle">
-                                        Complétez votre réservation pour confirmer votre séance photo.
-                                    </p>
-                                </motion.div>
-                            )}
-                        </div>
-                    </div>
-                    {!isCheckingOut && (
-                        <div className="scroll-indicator">
-                            <div className="scroll-arrow"></div>
-                        </div>
-                    )}
-                </header>
-
-                {/* Afficher le processus de réservation ou les services */}
-                {isCheckingOut && selectedService ? (
-                    <div id="booking-section">
-                        <BookingProcess
-                            service={selectedService}
-                            onBack={handleBackToServices}
-                            onComplete={handleBookingComplete}
-                        />
-                    </div>
-                ) : (
-                    <>
-                        {/* Services Grid */}
-                        <AnimatedSection className="services-section">
-                            <div className="container">
-                                <div className="section-header">
-                                    <div className="section-badge">Nos Séances</div>
-                                    <h2 className="section-title">Expériences Photographiques</h2>
-                                    <p className="section-subtitle">
-                                        Chaque séance est une collaboration artistique unique,
-                                        conçue pour révéler votre personnalité et créer des images exceptionnelles.
-                                    </p>
-                                </div>
-                                <div className="services-grid">
-                                    {SHOOTING_SERVICES.map((service) => (
-                                        <ShootingCard
-                                            key={service.id}
-                                            service={service}
-                                            onDirectBooking={handleDirectBooking}
-                                        />
-                                    ))}
-                                </div>
-                            </div>
-                        </AnimatedSection>
-
-                        {/* Process Section */}
-                        <AnimatedSection className="process-section">
-                            <div className="container">
-                                <div className="section-header">
-                                    <div className="section-badge">Notre Processus</div>
-                                    <h2 className="section-title">Comment ça marche</h2>
-                                </div>
-                                <div className="process-steps">
-                                    <div className="process-step">
-                                        <div className="step-number">01</div>
-                                        <h3>Consultation</h3>
-                                        <p>Nous discutons de votre vision, style et objectifs pour créer un concept unique</p>
-                                    </div>
-                                    <div className="process-step">
-                                        <div className="step-number">02</div>
-                                        <h3>Shooting</h3>
-                                        <p>Séance photo professionnelle dans une ambiance détendue et créative</p>
-                                    </div>
-                                    <div className="process-step">
-                                        <div className="step-number">03</div>
-                                        <h3>Révision</h3>
-                                        <p>Session de visionnage privée pour sélectionner vos images préférées</p>
-                                    </div>
-                                    <div className="process-step">
-                                        <div className="step-number">04</div>
-                                        <h3>Livraison</h3>
-                                        <p>Reception de vos images retouchées et accès à la boutique pour les produits</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </AnimatedSection>
-                    </>
-                )}
-
-                {/* CTA Section - Seulement visible quand on ne checkoute pas */}
-                {!isCheckingOut && (
-                    <AnimatedSection className="cta-section">
+            {/* Afficher le processus de réservation ou les services */}
+            {isCheckingOut && selectedService ? (
+                <div id="booking-section">
+                    <BookingProcess
+                        service={selectedService}
+                        onBack={handleBackToServices}
+                        onComplete={handleBookingComplete}
+                    />
+                </div>
+            ) : (
+                <>
+                    {/* Services Grid avec SectionHeader */}
+                    <AnimatedSection className="services-section">
                         <div className="container">
-                            <div className="cta-content">
-                                <motion.h2
-                                    className="cta-title"
-                                    initial={{ opacity: 0, y: 30 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    viewport={{ once: true }}
-                                    transition={{ duration: 0.6 }}
-                                >
-                                    Prêt à Créer des Images Mémorables ?
-                                </motion.h2>
-                                <motion.p
-                                    className="cta-description"
-                                    initial={{ opacity: 0 }}
-                                    whileInView={{ opacity: 1 }}
-                                    viewport={{ once: true }}
-                                    transition={{ delay: 0.2, duration: 0.6 }}
-                                >
-                                    Réservez votre séance photo et laissez-nous capturer votre histoire.
-                                    Après le shooting, découvrez nos produits premium pour mettre en valeur vos images.
-                                </motion.p>
-                                <motion.div
-                                    className="cta-actions"
-                                    initial={{ opacity: 0, y: 30 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    viewport={{ once: true }}
-                                    transition={{ delay: 0.4, duration: 0.6 }}
-                                >
-                                    <Link to="/store" className="btn btn-primary btn-large">
-                                        Découvrir la Boutique
-                                    </Link>
-                                    <motion.a
-                                        href="mailto:hello@fireflyofsoul.com"
-                                        className="btn btn-secondary btn-large"
-                                        whileHover={{ scale: 1.05, y: -2 }}
-                                        whileTap={{ scale: 0.95 }}
-                                    >
-                                        Nous Contacter
-                                    </motion.a>
-                                </motion.div>
+                            <SectionHeader
+                                badge="Nos Séances"
+                                title="Expériences Photographiques"
+                                accentWord="Photographiques"
+                                subtitle="Chaque séance est une collaboration artistique unique, conçue pour révéler votre personnalité et créer des images exceptionnelles."
+                            />
+                            <div className="services-grid">
+                                {SHOOTING_SERVICES.map((service) => (
+                                    <ShootingCard
+                                        key={service.id}
+                                        service={service}
+                                        onDirectBooking={handleDirectBooking}
+                                    />
+                                ))}
                             </div>
                         </div>
                     </AnimatedSection>
-                )}
-                <Footer />
-            </div>
-        </PageTransition>
+
+                    {/* Process Section avec SectionHeader */}
+                    <AnimatedSection className="process-section">
+                        <div className="container">
+                            <SectionHeader
+                                badge="Notre Processus"
+                                title="Comment ça marche"
+                                accentWord="marche"
+                            />
+                            <div className="process-steps">
+                                <div className="process-step">
+                                    <div className="step-number">01</div>
+                                    <h3>Consultation</h3>
+                                    <p>Nous discutons de votre vision, style et objectifs pour créer un concept unique</p>
+                                </div>
+                                <div className="process-step">
+                                    <div className="step-number">02</div>
+                                    <h3>Shooting</h3>
+                                    <p>Séance photo professionnelle dans une ambiance détendue et créative</p>
+                                </div>
+                                <div className="process-step">
+                                    <div className="step-number">03</div>
+                                    <h3>Révision</h3>
+                                    <p>Session de visionnage privée pour sélectionner vos images préférées</p>
+                                </div>
+                                <div className="process-step">
+                                    <div className="step-number">04</div>
+                                    <h3>Livraison</h3>
+                                    <p>Reception de vos images retouchées et accès à la boutique pour les produits</p>
+                                </div>
+                            </div>
+                        </div>
+                    </AnimatedSection>
+                </>
+            )}
+
+            {/* CTA Section avec composant - Seulement visible quand on ne checkoute pas */}
+            {!isCheckingOut && (
+                <CTASection
+                    title="Prêt à Créer des Images Mémorables ?"
+                    description="Réservez votre séance photo et laissez-nous capturer votre histoire. Après le shooting, découvrez nos produits premium pour mettre en valeur vos images."
+                    buttons={[
+                        { text: "Découvrir la Boutique", url: "/store", type: "primary" },
+                        { text: "Nous Contacter", url: "mailto:hello@fireflyofsoul.com", type: "outline" }
+                    ]}
+                    className="cta-section-shootings"
+                />
+            )}
+        </PageLayout>
     );
 }

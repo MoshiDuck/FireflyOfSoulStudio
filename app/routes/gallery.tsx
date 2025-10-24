@@ -1,10 +1,11 @@
 // Todo : app/routes/gallery.tsx
-import "../styles/gallery.css";
-import { Navbar } from "~/components/navbar";
-import { PageTransition } from "~/components/PageTransition";
+import { PageLayout } from "~/components/PageLayout";
+import { HeroSection } from "~/components/HeroSection";
+import { SectionHeader } from "~/components/SectionHeader";
+import { CTASection } from "~/components/CTASection";
 import { useState } from "react";
 import { Link } from "react-router";
-import {Footer} from "~/components/Footer";
+import "../styles/gallery.css";
 
 const albums = [
     {
@@ -125,170 +126,132 @@ export default function Gallery() {
     const currentAlbum = albums.find((album) => album.id === selectedAlbum);
 
     return (
-        <PageTransition>
-            <div className="gallery-page">
-                <Navbar />
+        <PageLayout className="gallery-page">
+            {/* Hero Section avec composant amélioré */}
+            <HeroSection
+                backgroundImage="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80"
+                title="Visual Poetry"
+                accentWord="Poetry"
+                subtitle="Where every image tells a story and every story reveals a soul. Explore our curated collections of fine art photography."
+                buttons={[
+                    { text: "Book Your Session", url: "/shootings", type: "primary" },
+                    { text: "Explore Collections", url: "#albums", type: "secondary" }
+                ]}
+                className="gallery-hero-modern"
+            />
 
-                {/* Hero Section Modernisée */}
-                <header className="gallery-hero-modern">
-                    <div className="hero-background-gallery">
-                        <div className="hero-overlay-gallery"></div>
-                    </div>
+            {!selectedAlbum ? (
+                <section id="albums" className="section albums-section-modern">
                     <div className="container">
-                        <div className="gallery-hero-content">
-                            <div className="gallery-hero-text">
-                                <h1 className="gallery-hero-title fade-in-up">
-                                    Visual <span className="text-accent">Poetry</span>
-                                </h1>
-                                <p className="gallery-hero-subtitle fade-in-up delay-1">
-                                    Where every image tells a story and every story reveals a soul.
-                                    Explore our curated collections of fine art photography.
-                                </p>
-                                <div className="gallery-hero-actions fade-in-up delay-2">
-                                    <Link to="/pricing" className="btn btn-primary">
-                                        Book Your Session
-                                    </Link>
-                                    <a href="#albums" className="btn btn-secondary">
-                                        Explore Collections
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="scroll-indicator">
-                        <div className="scroll-arrow"></div>
-                    </div>
-                </header>
-
-                {/* Albums Grid */}
-                {!selectedAlbum ? (
-                    <section id="albums" className="section albums-section-modern">
-                        <div className="container">
-                            <div className="section-header-modern">
-                                <div className="section-badge">Collections</div>
-                                <h2 className="section-title-modern">
-                                    Curated <span className="text-accent">Albums</span>
-                                </h2>
-                                <p className="section-subtitle">
-                                    Discover our carefully crafted photography collections,
-                                    each telling a unique visual story
-                                </p>
-                            </div>
-                            <div className="albums-grid-modern">
-                                {albums.map((album, index) => (
-                                    <div
-                                        key={album.id}
-                                        className="album-card-modern fade-in-up"
-                                        style={{ animationDelay: `${index * 0.1}s` }}
-                                        onClick={() => setSelectedAlbum(album.id)}
-                                    >
-                                        <div className="album-visual">
-                                            <div className="album-cover-modern">
-                                                <img
-                                                    src={album.cover}
-                                                    alt={album.title}
-                                                    className="album-image"
-                                                />
-                                                <div className="album-overlay-modern">
-                                                    <div className="album-overlay-content">
-                                                        <span className="view-album-text">View Album</span>
-                                                        <div className="album-stats">
-                                                            <span className="photo-count">{album.count}</span>
-                                                        </div>
+                        <SectionHeader
+                            badge="Collections"
+                            title="Curated Albums"
+                            accentWord="Albums"
+                            subtitle="Discover our carefully crafted photography collections, each telling a unique visual story"
+                        />
+                        <div className="albums-grid-modern">
+                            {albums.map((album, index) => (
+                                <div
+                                    key={album.id}
+                                    className="album-card-modern fade-in-up"
+                                    style={{ animationDelay: `${index * 0.1}s` }}
+                                    onClick={() => setSelectedAlbum(album.id)}
+                                >
+                                    <div className="album-visual">
+                                        <div className="album-cover-modern">
+                                            <img
+                                                src={album.cover}
+                                                alt={album.title}
+                                                className="album-image"
+                                            />
+                                            <div className="album-overlay-modern">
+                                                <div className="album-overlay-content">
+                                                    <span className="view-album-text">View Album</span>
+                                                    <div className="album-stats">
+                                                        <span className="photo-count">{album.count}</span>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="album-info-modern">
-                                            <h3 className="album-title">{album.title}</h3>
-                                            <p className="album-description">{album.description}</p>
-                                            <div className="album-meta">
-                                                <span className="album-count">{album.count}</span>
-                                            </div>
-                                        </div>
                                     </div>
-                                ))}
-                            </div>
-                        </div>
-                    </section>
-                ) : (
-                    <section className="section album-detail-section">
-                        <div className="container">
-                            <div className="album-detail-header">
-                                <button
-                                    className="back-button"
-                                    onClick={() => setSelectedAlbum(null)}
-                                >
-                                    <span className="back-arrow">←</span>
-                                    Back to Albums
-                                </button>
-                                <div className="album-detail-info">
-                                    <div className="section-badge">Album</div>
-                                    <h1 className="album-detail-title">{currentAlbum?.title}</h1>
-                                    <p className="album-detail-description">{currentAlbum?.description}</p>
-                                    <div className="album-detail-meta">
-                                        <span className="photo-count-badge">{currentAlbum?.count}</span>
+                                    <div className="album-info-modern">
+                                        <h3 className="album-title">{album.title}</h3>
+                                        <p className="album-description">{album.description}</p>
+                                        <div className="album-meta">
+                                            <span className="album-count">{album.count}</span>
+                                        </div>
                                     </div>
                                 </div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+            ) : (
+                <section className="section album-detail-section">
+                    <div className="container">
+                        <div className="album-detail-header">
+                            <button
+                                className="back-button"
+                                onClick={() => setSelectedAlbum(null)}
+                            >
+                                <span className="back-arrow">←</span>
+                                Back to Albums
+                            </button>
+                            <div className="album-detail-info">
+                                <div className="section-badge">Album</div>
+                                <h1 className="album-detail-title">{currentAlbum?.title}</h1>
+                                <p className="album-detail-description">{currentAlbum?.description}</p>
+                                <div className="album-detail-meta">
+                                    <span className="photo-count-badge">{currentAlbum?.count}</span>
+                                </div>
                             </div>
-                            <div className="photos-grid-modern">
-                                {currentAlbum?.photos.map((photo, index) => (
-                                    <div
-                                        key={index}
-                                        className="photo-card-modern fade-in-up"
-                                        style={{ animationDelay: `${index * 0.1}s` }}
-                                    >
-                                        <div className="photo-container">
-                                            <img
-                                                src={photo.src}
-                                                alt={photo.title}
-                                                className="photo-image"
-                                            />
-                                            <div className="photo-overlay-modern">
-                                                <div className="photo-info-modern">
-                                                    <h4 className="photo-title">{photo.title}</h4>
-                                                    <span className="photo-category">{photo.category}</span>
-                                                </div>
+                        </div>
+                        <div className="photos-grid-modern">
+                            {currentAlbum?.photos.map((photo, index) => (
+                                <div
+                                    key={index}
+                                    className="photo-card-modern fade-in-up"
+                                    style={{ animationDelay: `${index * 0.1}s` }}
+                                >
+                                    <div className="photo-container">
+                                        <img
+                                            src={photo.src}
+                                            alt={photo.title}
+                                            className="photo-image"
+                                        />
+                                        <div className="photo-overlay-modern">
+                                            <div className="photo-info-modern">
+                                                <h4 className="photo-title">{photo.title}</h4>
+                                                <span className="photo-category">{photo.category}</span>
                                             </div>
                                         </div>
                                     </div>
-                                ))}
-                            </div>
-                            <div className="album-actions">
-                                <button
-                                    className="btn btn-outline"
-                                    onClick={() => setSelectedAlbum(null)}
-                                >
-                                    View All Albums
-                                </button>
-                            </div>
+                                </div>
+                            ))}
                         </div>
-                    </section>
-                )}
+                        <div className="album-actions">
+                            <button
+                                className="btn btn-outline"
+                                onClick={() => setSelectedAlbum(null)}
+                            >
+                                View All Albums
+                            </button>
+                        </div>
+                    </div>
+                </section>
+            )}
 
-                {/* CTA Section */}
-                {!selectedAlbum && (
-                    <section className="cta-section-gallery">
-                        <div className="container">
-                            <div className="cta-content-gallery fade-in-up">
-                                <h2 className="cta-title">Ready to Create Your Story?</h2>
-                                <p className="cta-description">
-                                    Let's capture your unique moments through the lens of artistic vision
-                                </p>
-                                <div className="cta-actions">
-                                    <Link to="/pricing" className="btn btn-primary btn-large">
-                                        Start Your Project
-                                    </Link>
-                                    <Link to="/" className="btn btn-outline btn-large">
-                                        Learn More
-                                    </Link>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-                )}
-                <Footer />
-            </div>
-        </PageTransition>
+            {!selectedAlbum && (
+                <CTASection
+                    title="Ready to Create Your Story?"
+                    description="Let's capture your unique moments through the lens of artistic vision"
+                    buttons={[
+                        { text: "Start Your Project", url: "/shootings", type: "primary" },
+                        { text: "Learn More", url: "/", type: "outline" }
+                    ]}
+                    className="cta-section-gallery"
+                />
+            )}
+        </PageLayout>
     );
 }

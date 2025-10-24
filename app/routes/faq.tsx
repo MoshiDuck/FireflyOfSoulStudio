@@ -1,12 +1,12 @@
 // Todo : app/routes/faq.tsx
-import { Navbar } from "~/components/navbar";
-import { PageTransition } from "~/components/PageTransition";
-import { AnimatedSection } from "~/components/AnimatedSection";
+import { PageLayout } from "~/components/PageLayout";
+import { HeroSection } from "~/components/HeroSection";
+import { SectionHeader } from "~/components/SectionHeader";
+import { CTASection } from "~/components/CTASection";
 import { motion } from "motion/react";
 import { Link } from "react-router";
 import { useState } from "react";
 import "../styles/faq.css";
-import {Footer} from "~/components/Footer";
 
 const faqCategories = [
     {
@@ -117,164 +117,118 @@ export default function FAQ() {
     const currentCategory = faqCategories.find(cat => cat.id === activeCategory);
 
     return (
-        <PageTransition>
-            <div className="faq-page">
-                <Navbar />
+        <PageLayout className="faq-page">
+            {/* Hero Section avec composant */}
+            <HeroSection
+                backgroundImage="https://images.unsplash.com/photo-1452587925148-ce544e77e70d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80"
+                title="Frequently Asked Questions"
+                accentWord="Questions"
+                subtitle="Everything you need to know about our photography services, booking process, and artistic approach. Can't find your answer? Contact us directly."
+                buttons={[
+                    { text: "Book a Session", url: "/pricing", type: "primary" },
+                    { text: "Contact Us", url: "#contact", type: "secondary" }
+                ]}
+                className="faq-hero-modern"
+            />
 
-                {/* Hero Section - Même hauteur que Pricing & Gallery */}
-                <header className="faq-hero-modern">
-                    <div className="faq-hero-background">
-                        <div
-                            className="hero-background-image"
-                            style={{
-                                backgroundImage: `url('https://images.unsplash.com/photo-1452587925148-ce544e77e70d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80')`
-                            }}
-                        ></div>
-                        <div className="hero-overlay"></div>
-                    </div>
-                    <div className="container">
-                        <div className="faq-hero-content">
-                            <motion.div
-                                className="faq-hero-text"
-                                initial={{ opacity: 0, y: 50 }}
+            {/* FAQ Navigation */}
+            <section className="faq-nav-section">
+                <div className="container">
+                    <div className="faq-categories">
+                        {faqCategories.map((category, index) => (
+                            <motion.button
+                                key={category.id}
+                                className={`faq-category-btn ${activeCategory === category.id ? 'active' : ''}`}
+                                onClick={() => setActiveCategory(category.id)}
+                                initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.8, ease: [0.6, 0.05, 0.01, 0.9] }}
+                                transition={{ delay: index * 0.1 }}
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
                             >
-                                <h1 className="faq-hero-title">
-                                    Frequently Asked <span className="text-accent">Questions</span>
-                                </h1>
-                                <p className="faq-hero-subtitle">
-                                    Everything you need to know about our photography services, booking process,
-                                    and artistic approach. Can't find your answer? Contact us directly.
-                                </p>
-                                <div className="faq-hero-actions">
-                                    <Link to="/pricing" className="btn btn-primary">
-                                        Book a Session
-                                    </Link>
-                                    <a href="#contact" className="btn btn-secondary">
-                                        Contact Us
-                                    </a>
-                                </div>
-                            </motion.div>
-                        </div>
+                                <span className="category-icon">{category.icon}</span>
+                                <span className="category-title">{category.title}</span>
+                            </motion.button>
+                        ))}
                     </div>
-                    {/* Flèche de défilement identique aux autres pages */}
-                    <div className="scroll-indicator">
-                        <div className="scroll-arrow"></div>
-                    </div>
-                </header>
+                </div>
+            </section>
 
-                {/* FAQ Navigation */}
-                <AnimatedSection className="faq-nav-section">
-                    <div className="container">
-                        <div className="faq-categories">
-                            {faqCategories.map((category, index) => (
-                                <motion.button
-                                    key={category.id}
-                                    className={`faq-category-btn ${activeCategory === category.id ? 'active' : ''}`}
-                                    onClick={() => setActiveCategory(category.id)}
+            {/* FAQ Content */}
+            <section className="faq-content-section">
+                <div className="container">
+                    <div className="faq-category-content">
+                        <motion.h2
+                            className="faq-category-title"
+                            key={activeCategory}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.5 }}
+                        >
+                            {currentCategory?.title}
+                        </motion.h2>
+
+                        <div className="faq-questions">
+                            {currentCategory?.questions.map((item, index) => (
+                                <motion.div
+                                    key={index}
+                                    className={`faq-item ${openItems[`${activeCategory}-${index}`] ? 'active' : ''}`}
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: index * 0.1 }}
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
                                 >
-                                    <span className="category-icon">{category.icon}</span>
-                                    <span className="category-title">{category.title}</span>
-                                </motion.button>
+                                    <button
+                                        className="faq-question"
+                                        onClick={() => toggleItem(`${activeCategory}-${index}`)}
+                                    >
+                                        <span className="question-text">{item.question}</span>
+                                        <span className="toggle-icon">
+                                            <svg
+                                                width="20"
+                                                height="20"
+                                                viewBox="0 0 20 20"
+                                                fill="none"
+                                            >
+                                                <path
+                                                    d="M10 4V16M4 10H16"
+                                                    stroke="currentColor"
+                                                    strokeWidth="2"
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                />
+                                            </svg>
+                                        </span>
+                                    </button>
+                                    <motion.div
+                                        className="faq-answer"
+                                        initial={false}
+                                        animate={{
+                                            height: openItems[`${activeCategory}-${index}`] ? 'auto' : 0,
+                                            opacity: openItems[`${activeCategory}-${index}`] ? 1 : 0
+                                        }}
+                                        transition={{ duration: 0.3, ease: "easeInOut" }}
+                                    >
+                                        <div className="answer-content">
+                                            {item.answer}
+                                        </div>
+                                    </motion.div>
+                                </motion.div>
                             ))}
                         </div>
                     </div>
-                </AnimatedSection>
+                </div>
+            </section>
 
-                {/* FAQ Content */}
-                <section className="faq-content-section">
-                    <div className="container">
-                        <AnimatedSection>
-                            <div className="faq-category-content">
-                                <motion.h2
-                                    className="faq-category-title"
-                                    key={activeCategory}
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ duration: 0.5 }}
-                                >
-                                    {currentCategory?.title}
-                                </motion.h2>
-
-                                <div className="faq-questions">
-                                    {currentCategory?.questions.map((item, index) => (
-                                        <motion.div
-                                            key={index}
-                                            className={`faq-item ${openItems[`${activeCategory}-${index}`] ? 'active' : ''}`}
-                                            initial={{ opacity: 0, y: 20 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ delay: index * 0.1 }}
-                                        >
-                                            <button
-                                                className="faq-question"
-                                                onClick={() => toggleItem(`${activeCategory}-${index}`)}
-                                            >
-                                                <span className="question-text">{item.question}</span>
-                                                <span className="toggle-icon">
-                                                    <svg
-                                                        width="20"
-                                                        height="20"
-                                                        viewBox="0 0 20 20"
-                                                        fill="none"
-                                                    >
-                                                        <path
-                                                            d="M10 4V16M4 10H16"
-                                                            stroke="currentColor"
-                                                            strokeWidth="2"
-                                                            strokeLinecap="round"
-                                                            strokeLinejoin="round"
-                                                        />
-                                                    </svg>
-                                                </span>
-                                            </button>
-                                            <motion.div
-                                                className="faq-answer"
-                                                initial={false}
-                                                animate={{
-                                                    height: openItems[`${activeCategory}-${index}`] ? 'auto' : 0,
-                                                    opacity: openItems[`${activeCategory}-${index}`] ? 1 : 0
-                                                }}
-                                                transition={{ duration: 0.3, ease: "easeInOut" }}
-                                            >
-                                                <div className="answer-content">
-                                                    {item.answer}
-                                                </div>
-                                            </motion.div>
-                                        </motion.div>
-                                    ))}
-                                </div>
-                            </div>
-                        </AnimatedSection>
-                    </div>
-                </section>
-
-                {/* Contact CTA - Même format que Home et Gallery */}
-                <AnimatedSection className="cta-section-faq" id="contact">
-                    <div className="container">
-                        <div className="cta-content-faq fade-in-up">
-                            <h2 className="cta-title">Still Have Questions?</h2>
-                            <p className="cta-description">
-                                We're here to help! Contact us directly and we'll get back to you within 24 hours.
-                            </p>
-                            <div className="cta-actions">
-                                <Link to="/pricing" className="btn btn-primary btn-large">
-                                    Start Your Project
-                                </Link>
-                                <a href="mailto:hello@fireflyofsoul.com" className="btn btn-outline btn-large">
-                                    Email Us
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </AnimatedSection>
-                <Footer />
-            </div>
-        </PageTransition>
+            {/* Contact CTA avec composant */}
+            <CTASection
+                title="Still Have Questions?"
+                description="We're here to help! Contact us directly and we'll get back to you within 24 hours."
+                buttons={[
+                    { text: "Start Your Project", url: "/pricing", type: "primary" },
+                    { text: "Email Us", url: "mailto:hello@fireflyofsoul.com", type: "outline", external: true }
+                ]}
+                className="cta-section-faq"
+            />
+        </PageLayout>
     );
 }
