@@ -12,5 +12,4 @@ export default [
     route("reviews", "routes/content/reviews/reviews.tsx"),
     route("faq", "routes/content/faq/faq.tsx"),
     route("dev", "routes/admin/dev/dev.tsx"),
-    route("api/check-ip", "routes/admin/api.check-ip.tsx"),
 ] satisfies RouteConfig;

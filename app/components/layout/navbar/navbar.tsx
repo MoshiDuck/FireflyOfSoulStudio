@@ -1,36 +1,13 @@
-// app/components/layout/navbar/navbar.tsx
 import { Link, useLocation } from "react-router";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import "./navbar.css";
-
-interface CheckIPResponse {
-    allowed: boolean;
-    clientIP?: string;
-    error?: string;
-}
 
 export function Navbar() {
     const location = useLocation();
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMoreOpen, setIsMoreOpen] = useState(false);
     const dropdownRef = useRef<HTMLLIElement>(null);
-    const [isDevAllowed, setIsDevAllowed] = useState(false);
-
-    useEffect(() => {
-        const checkDevAccess = async () => {
-            try {
-                const response = await fetch('/api/check-ip');
-                const data: CheckIPResponse = await response.json();
-                setIsDevAllowed(data.allowed);
-            } catch (error) {
-                console.error('❌ Navbar - Error checking dev access:', error);
-                setIsDevAllowed(false);
-            }
-        };
-
-        checkDevAccess();
-    }, []);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -54,15 +31,21 @@ export function Navbar() {
     }, []);
 
     const isActive = (path: string) => {
-        // Gère le cas spécial de la home page
         if (path === "/home" && location.pathname === "/") {
             return true;
         }
         return location.pathname === path;
     };
 
+    // Fonction pour gérer le clic sur le lien Developer
+    const handleDevClick = (e: React.MouseEvent, path: string) => {
+        e.preventDefault();
+        setIsMoreOpen(false);
+        window.location.href = path;
+    };
+
     const primaryItems = [
-        { path: "/home", label: "Home" }, // Changé de "/" à "/home"
+        { path: "/home", label: "Home" },
         { path: "/gallery", label: "Gallery" },
         { path: "/shootings", label: "Shootings" },
         { path: "/store", label: "Store" }
@@ -72,7 +55,7 @@ export function Navbar() {
         { path: "/about", label: "About" },
         { path: "/reviews", label: "Reviews" },
         { path: "/faq", label: "FAQ" },
-        ...(isDevAllowed ? [{ path: "/dev", label: "Developer" }] : [])
+        { path: "/dev", label: "Login" }
     ];
 
     return (
@@ -83,7 +66,6 @@ export function Navbar() {
             transition={{ duration: 0.6, ease: [0.6, 0.05, 0.01, 0.9] }}
         >
             <div className="navbar-container">
-                {/* Changé le logo pour pointer vers "/home" au lieu de "/" */}
                 <Link to="/home" className="navbar-logo" onClick={() => setIsMoreOpen(false)}>
                     <div className="navbar-brand-main">FIREFLY OF SOUL</div>
                     <div className="navbar-brand-sub">STUDIO</div>
@@ -140,13 +122,25 @@ export function Navbar() {
                                 >
                                     {secondaryItems.map((item) => (
                                         <li key={item.path} className="dropdown-item">
-                                            <Link
-                                                to={item.path}
-                                                className={`dropdown-link ${isActive(item.path) ? "active" : ""}`}
-                                                onClick={() => setIsMoreOpen(false)}
-                                            >
-                                                {item.label}
-                                            </Link>
+                                            {item.path === "/dev" ? (
+                                                // Pour le lien Developer, utiliser un <a> normal avec rechargement complet
+                                                <a
+                                                    href={item.path}
+                                                    className={`dropdown-link ${isActive(item.path) ? "active" : ""}`}
+                                                    onClick={(e) => handleDevClick(e, item.path)}
+                                                >
+                                                    {item.label}
+                                                </a>
+                                            ) : (
+                                                // Pour les autres liens, utiliser le Link React Router normal
+                                                <Link
+                                                    to={item.path}
+                                                    className={`dropdown-link ${isActive(item.path) ? "active" : ""}`}
+                                                    onClick={() => setIsMoreOpen(false)}
+                                                >
+                                                    {item.label}
+                                                </Link>
+                                            )}
                                         </li>
                                     ))}
                                 </motion.ul>

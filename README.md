@@ -63,7 +63,7 @@ https://github.com/MoshiDuck/FireflyOfSoulStudio
     ```
 2. Commit
     ```bash
-    git commit -m "[FAIT] - Restructuration dossiers"
+    git commit -m "[FAIT] - Mettre en place acess pour page dev"
     ```
 
 3. Version
@@ -75,6 +75,8 @@ https://github.com/MoshiDuck/FireflyOfSoulStudio
     ```bash
     git push --force origin main
     ```
+
+
 
 ---
 

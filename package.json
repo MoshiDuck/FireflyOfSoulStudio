@@ -1,4 +1,5 @@
 {
+  "nom_de_fichier": "package.json",
   "name": "react-router-hono-fullstack-template",
   "description": "A modern full-stack template powered by Cloudflare Workers, using Hono for backend APIs, React Router for frontend routing, and shadcn/ui for beautiful, accessible components styled with Tailwind CSS",
   "private": true,
@@ -44,7 +45,7 @@
   "scripts": {
     "build": "react-router build",
     "cf-typegen": "wrangler types",
-    "deploy": "npm run build && wrangler deploy",
+    "deploy": "npm run build && wrangler deploy && echo '========================================' && echo '🌐 VOTRE SITE: https://fireflyofsoulstudio.uk' && echo '🔗 (Lien cliquable si votre terminal le supporte)' && echo '========================================'",
     "dev": "react-router dev",
     "preview": "npm run build && vite preview",
     "typecheck": "npm run cf-typegen && react-router typegen && tsc -b"

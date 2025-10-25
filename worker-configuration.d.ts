@@ -7,7 +7,6 @@ declare namespace Cloudflare {
 		mainModule: typeof import("./workers/app");
 	}
 	interface Env {
-		VALUE_FROM_CLOUDFLARE: "Hello from Hono/CF";
 		DB: D1Database;
 	}
 }

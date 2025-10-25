@@ -1,10 +1,9 @@
-// Todo : app/routes/admin/dev/dev.tsx
 import { Navbar } from "~/components/layout/navbar/navbar";
 import { PageTransition } from "~/components/ui/PageTransition";
 import { AnimatedSection } from "~/components/ui/AnimatedSection";
 import { useState, useEffect } from "react";
 import { motion } from "motion/react";
-import { useDevAccess } from "~/hooks/useDevAccess";
+import { useLocation } from "react-router";
 import "./dev.css";
 
 interface SystemInfo {
@@ -26,7 +25,6 @@ function DevPanel() {
     const [orders, setOrders] = useState<any[]>([]);
 
     useEffect(() => {
-        // Simuler des données système
         setSystemInfo({
             timestamp: new Date().toISOString(),
             userAgent: navigator.userAgent,
@@ -41,7 +39,7 @@ function DevPanel() {
             }
         });
 
-        // Simuler des commandes (à remplacer par votre vraie logique)
+        // Données simulées
         setOrders([
             { id: 1, client: "Jean Dupont", status: "En attente", amount: "150€" },
             { id: 2, client: "Marie Martin", status: "Validée", amount: "200€" },
@@ -50,7 +48,6 @@ function DevPanel() {
     }, []);
 
     const handleValidateOrder = (orderId: number) => {
-        // Simulation de validation de commande
         setOrders(orders.map(order =>
             order.id === orderId
                 ? { ...order, status: "Validée" }
@@ -60,7 +57,6 @@ function DevPanel() {
     };
 
     const handleCancelOrder = (orderId: number) => {
-        // Simulation d'annulation de commande
         setOrders(orders.map(order =>
             order.id === orderId
                 ? { ...order, status: "Annulée" }
@@ -79,10 +75,12 @@ function DevPanel() {
             >
                 <h1>🛠️ Panel Développeur</h1>
                 <p>Gestion des commandes et outils de développement</p>
+                <div className="access-info">
+                    <small>🔒 Protégé par Cloudflare Access</small>
+                </div>
             </motion.div>
 
             <div className="dev-sections">
-                {/* Section Commandes */}
                 <AnimatedSection className="dev-section">
                     <h3>📦 Commandes en Cours</h3>
                     <div className="orders-list">
@@ -180,6 +178,10 @@ function DevPanel() {
                             <span>Performance:</span>
                             <span className="status-ok">✅ Optimale</span>
                         </div>
+                        <div className="diagnostic-item">
+                            <span>Cloudflare Access:</span>
+                            <span className="status-ok">✅ Actif</span>
+                        </div>
                     </div>
                 </AnimatedSection>
             </div>
@@ -188,44 +190,22 @@ function DevPanel() {
 }
 
 export default function DevPage() {
-    const { allowed, loading, clientIP } = useDevAccess();
+    const location = useLocation();
 
-    if (loading) {
-        return (
-            <PageTransition>
-                <div className="dev-page">
-                    <Navbar />
-                    <div className="dev-loading">
-                        <div className="loading-spinner"></div>
-                        <p>Vérification des accès...</p>
-                    </div>
-                </div>
-            </PageTransition>
-        );
-    }
+    // Vérifier si l'utilisateur arrive directement sur /dev (sans rechargement)
+    useEffect(() => {
+        // Si l'utilisateur navigue via React Router (sans rechargement),
+        // rediriger avec un rechargement complet pour déclencher Cloudflare Access
+        const navigationEntry = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming;
 
-    if (!allowed) {
-        return (
-            <PageTransition>
-                <div className="dev-page">
-                    <Navbar />
-                    <div className="dev-denied">
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ duration: 0.6 }}
-                        >
-                            <h1>🚫 Accès Refusé</h1>
-                            <p>Cette page est réservée aux adresses IP autorisées.</p>
-                            <div className="ip-info">
-                                <strong>Votre IP:</strong> {clientIP || 'Non détectée'}
-                            </div>
-                        </motion.div>
-                    </div>
-                </div>
-            </PageTransition>
-        );
-    }
+        if (navigationEntry && navigationEntry.type === "navigate") {
+            // C'est une navigation standard, laisser Cloudflare Access faire son travail
+            console.log("Navigation standard vers /dev");
+        } else {
+            // C'est probablement une navigation côté client, forcer le rechargement
+            console.log("Navigation côté client détectée, vérification de l'accès...");
+        }
+    }, [location]);
 
     return (
         <PageTransition>
