@@ -63,12 +63,12 @@ https://github.com/MoshiDuck/FireflyOfSoulStudio
     ```
 2. Commit
     ```bash
-    git commit -m "[FAIT] - Creer components et factoriser code "
+    git commit -m "[FAIT] - Restructuration dossiers"
     ```
 
 3. Version
    ```bash
-   git tag 0.0.0.9
+   git tag 0.0.1.0
    ```
 
 4. Force le push
