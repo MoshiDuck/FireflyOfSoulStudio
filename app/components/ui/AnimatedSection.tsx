@@ -1,6 +1,6 @@
 // Todo : app/components/ui/AnimatedSection.tsx
 import { motion } from "motion/react";
-import {type ReactNode, useEffect, useRef, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 
 interface AnimatedSectionProps {
     children: ReactNode;
@@ -75,7 +75,7 @@ export function AnimatedSection({
             transition={{
                 duration: 0.8,
                 delay,
-                ease: [0.6, 0.05, 0.01, 0.9],
+                ease: "easeOut",
             }}
         >
             {children}

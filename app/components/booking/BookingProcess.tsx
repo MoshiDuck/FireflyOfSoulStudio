@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { useFormDataManager } from "~/hooks/useFormDataManager";
-import {UncontrolledTextArea} from "~/components/ui/UncontrolledTextArea";
-import {UncontrolledInput} from "~/components/ui/UncontrolledInput";
+import { UncontrolledTextArea } from "~/components/ui/UncontrolledTextArea";
+import { UncontrolledInput } from "~/components/ui/UncontrolledInput";
 
 interface TimeSlot {
     time: string;
@@ -297,6 +297,7 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
                         className="date-option"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 17 }}
                     >
                         <div className="date-day">{new Date(date).getDate()}</div>
                         <div className="date-weekday">
@@ -343,6 +344,7 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
                         className={`time-option ${slot.available ? 'available' : 'booked'}`}
                         whileHover={slot.available ? { scale: 1.05 } : {}}
                         whileTap={slot.available ? { scale: 0.95 } : {}}
+                        transition={{ type: "spring", stiffness: 400, damping: 17 }}
                     >
                         <div className="time-slot">{slot.time}</div>
                         <div className="time-status">
@@ -467,6 +469,7 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
                     className="submit-button"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 17 }}
                 >
                     {isSubmitting ? 'Confirmation...' : `Confirmer la ${type === 'session' ? 'Réservation' : 'Commande'}`}
                 </motion.button>
@@ -496,7 +499,7 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
             className="booking-section"
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
         >
             <div className="container">
                 <div className="booking-process">

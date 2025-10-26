@@ -45,7 +45,7 @@ export function HeroSection({
                     className="hero-title-main"
                     initial={{ opacity: 0, y: 50 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8 }}
+                    transition={{ duration: 0.8, ease: "easeOut" }}
                 >
                     <span className="title-line">{titleLines[0]}</span>
                     <span className="title-line accent">{titleLines[1]}</span>
@@ -60,7 +60,7 @@ export function HeroSection({
                     className="hero-title-main"
                     initial={{ opacity: 0, y: 50 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8 }}
+                    transition={{ duration: 0.8, ease: "easeOut" }}
                 >
                     {parts[0]}
                     <span className="text-accent">{accentWord}</span>
@@ -74,7 +74,7 @@ export function HeroSection({
                 className="hero-title-main"
                 initial={{ opacity: 0, y: 50 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8 }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
             >
                 {title}
             </motion.h1>
@@ -111,7 +111,7 @@ export function HeroSection({
                         className="hero-text"
                         initial={{ opacity: 0, y: 50 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8 }}
+                        transition={{ duration: 0.8, ease: "easeOut" }}
                     >
                         {renderTitle()}
 
@@ -119,7 +119,7 @@ export function HeroSection({
                             className="hero-subtitle"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            transition={{ delay: 0.3, duration: 0.8 }}
+                            transition={{ delay: 0.3, duration: 0.8, ease: "easeOut" }}
                         >
                             {subtitle}
                         </motion.p>
@@ -129,7 +129,7 @@ export function HeroSection({
                                 className="hero-actions"
                                 initial={{ opacity: 0, y: 30 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.6, duration: 0.8 }}
+                                transition={{ delay: 0.6, duration: 0.8, ease: "easeOut" }}
                             >
                                 {buttons.map((button, index) => (
                                     button.url.startsWith('#') ? (
@@ -162,7 +162,7 @@ export function HeroSection({
                                     className={`floating-card ${card.className}`}
                                     initial={{ opacity: 0, x: index % 2 === 0 ? 50 : -50 }}
                                     animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: 0.8 + index * 0.2, duration: 0.8 }}
+                                    transition={{ delay: 0.8 + index * 0.2, duration: 0.8, ease: "easeOut" }}
                                 >
                                     <img src={card.src} alt={card.alt} />
                                 </motion.div>

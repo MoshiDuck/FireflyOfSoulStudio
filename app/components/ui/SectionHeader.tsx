@@ -58,7 +58,7 @@ export function SectionHeader({
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
         >
             {badge && (
                 <motion.div
@@ -66,7 +66,7 @@ export function SectionHeader({
                     initial={{ opacity: 0, scale: 0.8 }}
                     whileInView={{ opacity: 1, scale: 1 }}
                     viewport={{ once: true }}
-                    transition={{ duration: 0.4, delay: 0.1 }}
+                    transition={{ duration: 0.4, delay: 0.1, ease: "easeOut" }}
                 >
                     {badge}
                 </motion.div>
@@ -75,7 +75,7 @@ export function SectionHeader({
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.2 }}
+                transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
             >
                 <TitleTag className="section-title-modern">
                     {renderTitle()}
@@ -87,7 +87,7 @@ export function SectionHeader({
                     initial={{ opacity: 0 }}
                     whileInView={{ opacity: 1 }}
                     viewport={{ once: true }}
-                    transition={{ duration: 0.6, delay: 0.3 }}
+                    transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
                 >
                     {subtitle}
                 </motion.p>

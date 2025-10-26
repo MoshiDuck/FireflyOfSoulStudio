@@ -1,3 +1,4 @@
+// Todo : app/components/layout/navbar/navbar.tsx
 import { Link, useLocation } from "react-router";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
@@ -63,7 +64,7 @@ export function Navbar() {
             className={`navbar ${isScrolled ? "scrolled" : ""}`}
             initial={{ y: -100 }}
             animate={{ y: 0 }}
-            transition={{ duration: 0.6, ease: [0.6, 0.05, 0.01, 0.9] }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
         >
             <div className="navbar-container">
                 <Link to="/home" className="navbar-logo" onClick={() => setIsMoreOpen(false)}>
@@ -78,7 +79,7 @@ export function Navbar() {
                             className="navbar-item"
                             initial={{ opacity: 0, y: -20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.1 * index, duration: 0.5 }}
+                            transition={{ delay: 0.1 * index, duration: 0.5, ease: "easeOut" }}
                         >
                             <Link
                                 to={item.path}
@@ -95,7 +96,7 @@ export function Navbar() {
                         ref={dropdownRef}
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.1 * primaryItems.length, duration: 0.5 }}
+                        transition={{ delay: 0.1 * primaryItems.length, duration: 0.5, ease: "easeOut" }}
                     >
                         <button
                             className={`navbar-link dropdown-toggle ${isMoreOpen ? 'active' : ''} ${secondaryItems.some(item => isActive(item.path)) ? 'active' : ''}`}
@@ -104,7 +105,7 @@ export function Navbar() {
                             More
                             <motion.span
                                 animate={{ rotate: isMoreOpen ? 180 : 0 }}
-                                transition={{ duration: 0.3 }}
+                                transition={{ duration: 0.3, ease: "easeInOut" }}
                                 className="dropdown-arrow"
                             >
                                 ▼

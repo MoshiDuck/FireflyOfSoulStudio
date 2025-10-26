@@ -63,7 +63,7 @@ https://github.com/MoshiDuck/FireflyOfSoulStudio
     ```
 2. Commit
     ```bash
-    git commit -m "[FAIT] - Eviter duplication shootings et store"
+    git commit -m "[FAIT] - Correction duplication animations"
     ```
 
 3. Version
