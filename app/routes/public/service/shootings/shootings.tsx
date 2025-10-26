@@ -1,4 +1,3 @@
-// Todo : app/routes/public/service/shootings/shootings.tsx
 import React, { useState } from "react";
 import { PageLayout } from "~/components/layout/PageLayout";
 import { HeroSection } from "~/components/ui/HeroSection";
@@ -7,71 +6,11 @@ import { CTASection } from "~/components/ui/CTASection";
 import { AnimatedSection } from "~/components/ui/AnimatedSection";
 import { BookingProcess } from "~/components/booking/BookingProcess";
 import { motion } from "motion/react";
-import { API_ENDPOINTS } from "~/config/api";
+import { API_ENDPOINTS, SHOOTING_SERVICES } from "~/config/api";
+import type { Service } from "~/types/api";
 import "../../../../components/components.css";
 import "./shootings.css";
 import "../pricing-common.css";
-
-interface Service {
-    id: string;
-    name: string;
-    price: number;
-    description: string;
-    duration: string;
-    features: string[];
-    type: 'session';
-}
-
-const SHOOTING_SERVICES: Service[] = [
-    {
-        id: "portrait",
-        name: "Séance Portrait",
-        price: 450,
-        description: "Individuel & Couples",
-        duration: "2 heures",
-        type: 'session',
-        features: [
-            "30 images professionnellement retouchées",
-            "Accès galerie en ligne",
-            "Téléchargement digital inclus",
-            "Droit d'impression",
-            "2 changements de tenue",
-            "Session de visionnage privée"
-        ],
-    },
-    {
-        id: "artistic",
-        name: "Séance Artistique",
-        price: 850,
-        description: "Conceptuel & Fine Art",
-        duration: "4 heures",
-        type: 'session',
-        features: [
-            "50 images professionnellement retouchées",
-            "Développement du concept",
-            "Retouche premium",
-            "Galerie en ligne + stockage cloud",
-            "2 impressions fine art (16x24)",
-            "Direction artistique"
-        ],
-    },
-    {
-        id: "editorial",
-        name: "Projet Éditorial",
-        price: 1200,
-        description: "Commercial & Publication",
-        duration: "8 heures",
-        type: 'session',
-        features: [
-            "80+ images professionnellement retouchées",
-            "Direction artistique",
-            "Retouche avancée",
-            "Droits d'usage commercial",
-            "Livraison prioritaire",
-            "Gestionnaire de projet dédié"
-        ],
-    },
-];
 
 function ShootingCard({ service, onDirectBooking }: {
     service: Service;
@@ -104,7 +43,7 @@ function ShootingCard({ service, onDirectBooking }: {
 
             <div className="service-features">
                 <ul>
-                    {service.features.map((feature, idx) => (
+                    {service.features?.map((feature, idx) => (
                         <li key={idx}>
                             <span className="feature-icon">✓</span>
                             {feature}

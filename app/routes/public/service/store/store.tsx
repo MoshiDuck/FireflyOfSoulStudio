@@ -1,4 +1,3 @@
-// Todo : app/routes/public/service/store/store.tsx
 import React, { useState } from "react";
 import { PageLayout } from "~/components/layout/PageLayout";
 import { HeroSection } from "~/components/ui/HeroSection";
@@ -6,104 +5,13 @@ import { SectionHeader } from "~/components/ui/SectionHeader";
 import { CTASection } from "~/components/ui/CTASection";
 import { AnimatedSection } from "~/components/ui/AnimatedSection";
 import { BookingProcess } from "~/components/booking/BookingProcess";
+import { StoreCart } from "~/components/booking/StoreCart";
 import { motion } from "motion/react";
-import { API_ENDPOINTS } from "~/config/api";
+import { API_ENDPOINTS, STORE_PRODUCTS } from "~/config/api";
+import type { Service, Capacity, CartItemComponent } from "~/types/api";
 import "../../../../components/components.css";
 import "./store.css";
 import "../pricing-common.css";
-
-interface Capacity {
-    size: string;
-    price: number;
-    description: string;
-}
-
-interface Service {
-    id: string;
-    name: string;
-    price: number;
-    description: string;
-    duration: string;
-    features: string[];
-    type: 'product';
-    capacities?: Capacity[];
-}
-
-interface CartItem {
-    service: Service;
-    quantity: number;
-    selectedCapacity?: Capacity;
-}
-
-const STORE_PRODUCTS: Service[] = [
-    {
-        id: "raw-files",
-        name: "Collection Fichiers RAW",
-        price: 299,
-        description: "Set complet des fichiers bruts",
-        duration: "Livraison digitale",
-        type: 'product',
-        features: [
-            "Tous les fichiers RAW originaux",
-            "Pleine résolution",
-            "Droits d'usage commercial",
-            "Accès archive à vie",
-            "Métadonnées techniques incluses"
-        ],
-    },
-    {
-        id: "fine-art-print",
-        name: "Impression Fine Art",
-        price: 150,
-        description: "Tirage qualité musée",
-        duration: "2-3 semaines",
-        type: 'product',
-        features: [
-            "Papier archive premium",
-            "Édition numérotée",
-            "Certificat d'authenticité",
-            "Encadrement sur mesure disponible",
-            "Format: 16x24 pouces"
-        ],
-    },
-    {
-        id: "premium-album",
-        name: "Album Premium",
-        price: 350,
-        description: "Album relié cuir artisanat",
-        duration: "3-4 semaines",
-        type: 'product',
-        features: [
-            "Couverture cuir italien",
-            "50 pages premium",
-            "Relure à plat",
-            "Gravure personnalisée",
-            "Boîtier de présentation"
-        ],
-    },
-    {
-        id: "premium-usb",
-        name: "Clé USB Édition Premium",
-        price: 199,
-        description: "Clé USB gravée avec votre collection",
-        duration: "1-2 semaines",
-        type: 'product',
-        features: [
-            "Gravure personnalisée gratuite",
-            "Toutes vos photos en haute résolution",
-            "Formats JPEG + PNG inclus",
-            "Boîtier de présentation premium",
-            "Sauvegarde cloud incluse (1 an)"
-        ],
-        capacities: [
-            { size: "8Go", price: 99, description: "Parfait pour les séances courtes" },
-            { size: "16Go", price: 149, description: "Idéal pour les portraits" },
-            { size: "32Go", price: 199, description: "Recommandé - Convient à la plupart des séances" },
-            { size: "64Go", price: 299, description: "Parfait pour les séances longues" },
-            { size: "128Go", price: 449, description: "Ultime - Pour les projets complets" }
-        ]
-    },
-];
 
 function ProductCard({ product, onAddToCart }: {
     product: Service;
@@ -166,7 +74,7 @@ function ProductCard({ product, onAddToCart }: {
 
             <div className="service-features">
                 <ul>
-                    {product.features.map((feature, idx) => (
+                    {product.features?.map((feature, idx) => (
                         <li key={idx}>
                             <span className="feature-icon">✓</span>
                             {feature}
@@ -188,94 +96,8 @@ function ProductCard({ product, onAddToCart }: {
     );
 }
 
-function StoreCart({ cart, onUpdateQuantity, onRemoveItem, onCheckout }: {
-    cart: CartItem[];
-    onUpdateQuantity: (index: number, quantity: number) => void;
-    onRemoveItem: (index: number) => void;
-    onCheckout: () => void;
-}) {
-    const total = cart.reduce((sum, item) => {
-        const price = item.selectedCapacity?.price || item.service.price;
-        return sum + (price * item.quantity);
-    }, 0);
-
-    if (cart.length === 0) {
-        return null;
-    }
-
-    return (
-        <motion.div
-            className="cart-sidebar"
-            initial={{ x: 300, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ duration: 0.5 }}
-        >
-            <div className="cart-header">
-                <h3>Votre Panier</h3>
-                <span className="cart-count">{cart.length} article{cart.length > 1 ? 's' : ''}</span>
-            </div>
-
-            <div className="cart-items">
-                {cart.map((item, index) => {
-                    const price = item.selectedCapacity?.price || item.service.price;
-                    return (
-                        <div key={index} className="cart-item">
-                            <div className="cart-item-info">
-                                <div className="cart-item-name">{item.service.name}</div>
-                                {item.selectedCapacity && (
-                                    <div className="cart-item-capacity">{item.selectedCapacity.size}</div>
-                                )}
-                                <div className="cart-item-price">{price}€</div>
-                            </div>
-
-                            <div className="cart-item-controls">
-                                <div className="quantity-controls">
-                                    <button
-                                        onClick={() => onUpdateQuantity(index, Math.max(1, item.quantity - 1))}
-                                        className="quantity-btn"
-                                    >
-                                        −
-                                    </button>
-                                    <span className="quantity">{item.quantity}</span>
-                                    <button
-                                        onClick={() => onUpdateQuantity(index, item.quantity + 1)}
-                                        className="quantity-btn"
-                                    >
-                                        +
-                                    </button>
-                                </div>
-                                <button
-                                    onClick={() => onRemoveItem(index)}
-                                    className="remove-btn"
-                                >
-                                    ×
-                                </button>
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
-
-            <div className="cart-footer">
-                <div className="cart-total">
-                    <span>Total:</span>
-                    <span className="total-price">{total}€</span>
-                </div>
-                <motion.button
-                    onClick={onCheckout}
-                    className="checkout-btn"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                >
-                    Commander ({total}€)
-                </motion.button>
-            </div>
-        </motion.div>
-    );
-}
-
 export default function Store() {
-    const [cart, setCart] = useState<CartItem[]>([]);
+    const [cart, setCart] = useState<CartItemComponent[]>([]);
     const [selectedService, setSelectedService] = useState<Service | null>(null);
     const [isCheckingOut, setIsCheckingOut] = useState(false);
 

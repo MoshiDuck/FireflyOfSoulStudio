@@ -1,111 +1,24 @@
-// Todo : app/components/booking/BookingProcess.tsx
 import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { useFormDataManager } from "~/hooks/useFormDataManager";
 import { UncontrolledTextArea } from "~/components/ui/UncontrolledTextArea";
 import { UncontrolledInput } from "~/components/ui/UncontrolledInput";
 
-interface TimeSlot {
-    time: string;
-    available: boolean;
-}
+// Import des types et configurations centralisés
+import type {
+    Service,
+    TimeSlot,
+    BookedSlot,
+    ApiResponse,
+    BookingProcessProps,
+    CartItem
+} from "~/types/api";
+import { STEP_CONFIG } from "~/config/booking";
 
-interface BookedSlot {
-    reservation_time: string;
-}
-
-interface Service {
-    id: string;
-    name: string;
-    price: number;
-    description: string;
-    duration: string;
-    type: 'session' | 'product';
-}
-
-// ✅ Types pour l'API
-interface ApiSuccessResponse {
-    success: boolean;
-    id: number;
-    message: string;
-}
-
-interface ApiErrorResponse {
-    error: string;
-}
-
-type ApiResponse = ApiSuccessResponse | ApiErrorResponse;
-
-interface BookingProcessProps {
-    service: Service;
-    onBack: () => void;
-    onComplete: () => void;
-    apiEndpoint: string;
-    type: 'session' | 'product';
-}
-
-// ✅ COMPOSANTS PARTAGÉS POUR ÉVITER LA DUPLICATION
-interface StepHeaderProps {
-    onBack: () => void;
-    title: string;
-    backLabel?: string;
-}
-
-const StepHeader = ({ onBack, title, backLabel = "← Retour" }: StepHeaderProps) => (
-    <div className="booking-step-header">
-        <button onClick={onBack} className="back-button">
-            {backLabel}
-        </button>
-        <h3 className="booking-step-title">{title}</h3>
-        <div className="spacer"></div>
-    </div>
-);
-
-interface ServiceInfoProps {
-    service: Service;
-    additionalInfo?: string;
-}
-
-const ServiceInfo = ({ service, additionalInfo }: ServiceInfoProps) => (
-    <div className="selected-service-info">
-        <div className="service-name">{service.name}</div>
-        <div className="service-details">
-            {service.description} • {service.price}€
-            {additionalInfo && ` • ${additionalInfo}`}
-        </div>
-    </div>
-);
-
-interface BookingSummaryProps {
-    type: 'session' | 'product';
-    service: Service;
-    selectedDate?: string;
-    selectedTime?: string;
-    formatDate: (date: string) => string;
-}
-
-const BookingSummary = ({ type, service, selectedDate, selectedTime, formatDate }: BookingSummaryProps) => (
-    <div className="booking-summary">
-        <div className="summary-service">Votre {type === 'session' ? 'Réservation' : 'Commande'}</div>
-        {type === 'session' && selectedDate && selectedTime ? (
-            <div className="summary-details">
-                {formatDate(selectedDate)} à {selectedTime}
-            </div>
-        ) : (
-            <div className="summary-details">
-                {service.name}
-            </div>
-        )}
-        <div className="summary-price">{service.price}€</div>
-
-        <div className="cart-summary">
-            <div className="cart-summary-item">
-                <span>{service.name}</span>
-                <span>{service.price}€</span>
-            </div>
-        </div>
-    </div>
-);
+// Import des composants partagés
+import { StepHeader } from "~/components/booking/StepHeader";
+import { ServiceInfo } from "~/components/booking/ServiceInfo";
+import { BookingSummary } from "~/components/booking/BookingSummary";
 
 export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type }: BookingProcessProps) {
     const [step, setStep] = useState(1);
@@ -124,19 +37,7 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
         message: ''
     });
 
-    // ✅ CONSTANTES POUR ÉVITER LA DUPLICATION
     const TOTAL_STEPS = type === 'session' ? 3 : 2;
-    const STEP_CONFIG = {
-        session: [
-            { number: 1, label: 'Date', title: 'Choisissez une date pour votre séance', backLabel: '← Retour aux séances' },
-            { number: 2, label: 'Heure', title: 'Choisissez un horaire', backLabel: '← Retour' },
-            { number: 3, label: 'Informations', title: 'Vos informations', backLabel: '← Retour' }
-        ],
-        product: [
-            { number: 1, label: 'Votre Commande', title: 'Votre commande', backLabel: '← Retour aux produits' },
-            { number: 2, label: 'Informations', title: 'Vos informations', backLabel: '← Retour' }
-        ]
-    };
 
     // Générer les dates disponibles (14 prochains jours ouvrés)
     useEffect(() => {
@@ -195,7 +96,7 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
         }
     }, [selectedDate, apiEndpoint, type]);
 
-    // ✅ LOGIQUE DE GESTION DES ÉTAPES REFACTORISÉE
+    // LOGIQUE DE GESTION DES ÉTAPES
     const goToNextStep = () => {
         if (step < TOTAL_STEPS) {
             setStep(step + 1);
@@ -219,7 +120,7 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
         updateField(fieldName as keyof ReturnType<typeof getFormData>, value);
     };
 
-    // ✅ VALIDATION UNIFIÉE
+    // VALIDATION UNIFIÉE
     const validateForm = (formData: ReturnType<typeof getFormData>) => {
         if (!formData.firstName?.trim() || !formData.lastName?.trim() || !formData.email?.trim()) {
             return 'Veuillez remplir tous les champs obligatoires';
@@ -252,7 +153,7 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
         try {
             const formData = getFormData();
 
-            // ✅ VALIDATION UNIFIÉE
+            // VALIDATION UNIFIÉE
             const validationError = validateForm(formData);
             if (validationError) {
                 setMessage({ type: 'error', text: validationError });
@@ -353,7 +254,7 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
         });
     };
 
-    // ✅ ÉTAPES SIMPLIFIÉES AVEC COMPOSANTS PARTAGÉS
+    // ÉTAPES SIMPLIFIÉES AVEC COMPOSANTS PARTAGÉS
     const Step1 = () => {
         const stepConfig = getCurrentStepConfig();
         return (
@@ -431,7 +332,7 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
         );
     };
 
-    // ✅ FORMULAIRE UNIFIÉ POUR TOUS LES TYPES
+    // FORMULAIRE UNIFIÉ POUR TOUS LES TYPES
     const BookingForm = () => {
         const stepConfig = getCurrentStepConfig();
         return (
@@ -542,7 +443,7 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
 
     const steps = STEP_CONFIG[type];
 
-    // ✅ RENDU CONDITIONNEL DES ÉTAPES SIMPLIFIÉ
+    // RENDU CONDITIONNEL DES ÉTAPES SIMPLIFIÉ
     const renderCurrentStep = () => {
         if (type === 'session') {
             switch (step) {
