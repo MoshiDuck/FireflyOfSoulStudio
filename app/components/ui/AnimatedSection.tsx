@@ -8,6 +8,8 @@ interface AnimatedSectionProps {
     delay?: number;
     direction?: "up" | "down" | "left" | "right" | "fade";
     id?: string;
+    threshold?: number;
+    triggerOnce?: boolean;
 }
 
 export function AnimatedSection({
@@ -16,6 +18,8 @@ export function AnimatedSection({
                                     delay = 0,
                                     direction = "up",
                                     id,
+                                    threshold = 0.1,
+                                    triggerOnce = true,
                                 }: AnimatedSectionProps) {
     const [isVisible, setIsVisible] = useState(false);
     const ref = useRef<HTMLDivElement>(null);
@@ -25,9 +29,17 @@ export function AnimatedSection({
             ([entry]) => {
                 if (entry.isIntersecting) {
                     setIsVisible(true);
+                    if (triggerOnce) {
+                        observer.disconnect();
+                    }
+                } else if (!triggerOnce) {
+                    setIsVisible(false);
                 }
             },
-            { threshold: 0.1, rootMargin: "50px" }
+            {
+                threshold,
+                rootMargin: "50px"
+            }
         );
 
         const currentRef = ref.current;
@@ -40,22 +52,22 @@ export function AnimatedSection({
                 observer.unobserve(currentRef);
             }
         };
-    }, []);
+    }, [threshold, triggerOnce]);
 
     const getDirectionValues = () => {
         switch (direction) {
             case "up":
-                return { y: 40, x: 0 };
+                return { y: 40 };
             case "down":
-                return { y: -40, x: 0 };
+                return { y: -40 };
             case "left":
-                return { x: 40, y: 0 };
+                return { x: 40 };
             case "right":
-                return { x: -40, y: 0 };
+                return { x: -40 };
             case "fade":
-                return { y: 0, x: 0 };
+                return {};
             default:
-                return { y: 40, x: 0 };
+                return { y: 40 };
         }
     };
 
@@ -66,11 +78,21 @@ export function AnimatedSection({
             ref={ref}
             id={id}
             className={className}
-            initial={{ opacity: 0, ...directionValues }}
+            initial={{
+                opacity: 0,
+                ...directionValues
+            }}
             animate={
                 isVisible
-                    ? { opacity: 1, y: 0, x: 0 }
-                    : { opacity: 0, ...directionValues }
+                    ? {
+                        opacity: 1,
+                        y: 0,
+                        x: 0
+                    }
+                    : {
+                        opacity: 0,
+                        ...directionValues
+                    }
             }
             transition={{
                 duration: 0.8,

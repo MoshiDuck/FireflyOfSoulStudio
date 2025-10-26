@@ -1,5 +1,5 @@
 // Todo : app/components/layout/PageLayout.tsx
-import { PageTransition } from "~/components/ui/PageTransition";
+import { AnimatedSection } from "~/components/ui/AnimatedSection";
 import { Navbar } from "~/components/layout/navbar/navbar";
 import { Footer } from "~/components/layout/Footer";
 
@@ -11,12 +11,14 @@ interface PageLayoutProps {
 
 export function PageLayout({ children, className = "", centered = false }: PageLayoutProps) {
     return (
-        <PageTransition>
-            <div className={`${className} ${centered ? 'page-centered' : ''}`}>
-                <Navbar />
-                {children}
-                <Footer />
-            </div>
-        </PageTransition>
+        <AnimatedSection
+            className={`${className} ${centered ? 'page-centered' : ''}`}
+            direction="fade"
+            delay={0.1}
+        >
+            <Navbar />
+            {children}
+            <Footer />
+        </AnimatedSection>
     );
 }

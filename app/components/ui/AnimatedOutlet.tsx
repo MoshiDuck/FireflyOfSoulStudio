@@ -1,7 +1,7 @@
 // Todo : app/components/ui/AnimatedOutlet.tsx
-import {Outlet, useLocation} from "react-router";
+import { Outlet, useLocation } from "react-router";
 import { AnimatePresence, motion } from "motion/react";
-import { PageTransition } from "./PageTransition";
+import { AnimatedSection } from "./AnimatedSection";
 
 export default function AnimatedOutlet() {
     const location = useLocation();
@@ -15,9 +15,9 @@ export default function AnimatedOutlet() {
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.3 }}
             >
-                <PageTransition>
+                <AnimatedSection direction="fade" delay={0.2}>
                     <Outlet />
-                </PageTransition>
+                </AnimatedSection>
             </motion.div>
         </AnimatePresence>
     );
