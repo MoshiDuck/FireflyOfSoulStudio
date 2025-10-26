@@ -63,12 +63,12 @@ https://github.com/MoshiDuck/FireflyOfSoulStudio
     ```
 2. Commit
     ```bash
-    git commit -m "[FAIT] - Mettre en place acess pour page dev"
+    git commit -m "[FAIT] - Eviter duplication shootings et store"
     ```
 
 3. Version
    ```bash
-   git tag 0.0.1.1
+   git tag 0.0.1.2
    ```
 
 4. Force le push

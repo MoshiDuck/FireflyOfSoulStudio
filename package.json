@@ -18,6 +18,7 @@
     "publish": true
   },
   "dependencies": {
+    "@remix-run/node": "^2.17.1",
     "git": "^0.1.5",
     "gsap": "^3.13.0",
     "hono": "4.8.2",
@@ -25,7 +26,7 @@
     "motion": "^12.23.24",
     "react": "19.0.0",
     "react-dom": "19.0.0",
-    "react-router": "7.6.3",
+    "react-router": "^7.9.4",
     "react-router-dom": "^7.9.4"
   },
   "devDependencies": {
@@ -45,7 +46,7 @@
   "scripts": {
     "build": "react-router build",
     "cf-typegen": "wrangler types",
-    "deploy": "npm run build && wrangler deploy && echo '========================================' && echo '🌐 VOTRE SITE: https://fireflyofsoulstudio.uk' && echo '🔗 (Lien cliquable si votre terminal le supporte)' && echo '========================================'",
+    "deploy": "npm run build && wrangler deploy && echo '========================================' && echo '🌐 VOTRE SITE: https://fireflyofsoulstudio.uk' && echo '========================================'",
     "dev": "react-router dev",
     "preview": "npm run build && vite preview",
     "typecheck": "npm run cf-typegen && react-router typegen && tsc -b"

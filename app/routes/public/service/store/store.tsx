@@ -1,108 +1,16 @@
 // Todo : app/routes/public/service/store/store.tsx
-import React, { useState, useRef, useCallback, useEffect } from "react";
+import React, { useState } from "react";
 import { PageLayout } from "~/components/layout/PageLayout";
 import { HeroSection } from "~/components/ui/HeroSection";
 import { SectionHeader } from "~/components/ui/SectionHeader";
 import { CTASection } from "~/components/ui/CTASection";
 import { AnimatedSection } from "~/components/ui/AnimatedSection";
+import { BookingProcess } from "~/components/booking/BookingProcess";
 import { motion } from "motion/react";
+import { API_ENDPOINTS } from "~/config/api";
 import "../../../../components/components.css";
 import "./store.css";
 import "../pricing-common.css";
-
-// ✅ COMPOSANTS NON-CONTRÔLÉS RÉTABLIS
-function UncontrolledInput({
-                               name,
-                               defaultValue = "",
-                               onValueChange,
-                               ...props
-                           }: Omit<React.InputHTMLAttributes<HTMLInputElement>, "value" | "onChange"> & {
-    onValueChange?: (value: string, name: string) => void;
-}) {
-    const ref = useRef<HTMLInputElement>(null);
-    const lastSyncedValue = useRef(defaultValue);
-
-    useEffect(() => {
-        if (ref.current) {
-            ref.current.value = defaultValue as string;
-            lastSyncedValue.current = defaultValue;
-        }
-    }, [defaultValue]);
-
-    const handleInput = useCallback(
-        (e: React.FormEvent<HTMLInputElement>) => {
-            const value = (e.target as HTMLInputElement).value;
-            if (value !== lastSyncedValue.current) {
-                lastSyncedValue.current = value;
-                onValueChange?.(value, name || "");
-            }
-        },
-        [name, onValueChange]
-    );
-
-    return <input ref={ref} name={name} onInput={handleInput} {...props} />;
-}
-
-function UncontrolledTextArea({
-                                  name,
-                                  defaultValue = "",
-                                  onValueChange,
-                                  ...props
-                              }: Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, "value" | "onChange"> & {
-    onValueChange?: (value: string, name: string) => void;
-}) {
-    const ref = useRef<HTMLTextAreaElement>(null);
-    const lastSyncedValue = useRef(defaultValue);
-
-    useEffect(() => {
-        if (ref.current) {
-            ref.current.value = defaultValue as string;
-            lastSyncedValue.current = defaultValue;
-        }
-    }, [defaultValue]);
-
-    const handleInput = useCallback(
-        (e: React.FormEvent<HTMLTextAreaElement>) => {
-            const value = (e.target as HTMLTextAreaElement).value;
-            if (value !== lastSyncedValue.current) {
-                lastSyncedValue.current = value;
-                onValueChange?.(value, name || "");
-            }
-        },
-        [name, onValueChange]
-    );
-
-    return <textarea ref={ref} name={name} onInput={handleInput} {...props} />;
-}
-
-function useFormDataManager(initialData: {
-    name: string;
-    email: string;
-    phone: string;
-    address: string;
-    city: string;
-    postalCode: string;
-    message: string;
-}) {
-    const formDataRef = useRef(initialData);
-    const [, forceUpdate] = useState({});
-
-    const updateField = useCallback((field: string, value: string) => {
-        formDataRef.current = { ...formDataRef.current, [field]: value };
-    }, []);
-
-    const getFormData = useCallback(() => formDataRef.current, []);
-
-    const reset = useCallback(
-        (newData = initialData) => {
-            formDataRef.current = newData;
-            forceUpdate({});
-        },
-        [initialData]
-    );
-
-    return { updateField, getFormData, reset };
-}
 
 interface Capacity {
     size: string;
@@ -197,7 +105,6 @@ const STORE_PRODUCTS: Service[] = [
     },
 ];
 
-// Composant Carte de Produit avec sélecteur de capacité
 function ProductCard({ product, onAddToCart }: {
     product: Service;
     onAddToCart: (product: Service, capacity?: Capacity) => void;
@@ -229,7 +136,6 @@ function ProductCard({ product, onAddToCart }: {
             <p className="service-description">{product.description}</p>
             <p className="service-duration">{product.duration}</p>
 
-            {/* Sélecteur de capacité */}
             {product.capacities && (
                 <div className="capacity-selector">
                     <div className="capacity-label">Choisissez la capacité :</div>
@@ -282,7 +188,6 @@ function ProductCard({ product, onAddToCart }: {
     );
 }
 
-// Composant Panier pour la boutique
 function StoreCart({ cart, onUpdateQuantity, onRemoveItem, onCheckout }: {
     cart: CartItem[];
     onUpdateQuantity: (index: number, quantity: number) => void;
@@ -369,256 +274,9 @@ function StoreCart({ cart, onUpdateQuantity, onRemoveItem, onCheckout }: {
     );
 }
 
-// Composant Processus de Commande pour la boutique
-function StoreCheckoutProcess({ cart, onBack, onComplete }: {
-    cart: CartItem[];
-    onBack: () => void;
-    onComplete: () => void;
-}) {
-    const [step, setStep] = useState(1);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-
-    // ✅ CORRECTION : Retour à l'approche non-contrôlée
-    const { updateField, getFormData, reset } = useFormDataManager({
-        name: '',
-        email: '',
-        phone: '',
-        address: '',
-        city: '',
-        postalCode: '',
-        message: ''
-    });
-
-    // ✅ CORRECTION : Gestionnaire de changement de champ non-contrôlé
-    const handleFieldChange = useCallback((value: string, fieldName: string) => {
-        updateField(fieldName, value);
-    }, [updateField]);
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsSubmitting(true);
-
-        const formData = getFormData();
-
-        // Validation
-        if (!formData.name?.trim() || !formData.email?.trim() || !formData.phone?.trim() ||
-            !formData.address?.trim() || !formData.city?.trim() || !formData.postalCode?.trim()) {
-            alert('Veuillez remplir tous les champs obligatoires');
-            setIsSubmitting(false);
-            return;
-        }
-
-        // Simulation d'envoi de commande
-        console.log('Données de commande:', { cart, formData });
-
-        try {
-            // await fetch('/api/orders', { method: 'POST', body: JSON.stringify({ cart, formData }) });
-            setTimeout(() => {
-                alert('Votre commande a été envoyée ! Nous vous contacterons pour finaliser les détails.');
-                onComplete();
-                reset({
-                    name: '',
-                    email: '',
-                    phone: '',
-                    address: '',
-                    city: '',
-                    postalCode: '',
-                    message: ''
-                });
-            }, 1000);
-        } catch (error) {
-            alert('Une erreur est survenue. Veuillez nous contacter directement.');
-            setIsSubmitting(false);
-        }
-    };
-
-    const total = cart.reduce((sum, item) => {
-        const price = item.selectedCapacity?.price || item.service.price;
-        return sum + (price * item.quantity);
-    }, 0);
-
-    return (
-        <AnimatedSection className="booking-process-section">
-            <div className="container">
-                <div className="booking-process">
-                    {/* Étapes de progression */}
-                    <div className="booking-progress">
-                        <div className={`progress-step ${step >= 1 ? 'active' : ''}`}>
-                            <div className="step-number">1</div>
-                            <span>Votre Commande</span>
-                        </div>
-                        <div className={`progress-step ${step >= 2 ? 'active' : ''}`}>
-                            <div className="step-number">2</div>
-                            <span>Livraison</span>
-                        </div>
-                        <div className={`progress-step ${step >= 3 ? 'active' : ''}`}>
-                            <div className="step-number">3</div>
-                            <span>Confirmation</span>
-                        </div>
-                    </div>
-
-                    {/* Étape 1: Récapitulatif */}
-                    {step === 1 && (
-                        <motion.div
-                            className="booking-step"
-                            initial={{ opacity: 0, x: 50 }}
-                            animate={{ opacity: 1, x: 0 }}
-                        >
-                            <h2>Votre Commande</h2>
-                            <div className="booking-summary">
-                                {cart.map((item, index) => {
-                                    const price = item.selectedCapacity?.price || item.service.price;
-                                    return (
-                                        <div key={index} className="summary-item">
-                                            <div className="item-info">
-                                                <h4>{item.service.name}</h4>
-                                                <p>{item.service.description}</p>
-                                                {item.selectedCapacity && (
-                                                    <p className="item-quantity">Capacité: {item.selectedCapacity.size}</p>
-                                                )}
-                                                <span className="item-quantity">Quantité: {item.quantity}</span>
-                                            </div>
-                                            <div className="item-price">
-                                                {price}€
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                                <div className="summary-total">
-                                    <strong>Total: {total}€</strong>
-                                </div>
-                            </div>
-                            <div className="booking-actions">
-                                <button onClick={onBack} className="btn btn-secondary">
-                                    ← Modifier ma commande
-                                </button>
-                                <button onClick={() => setStep(2)} className="btn btn-primary">
-                                    Continuer →
-                                </button>
-                            </div>
-                        </motion.div>
-                    )}
-
-                    {/* Étape 2: Formulaire */}
-                    {step === 2 && (
-                        <motion.div
-                            className="booking-step"
-                            initial={{ opacity: 0, x: 50 }}
-                            animate={{ opacity: 1, x: 0 }}
-                        >
-                            <h2>Informations de Livraison</h2>
-                            <form onSubmit={handleSubmit} className="booking-form">
-                                <div className="form-group">
-                                    <label htmlFor="name">Nom complet *</label>
-                                    <UncontrolledInput
-                                        type="text"
-                                        id="name"
-                                        name="name"
-                                        defaultValue=""
-                                        onValueChange={handleFieldChange}
-                                        required
-                                        className="form-input"
-                                        placeholder="Votre nom complet"
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label htmlFor="email">Email *</label>
-                                    <UncontrolledInput
-                                        type="email"
-                                        id="email"
-                                        name="email"
-                                        defaultValue=""
-                                        onValueChange={handleFieldChange}
-                                        required
-                                        className="form-input"
-                                        placeholder="votre.email@example.com"
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label htmlFor="phone">Téléphone *</label>
-                                    <UncontrolledInput
-                                        type="tel"
-                                        id="phone"
-                                        name="phone"
-                                        defaultValue=""
-                                        onValueChange={handleFieldChange}
-                                        required
-                                        className="form-input"
-                                        placeholder="+33 6 12 34 56 78"
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label htmlFor="address">Adresse *</label>
-                                    <UncontrolledInput
-                                        type="text"
-                                        id="address"
-                                        name="address"
-                                        defaultValue=""
-                                        onValueChange={handleFieldChange}
-                                        required
-                                        className="form-input"
-                                        placeholder="Votre adresse complète"
-                                    />
-                                </div>
-                                <div className="form-grid">
-                                    <div className="form-group">
-                                        <label htmlFor="city">Ville *</label>
-                                        <UncontrolledInput
-                                            type="text"
-                                            id="city"
-                                            name="city"
-                                            defaultValue=""
-                                            onValueChange={handleFieldChange}
-                                            required
-                                            className="form-input"
-                                            placeholder="Votre ville"
-                                        />
-                                    </div>
-                                    <div className="form-group">
-                                        <label htmlFor="postalCode">Code Postal *</label>
-                                        <UncontrolledInput
-                                            type="text"
-                                            id="postalCode"
-                                            name="postalCode"
-                                            defaultValue=""
-                                            onValueChange={handleFieldChange}
-                                            required
-                                            className="form-input"
-                                            placeholder="Code postal"
-                                        />
-                                    </div>
-                                </div>
-                                <div className="form-group">
-                                    <label htmlFor="message">Message (optionnel)</label>
-                                    <UncontrolledTextArea
-                                        id="message"
-                                        name="message"
-                                        defaultValue=""
-                                        onValueChange={handleFieldChange}
-                                        rows={4}
-                                        className="form-input"
-                                        placeholder="Instructions spéciales pour la livraison..."
-                                    />
-                                </div>
-                                <div className="booking-actions">
-                                    <button type="button" onClick={() => setStep(1)} className="btn btn-secondary">
-                                        ← Retour
-                                    </button>
-                                    <button type="submit" disabled={isSubmitting} className="btn btn-primary">
-                                        {isSubmitting ? 'Envoi en cours...' : 'Confirmer la commande'}
-                                    </button>
-                                </div>
-                            </form>
-                        </motion.div>
-                    )}
-                </div>
-            </div>
-        </AnimatedSection>
-    );
-}
-
 export default function Store() {
     const [cart, setCart] = useState<CartItem[]>([]);
+    const [selectedService, setSelectedService] = useState<Service | null>(null);
     const [isCheckingOut, setIsCheckingOut] = useState(false);
 
     const handleAddToCart = (product: Service, capacity?: Capacity) => {
@@ -664,6 +322,9 @@ export default function Store() {
             return;
         }
 
+        // Pour la démonstration, on prend le premier produit du panier
+        // Dans une vraie application, vous voudriez peut-être gérer le panier complet
+        setSelectedService(cart[0].service);
         setIsCheckingOut(true);
         setTimeout(() => {
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -672,12 +333,17 @@ export default function Store() {
 
     const handleOrderComplete = () => {
         setIsCheckingOut(false);
+        setSelectedService(null);
         setCart([]);
+    };
+
+    const handleBackToProducts = () => {
+        setIsCheckingOut(false);
+        setSelectedService(null);
     };
 
     return (
         <PageLayout className="store-page">
-            {/* Hero Section avec composant */}
             <HeroSection
                 backgroundImage="https://images.unsplash.com/photo-1589994965851-a8f479c573a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80"
                 title="Boutique Premium"
@@ -690,16 +356,18 @@ export default function Store() {
                 showScrollIndicator={!isCheckingOut}
             />
 
-            {/* Afficher le processus de commande ou les produits */}
-            {isCheckingOut ? (
-                <StoreCheckoutProcess
-                    cart={cart}
-                    onBack={() => setIsCheckingOut(false)}
-                    onComplete={handleOrderComplete}
-                />
+            {isCheckingOut && selectedService ? (
+                <div id="booking-section">
+                    <BookingProcess
+                        service={selectedService}
+                        onBack={handleBackToProducts}
+                        onComplete={handleOrderComplete}
+                        apiEndpoint={API_ENDPOINTS.RESERVATIONS}
+                        type="product"
+                    />
+                </div>
             ) : (
                 <>
-                    {/* Products Grid avec SectionHeader */}
                     <AnimatedSection className="services-section">
                         <div className="container">
                             <SectionHeader
@@ -720,7 +388,6 @@ export default function Store() {
                         </div>
                     </AnimatedSection>
 
-                    {/* Quality Section avec SectionHeader */}
                     <AnimatedSection className="quality-section">
                         <div className="container">
                             <SectionHeader
@@ -750,7 +417,6 @@ export default function Store() {
                 </>
             )}
 
-            {/* Panier - Seulement visible quand on ne checkoute pas */}
             {!isCheckingOut && cart.length > 0 && (
                 <StoreCart
                     cart={cart}
@@ -760,7 +426,6 @@ export default function Store() {
                 />
             )}
 
-            {/* CTA Section avec composant - Seulement visible quand on ne checkoute pas */}
             {!isCheckingOut && (
                 <CTASection
                     title="Prêt à Magnifier Vos Photos ?"

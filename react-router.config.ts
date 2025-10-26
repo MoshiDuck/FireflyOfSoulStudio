@@ -7,3 +7,5 @@ const config: Config = {
         unstable_viteEnvironmentApi: true,
     },
 };
+
+export default config;
