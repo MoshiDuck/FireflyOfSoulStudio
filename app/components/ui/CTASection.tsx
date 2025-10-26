@@ -14,7 +14,8 @@ interface CTASectionProps {
     className?: string;
     animated?: boolean;
     centered?: boolean;
-    variant?: 'default' | 'minimal' | 'accent';
+    variant?: 'default' | 'minimal' | 'accent' | 'dark';
+    background?: string;
 }
 
 export function CTASection({
@@ -24,7 +25,8 @@ export function CTASection({
                                className = "",
                                animated = true,
                                centered = true,
-                               variant = 'default'
+                               variant = 'default',
+                               background
                            }: CTASectionProps) {
     const containerClass = `cta-section ${variant !== 'default' ? `cta-${variant}` : ''} ${centered ? 'cta-centered' : ''} ${className}`;
 
@@ -66,8 +68,10 @@ export function CTASection({
         </div>
     );
 
+    const sectionStyle = background ? { background } : {};
+
     return (
-        <section className={containerClass}>
+        <section className={containerClass} style={sectionStyle}>
             <div className="container">
                 {animated ? (
                     <motion.div

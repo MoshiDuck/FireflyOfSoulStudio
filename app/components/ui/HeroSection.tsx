@@ -20,8 +20,10 @@ interface HeroSectionProps {
         className: string;
     }>;
     showLightEffects?: boolean;
-    centered?: boolean; // contrôle horizontal
+    centered?: boolean;
     className?: string;
+    variant?: 'default' | 'minimal' | 'compact';
+    height?: 'full' | 'large' | 'medium';
 }
 
 export function HeroSection({
@@ -34,9 +36,14 @@ export function HeroSection({
                                 showScrollIndicator = true,
                                 floatingCards = [],
                                 showLightEffects = false,
-                                centered = true, // Par défaut centré
-                                className = ""
+                                centered = true,
+                                className = "",
+                                variant = 'default',
+                                height = 'full'
                             }: HeroSectionProps) {
+
+    const heroClass = `hero-modern ${variant !== 'default' ? `hero-${variant}` : ''} ${height !== 'full' ? `hero-height-${height}` : 'hero-height-full'} ${className}`;
+    const contentClass = `hero-content ${centered ? 'hero-content-centered' : 'hero-content-left'}`;
 
     const renderTitle = () => {
         if (titleLines) {
@@ -82,9 +89,7 @@ export function HeroSection({
     };
 
     return (
-        <header
-            className={`hero-modern ${className}`}
-        >
+        <header className={heroClass}>
             <div className="hero-background">
                 <div
                     className="hero-background-image"
@@ -102,12 +107,8 @@ export function HeroSection({
             </div>
 
             <div className="container">
-                <div
-                    // CORRECTION : Utiliser une classe différente pour le centrage
-                    className={`hero-content ${centered ? 'hero-content-centered' : 'hero-content-left'}`}
-                >
+                <div className={contentClass}>
                     <motion.div
-                        // CORRECTION : Ne pas appliquer text-center ici, laisser le conteneur gérer l'alignement
                         className="hero-text"
                         initial={{ opacity: 0, y: 50 }}
                         animate={{ opacity: 1, y: 0 }}

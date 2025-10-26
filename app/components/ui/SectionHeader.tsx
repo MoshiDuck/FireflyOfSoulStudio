@@ -10,6 +10,8 @@ interface SectionHeaderProps {
     centered?: boolean;
     animated?: boolean;
     tag?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
+    variant?: 'default' | 'minimal' | 'accent';
+    maxWidth?: string;
 }
 
 export function SectionHeader({
@@ -20,7 +22,9 @@ export function SectionHeader({
                                   className = "",
                                   centered = true,
                                   animated = true,
-                                  tag: TitleTag = "h2"
+                                  tag: TitleTag = "h2",
+                                  variant = 'default',
+                                  maxWidth
                               }: SectionHeaderProps) {
     const renderTitle = () => {
         if (accentWord && title.includes(accentWord)) {
@@ -36,10 +40,11 @@ export function SectionHeader({
         return title;
     };
 
-    const containerClass = `${centered ? 'section-header' : 'section-header-left'} ${className}`;
+    const containerClass = `${centered ? 'section-header' : 'section-header-left'} ${variant !== 'default' ? `section-header-${variant}` : ''} ${className}`;
+    const containerStyle = maxWidth ? { maxWidth } : {};
 
     const Content = () => (
-        <div className={containerClass}>
+        <div className={containerClass} style={containerStyle}>
             {badge && <div className="section-badge">{badge}</div>}
             <TitleTag className="section-title-modern">
                 {renderTitle()}
@@ -55,6 +60,7 @@ export function SectionHeader({
     return (
         <motion.div
             className={containerClass}
+            style={containerStyle}
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
