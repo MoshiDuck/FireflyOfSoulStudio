@@ -1,4 +1,6 @@
 // Info : app/config/api.ts
+import type {Service} from "~/types/api";
+
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://fireflyofsoulstudio.uk';
 
 export const API_ENDPOINTS = {
@@ -9,7 +11,7 @@ export const API_ENDPOINTS = {
 };
 
 // Services prédéfinis (inchangé)
-export const SHOOTING_SERVICES = [
+export const SHOOTING_SERVICES: Service[] = [
     {
         id: "portrait",
         name: "Séance Portrait",
