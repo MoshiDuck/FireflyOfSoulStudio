@@ -1,4 +1,4 @@
-// Todo : app/root.tsx
+// Info : app/root.tsx
 import {
     isRouteErrorResponse,
     Links,

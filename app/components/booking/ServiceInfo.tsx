@@ -1,3 +1,4 @@
+// Info : app/components/booking/ServiceInfo.tsx
 import React from 'react';
 import type { Service } from '~/types/api';
 

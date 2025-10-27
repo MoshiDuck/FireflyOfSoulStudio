@@ -1,3 +1,4 @@
+// Info : app/components/booking/StepHeader.tsx
 import React from 'react';
 
 interface StepHeaderProps {

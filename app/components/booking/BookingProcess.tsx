@@ -1,3 +1,4 @@
+// Info : app/components/booking/BookingProcess.tsx
 import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { useFormDataManager } from "~/hooks/useFormDataManager";
