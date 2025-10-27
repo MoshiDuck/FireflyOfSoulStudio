@@ -10,7 +10,6 @@ export const API_ENDPOINTS = {
     CREATE_PAYMENT_INTENT: `${API_BASE_URL}/api/create-payment-intent`,
 };
 
-// Services prédéfinis (inchangé)
 export const SHOOTING_SERVICES: Service[] = [
     {
         id: "portrait",
@@ -62,7 +61,7 @@ export const SHOOTING_SERVICES: Service[] = [
     },
 ];
 
-export const STORE_PRODUCTS = [
+export const STORE_PRODUCTS: Service[] = [
     {
         id: "raw-files",
         name: "Collection Fichiers RAW",
