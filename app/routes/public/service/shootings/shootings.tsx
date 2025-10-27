@@ -1,3 +1,4 @@
+// Info : app/routes/public/service/shootings/shootings.tsx
 import React, { useState } from "react";
 import { PageLayout } from "~/components/layout/PageLayout";
 import { HeroSection } from "~/components/ui/HeroSection";

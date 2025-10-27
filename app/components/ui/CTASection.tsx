@@ -1,4 +1,4 @@
-// Todo : app/components/ui/CTASection.tsx
+// Info : app/components/ui/CTASection.tsx
 import { Link } from "react-router";
 import { motion } from "motion/react";
 

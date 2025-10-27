@@ -1,4 +1,4 @@
-// Todo : app/components/ui/AnimatedSection.tsx
+// Info : app/components/ui/AnimatedSection.tsx
 import { motion } from "motion/react";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 

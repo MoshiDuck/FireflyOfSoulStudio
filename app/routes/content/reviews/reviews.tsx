@@ -1,4 +1,4 @@
-// Todo : app/routes/content/reviews/reviews.tsx
+// Info : app/routes/content/reviews/reviews.tsx
 import { PageLayout } from "~/components/layout/PageLayout";
 import { HeroSection } from "~/components/ui/HeroSection";
 import { SectionHeader } from "~/components/ui/SectionHeader";

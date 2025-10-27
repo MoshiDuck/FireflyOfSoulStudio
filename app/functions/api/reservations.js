@@ -1,4 +1,4 @@
-// Todo : app/functions/api/reservations.js
+// Info : app/functions/api/reservations.js
 export async function onRequestPost(context) {
     const db = context.env.DB;
 

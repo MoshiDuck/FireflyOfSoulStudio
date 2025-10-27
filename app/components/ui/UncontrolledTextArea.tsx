@@ -1,4 +1,4 @@
-// Todo : app/components/ui/UncontrolledTextArea.tsx
+// Info : app/components/ui/UncontrolledTextArea.tsx
 import React, { useRef, useEffect, useCallback } from "react";
 
 interface UncontrolledTextAreaProps extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, "value" | "onChange"> {

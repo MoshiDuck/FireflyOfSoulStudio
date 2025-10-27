@@ -1,3 +1,4 @@
+// Info : app/config/booking.ts
 export const STEP_CONFIG = {
     session: [
         { number: 1, label: 'Date', title: 'Choisissez une date pour votre séance', backLabel: '← Retour aux séances' },

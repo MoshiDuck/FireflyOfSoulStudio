@@ -1,4 +1,4 @@
-// Todo : app/components/ui/HeroSection.tsx
+// Info : app/components/ui/HeroSection.tsx
 import { motion } from "motion/react";
 import { Link } from "react-router";
 

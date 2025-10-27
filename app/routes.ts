@@ -1,4 +1,4 @@
-// Todo : app/routes.ts
+// Info : app/routes.ts
 // app/routes.ts
 import {type RouteConfig, index, route} from "@react-router/dev/routes";
 

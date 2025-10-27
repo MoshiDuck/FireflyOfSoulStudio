@@ -1,4 +1,4 @@
-// Todo : app/components/ui/UncontrolledInput.tsx
+// Info : app/components/ui/UncontrolledInput.tsx
 import React, { useRef, useEffect, useCallback } from "react";
 
 interface UncontrolledInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "value" | "onChange"> {

@@ -1,4 +1,4 @@
-// Todo : app/hooks/useFormDataManager.ts
+// Info : app/hooks/useFormDataManager.ts
 import { useRef, useState, useCallback } from "react";
 
 export function useFormDataManager<T extends Record<string, string>>(initialData: T) {

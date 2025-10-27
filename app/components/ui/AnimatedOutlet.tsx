@@ -1,4 +1,4 @@
-// Todo : app/components/ui/AnimatedOutlet.tsx
+// Info : app/components/ui/AnimatedOutlet.tsx
 import { Outlet, useLocation } from "react-router";
 import { AnimatePresence, motion } from "motion/react";
 import { AnimatedSection } from "./AnimatedSection";

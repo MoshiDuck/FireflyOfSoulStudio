@@ -1,4 +1,4 @@
-// Todo : app/components/layout/navbar/navbar.tsx
+// Info : app/components/layout/navbar/navbar.tsx
 import { Link, useLocation } from "react-router";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";

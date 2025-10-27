@@ -1,4 +1,4 @@
-// Todo : app/routes/public/home/home.tsx
+// Info : app/routes/public/home/home.tsx
 import { PageLayout } from "~/components/layout/PageLayout";
 import { HeroSection } from "~/components/ui/HeroSection";
 import { SectionHeader } from "~/components/ui/SectionHeader";

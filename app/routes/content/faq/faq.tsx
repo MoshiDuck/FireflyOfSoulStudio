@@ -1,4 +1,4 @@
-// Todo : app/routes/content/faq/faq.tsx
+// Info : app/routes/content/faq/faq.tsx
 import { PageLayout } from "~/components/layout/PageLayout";
 import { HeroSection } from "~/components/ui/HeroSection";
 import { CTASection } from "~/components/ui/CTASection";

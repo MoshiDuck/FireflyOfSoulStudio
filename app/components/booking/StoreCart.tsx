@@ -1,4 +1,4 @@
-// Info :
+// Info : app/components/booking/StoreCart.tsx
 import React from 'react';
 import { motion } from 'motion/react';
 import type { CartItemComponent } from '~/types/api';

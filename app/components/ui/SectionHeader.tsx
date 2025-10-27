@@ -1,4 +1,4 @@
-// Todo : app/components/ui/SectionHeader.tsx
+// Info : app/components/ui/SectionHeader.tsx
 import { motion } from "motion/react";
 
 interface SectionHeaderProps {

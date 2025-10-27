@@ -1,4 +1,4 @@
-// Todo : app/components/layout/Footer.tsx
+// Info : app/components/layout/Footer.tsx
 import { Link } from "react-router";
 
 export function Footer() {

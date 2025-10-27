@@ -1,4 +1,4 @@
-// app/routes/index.tsx
+// Info : app/routes/index.tsx
 import { redirect } from "react-router";
 
 export async function loader() {

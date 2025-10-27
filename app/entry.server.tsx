@@ -1,4 +1,4 @@
-// Todo : app/entry.server.tsx
+// Info : app/entry.server.tsx
 import type { AppLoadContext, EntryContext } from "react-router";
 import { ServerRouter } from "react-router";
 import { isbot } from "isbot";

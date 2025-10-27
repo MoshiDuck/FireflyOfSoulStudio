@@ -1,4 +1,4 @@
-// Todo : app/components/layout/PageLayout.tsx
+// Info : app/components/layout/PageLayout.tsx
 import { AnimatedSection } from "~/components/ui/AnimatedSection";
 import { Navbar } from "~/components/layout/navbar/navbar";
 import { Footer } from "~/components/layout/Footer";

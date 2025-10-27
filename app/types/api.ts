@@ -1,4 +1,4 @@
-// Types pour les services
+// Info : app/types/api.ts
 export interface Service {
     id: string;
     name: string;

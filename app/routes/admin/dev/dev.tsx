@@ -1,4 +1,4 @@
-// Todo : app/routes/admin/dev/dev.tsx
+// Info : app/routes/admin/dev/dev.tsx
 import { Navbar } from "~/components/layout/navbar/navbar";
 import { useState, useEffect } from "react";
 import { motion } from "motion/react";
