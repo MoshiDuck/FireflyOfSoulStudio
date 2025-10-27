@@ -63,7 +63,7 @@ https://github.com/MoshiDuck/FireflyOfSoulStudio
     ```
 2. Commit
     ```bash
-    git commit -m "[FAIT] - PROBLEME FORMULAIRE REGLER "
+    git commit -m "[FAIT] - Ajout de comment dans stripe "
     ```
 
 3. Version
