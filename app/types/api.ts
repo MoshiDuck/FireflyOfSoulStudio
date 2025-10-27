@@ -56,10 +56,11 @@ export interface BookingRequest {
     phone?: string;
     cart: CartItem[];
     total: number;
+    amountPaid?: number; // Nouveau champ
+    paymentType?: 'deposit' | 'full'; // Nouveau champ
     date?: string | null;
     time?: string | null;
     type: 'session' | 'product';
-    stripeComment?: string; // Nouveau champ pour le commentaire Stripe
 }
 
 // Props communes
@@ -91,8 +92,16 @@ export interface StripePaymentProps {
     onSuccess: (paymentIntentId: string) => void;
     onError: (error: string) => void;
     onCancel: () => void;
-    // SUPPRIMÉ: stripeComment: string;
     selectedDate?: string;
     selectedTime?: string;
     type: 'session' | 'product';
+    paymentType: 'deposit' | 'full'; // Nouveau champ
+    stripeComment: string;
+}
+
+// Types pour les montants de paiement
+export interface PaymentAmounts {
+    depositAmount: number;
+    remainingAmount: number;
+    totalAmount: number;
 }

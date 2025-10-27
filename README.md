@@ -68,7 +68,7 @@ https://github.com/MoshiDuck/FireflyOfSoulStudio
 
 3. Version
    ```bash
-   git tag 0.0.1.5
+   git tag 0.0.1.6
    ```
 
 4. Force le push

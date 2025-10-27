@@ -40,8 +40,29 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
         message: ''
     });
 
+    // Calcul des montants avec acompte pour les séances
+    const calculatePaymentAmounts = () => {
+        if (type === 'session') {
+            const depositAmount = Math.round(service.price * 0.30); // 30% d'acompte
+            const remainingAmount = service.price - depositAmount; // 70% restant
+            return {
+                depositAmount,
+                remainingAmount,
+                totalAmount: service.price
+            };
+        } else {
+            return {
+                depositAmount: service.price,
+                remainingAmount: 0,
+                totalAmount: service.price
+            };
+        }
+    };
+
+    const paymentAmounts = calculatePaymentAmounts();
+
     // Calcul du nombre total d'étapes selon le type
-    const TOTAL_STEPS = type === 'session' ? 4 : 3; // +1 pour l'étape paiement
+    const TOTAL_STEPS = type === 'session' ? 4 : 3;
 
     // Générer les dates disponibles (14 prochains jours ouvrés)
     useEffect(() => {
@@ -151,10 +172,21 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
     };
 
     // Fonction pour générer le commentaire détaillé pour Stripe
-    const generateStripeComment = (formData: ReturnType<typeof getFormData>) => {
+    const generateStripeComment = (formData: ReturnType<typeof getFormData>, paymentType: 'deposit' | 'full') => {
         const customerInfo = `Client: ${formData.firstName} ${formData.lastName} - Email: ${formData.email}`;
         const phoneInfo = formData.phone ? ` - Tél: ${formData.phone}` : '';
-        const serviceInfo = `Service: ${service.name} (${service.description}) - Prix: ${service.price}€`;
+        const serviceInfo = `Service: ${service.name} (${service.description}) - Prix total: ${service.price}€`;
+
+        let paymentInfo = '';
+        if (type === 'session') {
+            if (paymentType === 'deposit') {
+                paymentInfo = ` - Acompte: ${paymentAmounts.depositAmount}€ (30%)`;
+            } else {
+                paymentInfo = ` - Solde: ${paymentAmounts.remainingAmount}€ (70%)`;
+            }
+        } else {
+            paymentInfo = ` - Paiement complet: ${service.price}€`;
+        }
 
         let bookingInfo = '';
         if (type === 'session') {
@@ -167,7 +199,7 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
         const messageInfo = formData.message ? ` - Message: ${formData.message.substring(0, 200)}` : '';
 
         // Construction du commentaire final (limité à 500 caractères pour Stripe)
-        const fullComment = `${customerInfo}${phoneInfo} | ${serviceInfo}${bookingInfo}${messageInfo}`;
+        const fullComment = `${customerInfo}${phoneInfo} | ${serviceInfo}${paymentInfo}${bookingInfo}${messageInfo}`;
 
         return fullComment.substring(0, 500);
     };
@@ -202,8 +234,8 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
         }
     };
 
-    // CORRECTION : Fonction pour gérer le succès du paiement - RETIRER stripeComment de l'API de réservations
-    const handlePaymentSuccess = async (paymentIntentId: string) => {
+    // Fonction pour gérer le succès du paiement
+    const handlePaymentSuccess = async (paymentIntentId: string, paymentType: 'deposit' | 'full' = 'deposit') => {
         try {
             const currentFormData = getFormData();
 
@@ -220,12 +252,13 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
                     price: service.price
                 }],
                 total: service.price,
+                amountPaid: paymentType === 'deposit' ? paymentAmounts.depositAmount : service.price,
+                paymentType: paymentType,
                 date: selectedDate,
                 time: selectedTime,
                 type: 'session',
                 paymentIntentId: paymentIntentId,
-                paymentStatus: 'paid'
-                // CORRECTION : NE PAS envoyer stripeComment à l'API de réservations
+                paymentStatus: paymentType === 'deposit' ? 'deposit_paid' : 'paid'
             } : {
                 firstName: currentFormData.firstName.trim(),
                 lastName: currentFormData.lastName.trim(),
@@ -239,12 +272,13 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
                     price: service.price
                 }],
                 total: service.price,
+                amountPaid: service.price,
+                paymentType: 'full',
                 date: null,
                 time: null,
                 type: 'product',
                 paymentIntentId: paymentIntentId,
                 paymentStatus: 'paid'
-                // CORRECTION : NE PAS envoyer stripeComment à l'API de réservations
             };
 
             // Envoyer les données de réservation avec l'ID de paiement
@@ -257,9 +291,16 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
             const result = await response.json() as ApiResponse;
 
             if (response.ok && 'success' in result && result.success) {
+                let successMessage = '';
+                if (type === 'session' && paymentType === 'deposit') {
+                    successMessage = '✅ Acompte de 30% confirmé ! Votre séance est réservée. Le solde sera à régler après la séance.';
+                } else {
+                    successMessage = '✅ Paiement confirmé ! Votre réservation est validée.';
+                }
+
                 setMessage({
                     type: 'success',
-                    text: '✅ Paiement confirmé ! Votre réservation est validée.'
+                    text: successMessage
                 });
 
                 setTimeout(() => {
@@ -377,7 +418,6 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
     // ÉTAPE 3 : FORMULAIRE D'INFORMATIONS PERSONNELLES
     const Step3 = () => {
         const stepConfig = getCurrentStepConfig();
-        // CORRECTION : Récupération des données actuelles pour les valeurs par défaut
         const currentFormData = getFormData();
 
         return (
@@ -394,6 +434,7 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
                     selectedDate={selectedDate}
                     selectedTime={selectedTime}
                     formatDate={formatDate}
+                    paymentAmounts={paymentAmounts}
                 />
 
                 <form onSubmit={handleFormSubmit} className="booking-form">
@@ -409,7 +450,7 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
                                 className="form-input"
                                 placeholder="Marie"
                                 autoComplete="given-name"
-                                autoFocus={true} // CORRECTION : Focus automatique sur le premier champ
+                                autoFocus={true}
                             />
                         </div>
                         <div className="form-group">
@@ -480,8 +521,22 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
                         whileTap={{ scale: 0.98 }}
                         transition={{ type: "spring", stiffness: 400, damping: 17 }}
                     >
-                        {isSubmitting ? 'Validation...' : `Procéder au Paiement - ${service.price}€`}
+                        {isSubmitting ? 'Validation...' :
+                            type === 'session'
+                                ? `Procéder à l'Acompte - ${paymentAmounts.depositAmount}€`
+                                : `Procéder au Paiement - ${service.price}€`}
                     </motion.button>
+
+                    {type === 'session' && (
+                        <div className="payment-info-note">
+                            <p>💡 <strong>Paiement en deux temps :</strong></p>
+                            <ul>
+                                <li><strong>Acompte de 30% maintenant : {paymentAmounts.depositAmount}€</strong></li>
+                                <li>Solde de 70% après la séance : {paymentAmounts.remainingAmount}€</li>
+                                <li>Total : {paymentAmounts.totalAmount}€</li>
+                            </ul>
+                        </div>
+                    )}
                 </form>
             </div>
         );
@@ -493,7 +548,7 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
         const currentFormData = getFormData();
 
         // Générer le commentaire pour Stripe
-        const stripeComment = generateStripeComment(currentFormData);
+        const stripeComment = generateStripeComment(currentFormData, 'deposit');
 
         return (
             <div className="booking-step">
@@ -509,19 +564,22 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
                     selectedDate={selectedDate}
                     selectedTime={selectedTime}
                     formatDate={formatDate}
+                    paymentAmounts={paymentAmounts}
                 />
 
                 <div className="payment-section">
                     <StripePayment
-                        amount={service.price}
+                        amount={type === 'session' ? paymentAmounts.depositAmount : service.price}
                         serviceName={service.name}
                         bookingData={getFormData()}
-                        onSuccess={handlePaymentSuccess}
+                        onSuccess={(paymentIntentId) => handlePaymentSuccess(paymentIntentId, type === 'session' ? 'deposit' : 'full')}
                         onError={(error) => setMessage({ type: 'error', text: error })}
                         onCancel={handlePaymentCancel}
                         selectedDate={selectedDate}
                         selectedTime={selectedTime}
                         type={type}
+                        paymentType={type === 'session' ? 'deposit' : 'full'}
+                        stripeComment={stripeComment}
                     />
                 </div>
 
@@ -560,8 +618,8 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
             }
         } else {
             switch (step) {
-                case 1: return <Step3 />; // Pour les produits, on commence directement au formulaire
-                case 2: return <Step4 />; // Puis paiement
+                case 1: return <Step3 />;
+                case 2: return <Step4 />;
                 default: return <Step3 />;
             }
         }

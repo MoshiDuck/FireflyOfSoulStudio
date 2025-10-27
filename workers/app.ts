@@ -1,4 +1,4 @@
-// Todo : workers/app.ts - VERSION CORRIGÉE
+// Todo : workers/app.ts - VERSION CORRIGÉE COMPLÈTE
 import { Hono } from "hono";
 import { createRequestHandler } from "react-router";
 import { cors } from 'hono/cors'
@@ -52,6 +52,8 @@ app.post('/api/create-payment-intent', async (c) => {
                 Prix?: string;
                 reservation_date?: string;
                 reservation_time?: string;
+                payment_type?: string;
+                booking_details?: string;
             };
         };
 
@@ -106,6 +108,8 @@ app.post('/api/create-payment-intent', async (c) => {
             'metadata[service_name]': metadata.service_name?.substring(0, 500) || 'Unknown',
             'metadata[Service]': metadata.Service?.substring(0, 500) || metadata.service_name?.substring(0, 500) || 'Unknown',
             'metadata[Prix]': metadata.Prix?.substring(0, 500) || 'Unknown',
+            'metadata[payment_type]': metadata.payment_type?.substring(0, 500) || 'full',
+            'metadata[booking_details]': metadata.booking_details?.substring(0, 500) || 'No details',
 
             // Champs conditionnels
             ...(metadata.reservation_date && {
@@ -273,7 +277,7 @@ app.options('/api/create-payment-intent', (c) => {
     });
 });
 
-// ✅ ROUTE RESERVATIONS - VERSION ORIGINALE FONCTIONNELLE
+// ✅ ROUTE RESERVATIONS - VERSION CORRIGÉE AVEC ACOMPTE
 app.post('/api/reservations', async (c) => {
     const db = c.env.DB;
 
@@ -294,7 +298,7 @@ app.post('/api/reservations', async (c) => {
             }
         }
 
-        // ✅ RETOUR À LA VERSION ORIGINALE - pas de stripeComment
+        // NOUVEAUX CHAMPS : amountPaid et paymentType
         let {
             firstName,
             lastName,
@@ -302,13 +306,14 @@ app.post('/api/reservations', async (c) => {
             phone,
             cart,
             total,
+            amountPaid, // Nouveau champ
+            paymentType, // Nouveau champ : 'deposit' ou 'full'
             date,
             time,
             type,
             service,
             paymentIntentId,
             paymentStatus
-            // ❌ SUPPRIMER: stripeComment
         } = payload as any;
 
         // Compat: si legacy 'service' fourni sans cart
@@ -398,6 +403,7 @@ app.post('/api/reservations', async (c) => {
             orderDetails = '[]';
         }
 
+        // CORRECTION : Définition des variables manquantes
         const customerName = `${String(firstName).trim()} ${String(lastName).trim()}`.trim();
         const customerEmail = String(email).trim();
         const customerPhone = phone ? String(phone).trim() : null;
@@ -412,17 +418,26 @@ app.post('/api/reservations', async (c) => {
             if (existing) return resp({ error: 'This time slot is already booked' }, 409);
         }
 
-        // Déterminer le statut de paiement
-        const finalPaymentStatus = paymentStatus || (paymentIntentId ? 'paid' : 'pending');
+        // Déterminer le statut de paiement final
+        let finalPaymentStatus = paymentStatus;
+        if (!finalPaymentStatus) {
+            if (paymentType === 'deposit') {
+                finalPaymentStatus = 'deposit_paid';
+            } else if (paymentIntentId) {
+                finalPaymentStatus = 'paid';
+            } else {
+                finalPaymentStatus = 'pending';
+            }
+        }
 
-        // ✅ INSERT ORIGINAL - pas de stripe_comment
+        // INSERT avec amount_paid et payment_type
         const insert = await db.prepare(
             `INSERT INTO reservations (
                 customer_name, customer_email, customer_phone,
                 reservation_date, reservation_time, service_type,
-                order_type, total_amount, order_details,
-                payment_intent_id, payment_status
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+                order_type, total_amount, amount_paid, payment_type,
+                order_details, payment_intent_id, payment_status
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
         ).bind(
             customerName,
             customerEmail,
@@ -432,15 +447,19 @@ app.post('/api/reservations', async (c) => {
             serviceType,
             orderType,
             calculatedTotal,
+            amountPaid || calculatedTotal, // Utiliser amountPaid si fourni, sinon calculatedTotal
+            paymentType || 'full',
             orderDetails,
             paymentIntentId || null,
             finalPaymentStatus
         ).run();
 
-        // Message de confirmation
+        // Message de confirmation adapté
         let confirmationMessage = "✅ Commande confirmée ! Nous vous contactons rapidement.";
-        if (finalPaymentStatus === 'paid') {
-            confirmationMessage = "✅ Paiement confirmé ! Votre réservation est validée. Nous vous contactons rapidement.";
+        if (finalPaymentStatus === 'deposit_paid') {
+            confirmationMessage = "✅ Acompte confirmé ! Votre séance est réservée. Le solde sera à régler après la séance.";
+        } else if (finalPaymentStatus === 'paid') {
+            confirmationMessage = "✅ Paiement confirmé ! Votre réservation est validée.";
         }
 
         return resp({

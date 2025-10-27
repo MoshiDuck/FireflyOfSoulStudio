@@ -22,6 +22,8 @@ interface StripePaymentProps {
     selectedDate?: string;
     selectedTime?: string;
     type: 'session' | 'product';
+    paymentType: 'deposit' | 'full';
+    stripeComment: string;
 }
 
 function CheckoutForm({ clientSecret, ...props }: StripePaymentProps & { clientSecret: string }) {
@@ -84,6 +86,16 @@ function CheckoutForm({ clientSecret, ...props }: StripePaymentProps & { clientS
 
     return (
         <form onSubmit={handleSubmit} className="stripe-payment-form">
+            <div className="payment-header">
+                <h3>{props.paymentType === 'deposit' ? 'Paiement de l\'acompte' : 'Paiement complet'}</h3>
+                <div className="payment-amount">
+                    Montant: <strong>{props.amount}€</strong>
+                    {props.paymentType === 'deposit' && (
+                        <div className="payment-type-badge">Acompte 30%</div>
+                    )}
+                </div>
+            </div>
+
             <div className="payment-element-container">
                 <PaymentElement />
             </div>
@@ -108,9 +120,19 @@ function CheckoutForm({ clientSecret, ...props }: StripePaymentProps & { clientS
                     disabled={!stripe || isLoading}
                     className="submit-payment-button"
                 >
-                    {isLoading ? "Traitement..." : `Payer ${props.amount}€`}
+                    {isLoading ? "Traitement..." :
+                        props.paymentType === 'deposit'
+                            ? `Payer l'acompte de ${props.amount}€`
+                            : `Payer ${props.amount}€`}
                 </button>
             </div>
+
+            {props.paymentType === 'deposit' && (
+                <div className="deposit-info">
+                    <p>💡 <strong>Paiement en deux temps :</strong></p>
+                    <p>Vous payez un acompte de 30% maintenant. Le solde sera à régler après votre séance photo.</p>
+                </div>
+            )}
         </form>
     );
 }
@@ -126,7 +148,6 @@ export default function StripePayment(props: StripePaymentProps) {
                 setLoading(true);
                 setError("");
 
-                // MÉTADONNÉES SIMPLIFIÉES - uniquement les champs demandés
                 const metadata = {
                     // Informations client
                     customer_email: props.bookingData.email,
@@ -135,14 +156,18 @@ export default function StripePayment(props: StripePaymentProps) {
                     // Informations service
                     service_type: props.type,
                     service_name: props.serviceName,
-                    Service: props.serviceName, // Duplication pour correspondre à la demande
+                    Service: props.serviceName,
                     Prix: `${props.amount}€`,
+                    payment_type: props.paymentType,
 
                     // Informations de réservation si session
                     ...(props.type === 'session' && props.selectedDate && {
                         reservation_date: props.selectedDate,
                         reservation_time: props.selectedTime
-                    })
+                    }),
+
+                    // Commentaire détaillé
+                    booking_details: props.stripeComment
                 };
 
                 const response = await fetch(API_ENDPOINTS.CREATE_PAYMENT_INTENT, {
@@ -154,6 +179,7 @@ export default function StripePayment(props: StripePaymentProps) {
                         amount: props.amount,
                         currency: "eur",
                         metadata: metadata,
+                        paymentType: props.paymentType
                     }),
                 });
 
@@ -188,7 +214,7 @@ export default function StripePayment(props: StripePaymentProps) {
         if (props.amount > 0) {
             createPaymentIntent();
         }
-    }, [props.amount, props.serviceName, props.bookingData, props.type, props.selectedDate, props.selectedTime]);
+    }, [props.amount, props.serviceName, props.bookingData, props.type, props.selectedDate, props.selectedTime, props.paymentType, props.stripeComment]);
 
     if (loading) {
         return (
