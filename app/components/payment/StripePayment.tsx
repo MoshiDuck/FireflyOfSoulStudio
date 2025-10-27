@@ -1,354 +1,208 @@
 // Info : app/components/payment/StripePayment.tsx
-import React, { useState, useEffect } from 'react';
-import {
-    Elements,
-    PaymentElement,
-    useStripe,
-    useElements,
-} from '@stripe/react-stripe-js';
-import { loadStripe } from '@stripe/stripe-js';
-import { motion } from 'motion/react';
-import { API_ENDPOINTS, apiRequest } from '~/config/api';
+import React, { useState, useEffect } from "react";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements, useStripe, useElements, PaymentElement } from "@stripe/react-stripe-js";
+import { API_ENDPOINTS } from "~/config/api";
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_your_key_here');
 
 interface StripePaymentProps {
     amount: number;
     serviceName: string;
-    bookingData: any;
+    bookingData: {
+        firstName: string;
+        lastName: string;
+        email: string;
+        phone?: string;
+        message?: string;
+    };
     onSuccess: (paymentIntentId: string) => void;
     onError: (error: string) => void;
     onCancel: () => void;
+    selectedDate?: string;
+    selectedTime?: string;
+    type: 'session' | 'product';
 }
 
-interface PaymentIntentResponse {
-    clientSecret: string;
-    paymentIntentId: string;
-    error?: string;
-}
-
-function CheckoutForm({
-                          clientSecret,
-                          amount,
-                          serviceName,
-                          bookingData,
-                          onSuccess,
-                          onError,
-                          onCancel
-                      }: StripePaymentProps & { clientSecret: string }) {
+function CheckoutForm({ clientSecret, ...props }: StripePaymentProps & { clientSecret: string }) {
     const stripe = useStripe();
     const elements = useElements();
-
     const [isLoading, setIsLoading] = useState(false);
-    const [errorMessage, setErrorMessage] = useState<string>('');
-
-    console.log('🔍 CheckoutForm - Props reçues:', {
-        clientSecret: clientSecret ? `${clientSecret.substring(0, 20)}...` : 'empty',
-        amount,
-        hasStripe: !!stripe,
-        hasElements: !!elements
-    });
+    const [errorMessage, setErrorMessage] = useState<string>("");
 
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
-        console.log('🖱️  Soumission du formulaire de paiement');
 
         if (!stripe || !elements) {
-            const errorMsg = 'Stripe non initialisé';
-            console.error('❌', errorMsg);
-            setErrorMessage(errorMsg);
-            return;
-        }
-
-        if (!clientSecret) {
-            const errorMsg = 'Client secret manquant';
-            console.error('❌', errorMsg);
-            setErrorMessage(errorMsg);
             return;
         }
 
         setIsLoading(true);
-        setErrorMessage('');
 
         try {
-            console.log('🔐 Confirmation du paiement...');
-
             const { error: submitError } = await elements.submit();
             if (submitError) {
-                console.error('❌ Erreur soumission formulaire:', submitError);
-                setErrorMessage(submitError.message || 'Erreur lors de la soumission du formulaire');
+                setErrorMessage(submitError.message || "Erreur lors de la soumission du formulaire");
                 setIsLoading(false);
                 return;
             }
 
-            console.log('✅ Formulaire soumis, confirmation Stripe...');
-
-            const { error, paymentIntent } = await stripe.confirmPayment({
+            const { error } = await stripe.confirmPayment({
                 elements,
                 clientSecret,
                 confirmParams: {
-                    return_url: `${window.location.origin}/payment-success`,
+                    return_url: `${window.location.origin}/payment/success`,
+                    payment_method_data: {
+                        billing_details: {
+                            name: `${props.bookingData.firstName} ${props.bookingData.lastName}`,
+                            email: props.bookingData.email,
+                            phone: props.bookingData.phone,
+                        },
+                    },
                 },
                 redirect: 'if_required',
             });
 
-            console.log('📊 Résultat confirmation:', { error, paymentIntent });
-
             if (error) {
-                console.error('❌ Erreur paiement:', error);
-                setErrorMessage(error.message || 'Une erreur est survenue');
-            } else if (paymentIntent && paymentIntent.status === 'succeeded') {
-                console.log('✅ Paiement réussi, ID:', paymentIntent.id);
-                onSuccess(paymentIntent.id);
+                setErrorMessage(error.message || "Une erreur est survenue lors du paiement");
+                props.onError(error.message || "Erreur de paiement");
             } else {
-                console.warn('⚠️ Statut paiement inattendu:', paymentIntent?.status);
+                const { paymentIntent } = await stripe.retrievePaymentIntent(clientSecret);
+
+                if (paymentIntent && paymentIntent.status === 'succeeded') {
+                    props.onSuccess(paymentIntent.id);
+                }
             }
         } catch (error) {
-            console.error('❌ Erreur traitement paiement:', error);
-            setErrorMessage('Erreur lors du traitement du paiement');
+            console.error('Erreur paiement:', error);
+            setErrorMessage("Une erreur inattendue est survenue");
+            props.onError("Erreur inattendue lors du paiement");
         } finally {
             setIsLoading(false);
         }
     };
 
-    if (!clientSecret) {
-        console.log('❌ Client secret manquant dans CheckoutForm');
-        return (
-            <div className="payment-error">
-                <p>Impossible d'initialiser le paiement. Veuillez réessayer.</p>
-            </div>
-        );
-    }
-
-    console.log('🎉 Rendu du formulaire de paiement avec clientSecret');
-
     return (
-        <motion.div
-            className="stripe-payment-container"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-        >
-            <form onSubmit={handleSubmit} className="payment-form">
-                <div className="payment-header">
-                    <h3>Paiement Sécurisé</h3>
-                    <div className="payment-amount">
-                        Montant: <strong>{amount}€</strong>
-                    </div>
-                    <div className="payment-debug">
-                        <small>ClientSecret: {clientSecret ? '✓ Présent' : '✗ Manquant'}</small>
-                    </div>
+        <form onSubmit={handleSubmit} className="stripe-payment-form">
+            <div className="payment-element-container">
+                <PaymentElement />
+            </div>
+
+            {errorMessage && (
+                <div className="payment-error">
+                    {errorMessage}
                 </div>
+            )}
 
-                <div className="payment-element-wrapper">
-                    <PaymentElement
-                        options={{
-                            layout: {
-                                type: 'tabs',
-                                defaultCollapsed: false,
-                            },
-                        }}
-                    />
-                </div>
-
-                {errorMessage && (
-                    <motion.div
-                        className="payment-error-message"
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                    >
-                        {errorMessage}
-                    </motion.div>
-                )}
-
-                <div className="payment-actions">
-                    <motion.button
-                        type="button"
-                        onClick={onCancel}
-                        className="btn btn-outline"
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        disabled={isLoading}
-                    >
-                        Annuler
-                    </motion.button>
-
-                    <motion.button
-                        type="submit"
-                        className="btn btn-primary"
-                        disabled={!stripe || isLoading || !clientSecret}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                    >
-                        {isLoading ? (
-                            <>
-                                <div className="loading-spinner-small"></div>
-                                Traitement...
-                            </>
-                        ) : (
-                            `Payer ${amount}€`
-                        )}
-                    </motion.button>
-                </div>
-
-                <div className="payment-security">
-                    <div className="security-badges">
-                        <span>🔒 Paiement sécurisé par</span>
-                        <div className="stripe-logo">Stripe</div>
-                    </div>
-                </div>
-            </form>
-        </motion.div>
+            <div className="payment-actions">
+                <button
+                    type="button"
+                    onClick={props.onCancel}
+                    className="cancel-button"
+                    disabled={isLoading}
+                >
+                    Annuler
+                </button>
+                <button
+                    type="submit"
+                    disabled={!stripe || isLoading}
+                    className="submit-payment-button"
+                >
+                    {isLoading ? "Traitement..." : `Payer ${props.amount}€`}
+                </button>
+            </div>
+        </form>
     );
 }
 
 export default function StripePayment(props: StripePaymentProps) {
-    const [clientSecret, setClientSecret] = useState<string>('');
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string>('');
+    const [clientSecret, setClientSecret] = useState<string>("");
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string>("");
 
-    console.log('🔍 StripePayment Parent - Props:', {
-        amount: props.amount,
-        serviceName: props.serviceName,
-        hasBookingData: !!props.bookingData
-    });
-
-    // Création du Payment Intent dans le parent
     useEffect(() => {
         const createPaymentIntent = async () => {
             try {
-                setIsLoading(true);
-                setError('');
+                setLoading(true);
+                setError("");
 
-                console.log('🔄 Début création Payment Intent dans le parent');
-                console.log('💰 Montant:', props.amount);
-                console.log('📡 Endpoint:', API_ENDPOINTS.CREATE_PAYMENT_INTENT);
+                // MÉTADONNÉES SIMPLIFIÉES - uniquement les champs demandés
+                const metadata = {
+                    // Informations client
+                    customer_email: props.bookingData.email,
+                    customer_name: `${props.bookingData.firstName} ${props.bookingData.lastName}`,
 
-                // Validation du montant
-                if (!props.amount || props.amount <= 0) {
-                    throw new Error(`Montant invalide: ${props.amount}`);
-                }
+                    // Informations service
+                    service_type: props.type,
+                    service_name: props.serviceName,
+                    Service: props.serviceName, // Duplication pour correspondre à la demande
+                    Prix: `${props.amount}€`,
 
-                const requestBody = {
-                    amount: props.amount,
-                    currency: 'eur',
-                    metadata: {
-                        serviceName: props.serviceName,
-                        customerEmail: props.bookingData.email,
-                        customerName: `${props.bookingData.firstName} ${props.bookingData.lastName}`,
-                        type: 'booking',
-                    },
+                    // Informations de réservation si session
+                    ...(props.type === 'session' && props.selectedDate && {
+                        reservation_date: props.selectedDate,
+                        reservation_time: props.selectedTime
+                    })
                 };
 
-                console.log('📤 Requête API:', requestBody);
-
-                const data: PaymentIntentResponse = await apiRequest(
-                    API_ENDPOINTS.CREATE_PAYMENT_INTENT,
-                    {
-                        method: 'POST',
-                        body: JSON.stringify(requestBody),
-                    }
-                );
-
-                console.log('✅ Réponse API Payment Intent:', {
-                    hasClientSecret: !!data.clientSecret,
-                    clientSecretLength: data.clientSecret?.length,
-                    paymentIntentId: data.paymentIntentId,
-                    error: data.error
+                const response = await fetch(API_ENDPOINTS.CREATE_PAYMENT_INTENT, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        amount: props.amount,
+                        currency: "eur",
+                        metadata: metadata,
+                    }),
                 });
 
-                if (data.error) {
-                    throw new Error(data.error);
+                type PaymentIntentResponse = {
+                    clientSecret?: string;
+                    error?: string;
+                    details?: string;
+                };
+
+                const data = (await response.json()) as PaymentIntentResponse;
+
+                if (!response.ok) {
+                    throw new Error(data.error || "Erreur lors de la création du paiement");
                 }
 
                 if (!data.clientSecret) {
-                    throw new Error('Client secret manquant dans la réponse');
-                }
-
-                // Validation du format du clientSecret
-                if (!data.clientSecret.includes('_secret_')) {
-                    console.error('❌ Format clientSecret invalide:', data.clientSecret);
-                    throw new Error('Format de client secret invalide');
+                    throw new Error("Réponse invalide du serveur : clientSecret manquant");
                 }
 
                 setClientSecret(data.clientSecret);
-
-                console.log('🎯 ClientSecret défini avec succès dans le parent');
-
-            } catch (error) {
-                console.error('❌ Erreur création Payment Intent:', error);
-                const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
-                setError(`Erreur: ${errorMessage}`);
-                props.onError(errorMessage);
+            } catch (err) {
+                console.error("Erreur création Payment Intent:", err);
+                const message =
+                    err instanceof Error ? err.message : "Erreur inconnue";
+                setError(message);
+                props.onError(message);
             } finally {
-                setIsLoading(false);
+                setLoading(false);
             }
         };
 
-        if (props.amount > 0 && !clientSecret) {
-            console.log('🚀 Lancement création Payment Intent dans le parent');
+        if (props.amount > 0) {
             createPaymentIntent();
-        } else {
-            console.log('⏸️  Création Payment Intent ignorée dans le parent:', {
-                amount: props.amount,
-                hasClientSecret: !!clientSecret
-            });
-            setIsLoading(false);
         }
-    }, [props.amount, props.serviceName, props.bookingData, props.onError, clientSecret]);
+    }, [props.amount, props.serviceName, props.bookingData, props.type, props.selectedDate, props.selectedTime]);
 
-    const options = {
-        clientSecret,
-        appearance: {
-            theme: 'night' as const,
-            variables: {
-                colorPrimary: '#FFD580',
-                colorBackground: '#1a1a1a',
-                colorText: '#e0e0e0',
-                colorDanger: '#ff3860',
-                fontFamily: 'Inter, system-ui, sans-serif',
-                spacingUnit: '4px',
-                borderRadius: '8px',
-            },
-            rules: {
-                '.Input': {
-                    border: '1px solid #333',
-                    backgroundColor: '#1a1a1a',
-                    color: '#e0e0e0',
-                },
-                '.Input:focus': {
-                    borderColor: '#FFD580',
-                    boxShadow: '0 0 0 1px #FFD580',
-                },
-            },
-        },
-    };
-
-    console.log('🔍 StripePayment Parent - Options:', {
-        hasClientSecret: !!options.clientSecret,
-        clientSecret: options.clientSecret ? `${options.clientSecret.substring(0, 20)}...` : 'none'
-    });
-
-    if (isLoading) {
-        console.log('⏳ Affichage état chargement initial dans le parent');
+    if (loading) {
         return (
             <div className="payment-loading">
-                <div className="loading-spinner"></div>
-                <p>Initialisation du paiement...</p>
+                <div>Initialisation du paiement sécurisé...</div>
             </div>
         );
     }
 
     if (error) {
-        console.log('❌ Affichage erreur initiale dans le parent:', error);
         return (
-            <div className="payment-error">
-                <p>Erreur: {error}</p>
-                <button
-                    onClick={() => window.location.reload()}
-                    className="btn btn-primary"
-                    style={{ marginTop: '1rem' }}
-                >
+            <div className="payment-error-container">
+                <div>Erreur: {error}</div>
+                <button onClick={() => window.location.reload()} className="retry-button">
                     Réessayer
                 </button>
             </div>
@@ -356,24 +210,29 @@ export default function StripePayment(props: StripePaymentProps) {
     }
 
     if (!clientSecret) {
-        console.log('❌ Client secret toujours manquant après chargement dans le parent');
         return (
-            <div className="payment-error">
-                <p>Impossible d'initialiser le paiement. Veuillez réessayer.</p>
-                <button
-                    onClick={() => window.location.reload()}
-                    className="btn btn-primary"
-                    style={{ marginTop: '1rem' }}
-                >
-                    Réessayer
-                </button>
+            <div className="payment-error-container">
+                <div>Impossible d'initialiser le paiement</div>
             </div>
         );
     }
 
+    const options = {
+        clientSecret,
+        appearance: {
+            theme: 'stripe' as const,
+            variables: {
+                colorPrimary: '#0066cc',
+                borderRadius: '8px',
+            },
+        },
+    };
+
     return (
-        <Elements stripe={stripePromise} options={options}>
-            <CheckoutForm clientSecret={clientSecret} {...props} />
-        </Elements>
+        <div className="stripe-payment-container">
+            <Elements stripe={stripePromise} options={options}>
+                <CheckoutForm clientSecret={clientSecret} {...props} />
+            </Elements>
+        </div>
     );
 }

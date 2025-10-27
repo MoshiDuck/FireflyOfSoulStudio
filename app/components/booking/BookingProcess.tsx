@@ -150,6 +150,28 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
         return null;
     };
 
+    // Fonction pour générer le commentaire détaillé pour Stripe
+    const generateStripeComment = (formData: ReturnType<typeof getFormData>) => {
+        const customerInfo = `Client: ${formData.firstName} ${formData.lastName} - Email: ${formData.email}`;
+        const phoneInfo = formData.phone ? ` - Tél: ${formData.phone}` : '';
+        const serviceInfo = `Service: ${service.name} (${service.description}) - Prix: ${service.price}€`;
+
+        let bookingInfo = '';
+        if (type === 'session') {
+            const formattedDate = selectedDate ? new Date(selectedDate).toLocaleDateString('fr-FR') : '';
+            bookingInfo = ` - Réservation: ${formattedDate} à ${selectedTime}`;
+        } else {
+            bookingInfo = ' - Achat produit en ligne';
+        }
+
+        const messageInfo = formData.message ? ` - Message: ${formData.message.substring(0, 200)}` : '';
+
+        // Construction du commentaire final (limité à 500 caractères pour Stripe)
+        const fullComment = `${customerInfo}${phoneInfo} | ${serviceInfo}${bookingInfo}${messageInfo}`;
+
+        return fullComment.substring(0, 500);
+    };
+
     const handleFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
@@ -180,7 +202,7 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
         }
     };
 
-    // Fonction pour gérer le succès du paiement
+    // CORRECTION : Fonction pour gérer le succès du paiement - RETIRER stripeComment de l'API de réservations
     const handlePaymentSuccess = async (paymentIntentId: string) => {
         try {
             const currentFormData = getFormData();
@@ -203,6 +225,7 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
                 type: 'session',
                 paymentIntentId: paymentIntentId,
                 paymentStatus: 'paid'
+                // CORRECTION : NE PAS envoyer stripeComment à l'API de réservations
             } : {
                 firstName: currentFormData.firstName.trim(),
                 lastName: currentFormData.lastName.trim(),
@@ -221,6 +244,7 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
                 type: 'product',
                 paymentIntentId: paymentIntentId,
                 paymentStatus: 'paid'
+                // CORRECTION : NE PAS envoyer stripeComment à l'API de réservations
             };
 
             // Envoyer les données de réservation avec l'ID de paiement
@@ -466,6 +490,11 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
     // ÉTAPE 4 : PAIEMENT
     const Step4 = () => {
         const stepConfig = getCurrentStepConfig();
+        const currentFormData = getFormData();
+
+        // Générer le commentaire pour Stripe
+        const stripeComment = generateStripeComment(currentFormData);
+
         return (
             <div className="booking-step">
                 <StepHeader
@@ -490,6 +519,9 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
                         onSuccess={handlePaymentSuccess}
                         onError={(error) => setMessage({ type: 'error', text: error })}
                         onCancel={handlePaymentCancel}
+                        selectedDate={selectedDate}
+                        selectedTime={selectedTime}
+                        type={type}
                     />
                 </div>
 

@@ -59,6 +59,7 @@ export interface BookingRequest {
     date?: string | null;
     time?: string | null;
     type: 'session' | 'product';
+    stripeComment?: string; // Nouveau champ pour le commentaire Stripe
 }
 
 // Props communes
@@ -74,4 +75,24 @@ export interface CartItemComponent {
     service: Service;
     quantity: number;
     selectedCapacity?: Capacity;
+}
+
+// Props pour StripePayment
+export interface StripePaymentProps {
+    amount: number;
+    serviceName: string;
+    bookingData: {
+        firstName: string;
+        lastName: string;
+        email: string;
+        phone?: string;
+        message?: string;
+    };
+    onSuccess: (paymentIntentId: string) => void;
+    onError: (error: string) => void;
+    onCancel: () => void;
+    // SUPPRIMÉ: stripeComment: string;
+    selectedDate?: string;
+    selectedTime?: string;
+    type: 'session' | 'product';
 }

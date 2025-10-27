@@ -1,4 +1,4 @@
-// Todo : workers/app.ts
+// Todo : workers/app.ts - VERSION CORRIGÉE
 import { Hono } from "hono";
 import { createRequestHandler } from "react-router";
 import { cors } from 'hono/cors'
@@ -43,9 +43,15 @@ app.post('/api/create-payment-intent', async (c) => {
             amount: number;
             currency?: string;
             metadata?: {
-                serviceName?: string;
-                customerEmail?: string;
-                customerName?: string;
+                // CHAMPS SIMPLIFIÉS
+                customer_email?: string;
+                customer_name?: string;
+                service_type?: string;
+                service_name?: string;
+                Service?: string;
+                Prix?: string;
+                reservation_date?: string;
+                reservation_time?: string;
             };
         };
 
@@ -85,24 +91,38 @@ app.post('/api/create-payment-intent', async (c) => {
 
         console.log('🔑 Clé Stripe validée, longueur:', c.env.STRIPE_SECRET_KEY.length);
 
-        const stripeAmount = Math.round(amount * 100); // Conversion en cents
+        const stripeAmount = Math.round(amount * 100);
         console.log('💶 Montant converti en cents:', stripeAmount);
 
-        // ✅ Préparation des paramètres Stripe avec validation
+        // ✅ PRÉPARATION DES PARAMÈTRES STRIPE SIMPLIFIÉE
         const stripeParams = new URLSearchParams({
             amount: stripeAmount.toString(),
             currency,
-            'metadata[service_name]': metadata.serviceName?.substring(0, 500) || 'Unknown Service',
-            'metadata[customer_email]': metadata.customerEmail?.substring(0, 500) || 'Unknown',
-            'metadata[customer_name]': metadata.customerName?.substring(0, 500) || 'Unknown',
+
+            // MÉTADONNÉES SIMPLIFIÉES - uniquement les champs demandés
+            'metadata[customer_email]': metadata.customer_email?.substring(0, 500) || 'Unknown',
+            'metadata[customer_name]': metadata.customer_name?.substring(0, 500) || 'Unknown',
+            'metadata[service_type]': metadata.service_type?.substring(0, 500) || 'Unknown',
+            'metadata[service_name]': metadata.service_name?.substring(0, 500) || 'Unknown',
+            'metadata[Service]': metadata.Service?.substring(0, 500) || metadata.service_name?.substring(0, 500) || 'Unknown',
+            'metadata[Prix]': metadata.Prix?.substring(0, 500) || 'Unknown',
+
+            // Champs conditionnels
+            ...(metadata.reservation_date && {
+                'metadata[reservation_date]': metadata.reservation_date.substring(0, 500)
+            }),
+            ...(metadata.reservation_time && {
+                'metadata[reservation_time]': metadata.reservation_time.substring(0, 500)
+            }),
+
             'automatic_payment_methods[enabled]': 'true',
         });
 
-        console.log('📤 Envoi requête à Stripe...');
+        console.log('📤 Envoi requête à Stripe avec métadonnées simplifiées...');
 
         // ✅ Requête Stripe avec timeout
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
 
         try {
             const stripeResponse = await fetch('https://api.stripe.com/v1/payment_intents', {
@@ -137,7 +157,6 @@ app.post('/api/create-payment-intent', async (c) => {
                 paymentIntentId: data.id
             });
 
-            // ✅ Gestion des erreurs Stripe détaillée
             if (!stripeResponse.ok) {
                 console.error('❌ Erreur Stripe API:', data);
 
@@ -158,7 +177,6 @@ app.post('/api/create-payment-intent', async (c) => {
                 }, 500);
             }
 
-            // ✅ Vérification robuste du client_secret
             if (!data.client_secret) {
                 console.error('❌ Client secret manquant dans la réponse Stripe');
                 return c.json({
@@ -168,7 +186,6 @@ app.post('/api/create-payment-intent', async (c) => {
                 }, 500);
             }
 
-            // ✅ Validation stricte du format du client_secret
             if (!data.client_secret.includes('_secret_')) {
                 console.error('❌ Format client_secret invalide reçu de Stripe');
                 return c.json({
@@ -184,7 +201,6 @@ app.post('/api/create-payment-intent', async (c) => {
                 status: data.status
             });
 
-            // ✅ Réponse au client
             return c.json({
                 clientSecret: data.client_secret,
                 paymentIntentId: data.id,
@@ -257,7 +273,7 @@ app.options('/api/create-payment-intent', (c) => {
     });
 });
 
-// ... (le reste de votre code API pour les réservations reste inchangé)
+// ✅ ROUTE RESERVATIONS - VERSION ORIGINALE FONCTIONNELLE
 app.post('/api/reservations', async (c) => {
     const db = c.env.DB;
 
@@ -278,6 +294,7 @@ app.post('/api/reservations', async (c) => {
             }
         }
 
+        // ✅ RETOUR À LA VERSION ORIGINALE - pas de stripeComment
         let {
             firstName,
             lastName,
@@ -291,6 +308,7 @@ app.post('/api/reservations', async (c) => {
             service,
             paymentIntentId,
             paymentStatus
+            // ❌ SUPPRIMER: stripeComment
         } = payload as any;
 
         // Compat: si legacy 'service' fourni sans cart
@@ -397,7 +415,7 @@ app.post('/api/reservations', async (c) => {
         // Déterminer le statut de paiement
         const finalPaymentStatus = paymentStatus || (paymentIntentId ? 'paid' : 'pending');
 
-        // Insert
+        // ✅ INSERT ORIGINAL - pas de stripe_comment
         const insert = await db.prepare(
             `INSERT INTO reservations (
                 customer_name, customer_email, customer_phone,
