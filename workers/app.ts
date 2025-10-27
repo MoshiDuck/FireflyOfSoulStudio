@@ -5,12 +5,17 @@ import { cors } from 'hono/cors'
 
 interface Bindings {
     DB: D1Database;
+    STRIPE_SECRET_KEY: string;
 }
 
 const app = new Hono<{ Bindings: Bindings }>();
 
 // Middleware CORS pour toutes les routes API
-app.use('/api/*', cors())
+app.use('/api/*', cors({
+    origin: '*',
+    allowMethods: ['GET', 'POST', 'OPTIONS'],
+    allowHeaders: ['Content-Type'],
+}))
 
 function getErrorMessage(error: unknown): string {
     if (error instanceof Error) {
@@ -19,22 +24,248 @@ function getErrorMessage(error: unknown): string {
     return String(error);
 }
 
-// Route API pour les réservations
-// Remplacer le handler POST existant par ceci dans workers/app.ts
+// ✅ HEALTH CHECK
+app.get('/api/health', (c) => {
+    return c.json({
+        status: 'OK',
+        timestamp: new Date().toISOString(),
+        hasStripeKey: !!c.env.STRIPE_SECRET_KEY,
+        stripeKeyLength: c.env.STRIPE_SECRET_KEY?.length || 0
+    });
+});
 
-// workers/app.ts — handler POST /api/reservations (TypeScript-friendly)
+// ✅ ROUTE POST POUR CREATE-PAYMENT-INTENT (OPTIMISÉE)
+app.post('/api/create-payment-intent', async (c) => {
+    console.log('🔔 Début création Payment Intent');
 
+    try {
+        const { amount, currency = 'eur', metadata = {} } = await c.req.json() as {
+            amount: number;
+            currency?: string;
+            metadata?: {
+                serviceName?: string;
+                customerEmail?: string;
+                customerName?: string;
+            };
+        };
+
+        console.log('💰 Données reçues:', {
+            amount,
+            currency,
+            metadata,
+            hasStripeKey: !!c.env.STRIPE_SECRET_KEY
+        });
+
+        // ✅ Validation robuste du montant
+        if (typeof amount !== 'number' || amount < 1) {
+            console.error('❌ Montant invalide:', amount);
+            return c.json({
+                error: "Montant invalide",
+                details: `Le montant doit être un nombre supérieur à 0. Reçu: ${amount}`
+            }, 400);
+        }
+
+        // ✅ Vérification de la clé Stripe
+        if (!c.env.STRIPE_SECRET_KEY) {
+            console.error('❌ STRIPE_SECRET_KEY manquante dans les variables d\'environnement');
+            return c.json({
+                error: 'Configuration Stripe manquante',
+                details: 'La clé secrète Stripe n\'est pas configurée',
+            }, 500);
+        }
+
+        // Vérification du format de la clé Stripe
+        if (!c.env.STRIPE_SECRET_KEY.startsWith('sk_')) {
+            console.error('❌ Format de clé Stripe invalide');
+            return c.json({
+                error: 'Clé Stripe invalide',
+                details: 'La clé Stripe ne commence pas par sk_'
+            }, 500);
+        }
+
+        console.log('🔑 Clé Stripe validée, longueur:', c.env.STRIPE_SECRET_KEY.length);
+
+        const stripeAmount = Math.round(amount * 100); // Conversion en cents
+        console.log('💶 Montant converti en cents:', stripeAmount);
+
+        // ✅ Préparation des paramètres Stripe avec validation
+        const stripeParams = new URLSearchParams({
+            amount: stripeAmount.toString(),
+            currency,
+            'metadata[service_name]': metadata.serviceName?.substring(0, 500) || 'Unknown Service',
+            'metadata[customer_email]': metadata.customerEmail?.substring(0, 500) || 'Unknown',
+            'metadata[customer_name]': metadata.customerName?.substring(0, 500) || 'Unknown',
+            'automatic_payment_methods[enabled]': 'true',
+        });
+
+        console.log('📤 Envoi requête à Stripe...');
+
+        // ✅ Requête Stripe avec timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
+        try {
+            const stripeResponse = await fetch('https://api.stripe.com/v1/payment_intents', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${c.env.STRIPE_SECRET_KEY}`,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: stripeParams,
+                signal: controller.signal
+            });
+
+            clearTimeout(timeoutId);
+
+            const data = await stripeResponse.json() as {
+                id?: string;
+                client_secret?: string;
+                status?: string;
+                error?: {
+                    message?: string;
+                    type?: string;
+                    code?: string;
+                };
+            };
+
+            console.log('📡 Réponse Stripe:', {
+                status: stripeResponse.status,
+                ok: stripeResponse.ok,
+                hasClientSecret: !!data.client_secret,
+                clientSecretLength: data.client_secret?.length,
+                error: data.error,
+                paymentIntentId: data.id
+            });
+
+            // ✅ Gestion des erreurs Stripe détaillée
+            if (!stripeResponse.ok) {
+                console.error('❌ Erreur Stripe API:', data);
+
+                let errorMessage = "Erreur de paiement";
+                if (data.error?.code === 'authentication_failed') {
+                    errorMessage = "Clé API Stripe invalide";
+                } else if (data.error?.code === 'invalid_request_error') {
+                    errorMessage = "Requête Stripe invalide";
+                } else if (data.error?.message) {
+                    errorMessage = data.error.message;
+                }
+
+                return c.json({
+                    error: "Erreur Stripe",
+                    details: errorMessage,
+                    code: data.error?.code,
+                    type: data.error?.type
+                }, 500);
+            }
+
+            // ✅ Vérification robuste du client_secret
+            if (!data.client_secret) {
+                console.error('❌ Client secret manquant dans la réponse Stripe');
+                return c.json({
+                    error: "Client secret manquant",
+                    details: "Stripe n'a pas retourné de client_secret",
+                    stripeResponse: data
+                }, 500);
+            }
+
+            // ✅ Validation stricte du format du client_secret
+            if (!data.client_secret.includes('_secret_')) {
+                console.error('❌ Format client_secret invalide reçu de Stripe');
+                return c.json({
+                    error: "Format de client secret invalide",
+                    details: "Le client_secret ne correspond pas au format attendu par Stripe Elements",
+                    clientSecretReceived: data.client_secret
+                }, 500);
+            }
+
+            console.log('✅ Payment Intent créé avec succès:', {
+                id: data.id,
+                clientSecretPreview: `${data.client_secret.substring(0, 25)}...`,
+                status: data.status
+            });
+
+            // ✅ Réponse au client
+            return c.json({
+                clientSecret: data.client_secret,
+                paymentIntentId: data.id,
+                status: data.status,
+            });
+
+        } catch (fetchError) {
+            clearTimeout(timeoutId);
+            if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+                throw new Error('Timeout de la requête Stripe (10s)');
+            }
+            throw fetchError;
+        }
+
+    } catch (error) {
+        console.error('❌ Erreur inattendue:', error);
+
+        return c.json({
+            error: "Erreur lors de la création du paiement",
+            details: getErrorMessage(error),
+            timestamp: new Date().toISOString()
+        }, 500);
+    }
+});
+
+app.get('/api/test-stripe', async (c) => {
+    try {
+        if (!c.env.STRIPE_SECRET_KEY) {
+            return c.json({ error: 'STRIPE_SECRET_KEY non définie' }, 500);
+        }
+
+        // Test simple de connexion à Stripe
+        const response = await fetch('https://api.stripe.com/v1/balance', {
+            headers: {
+                'Authorization': `Bearer ${c.env.STRIPE_SECRET_KEY}`,
+            },
+        });
+
+        if (response.ok) {
+            return c.json({
+                status: 'Stripe connecté avec succès',
+                hasKey: true,
+                keyPrefix: c.env.STRIPE_SECRET_KEY.substring(0, 7) + '...'
+            });
+        } else {
+            const error = await response.json();
+            return c.json({
+                error: 'Erreur Stripe',
+                details: error,
+                status: response.status
+            }, 500);
+        }
+    } catch (error) {
+        return c.json({
+            error: 'Erreur de connexion à Stripe',
+            details: getErrorMessage(error)
+        }, 500);
+    }
+});
+
+// ✅ ROUTE OPTIONS POUR CORS PREFLIGHT
+app.options('/api/create-payment-intent', (c) => {
+    return new Response(null, {
+        status: 200,
+        headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        }
+    });
+});
+
+// ... (le reste de votre code API pour les réservations reste inchangé)
 app.post('/api/reservations', async (c) => {
     const db = c.env.DB;
 
-    // petit wrapper pour éviter les inférences TS trop profondes sur c.json
     function resp(body: any, status = 200) {
-        // cast to any to silence TS overload mismatch (safe: body we build nous-mêmes)
         return c.json(body as any, status as any);
     }
 
     try {
-        // Lire le body brut
         const raw = await c.req.text();
 
         let payload: any = {};
@@ -47,7 +278,6 @@ app.post('/api/reservations', async (c) => {
             }
         }
 
-        // Extraire (façon permissive)
         let {
             firstName,
             lastName,
@@ -58,7 +288,9 @@ app.post('/api/reservations', async (c) => {
             date,
             time,
             type,
-            service // legacy
+            service,
+            paymentIntentId,
+            paymentStatus
         } = payload as any;
 
         // Compat: si legacy 'service' fourni sans cart
@@ -75,12 +307,11 @@ app.post('/api/reservations', async (c) => {
             type = type || 'session';
         }
 
-        // Si cart est string JSON (double-serialisation), tenter de parser
+        // Si cart est string JSON, tenter de parser
         if (typeof cart === 'string') {
             try {
                 cart = JSON.parse(cart);
             } catch (e: unknown) {
-                // on transforme en null pour laisser la validation échouer proprement
                 cart = null;
             }
         }
@@ -104,7 +335,7 @@ app.post('/api/reservations', async (c) => {
         const hasSessions = cart.some((it: any) => it?.productType === 'session');
         const hasProducts = cart.some((it: any) => it?.productType === 'product');
 
-        // serviceType / orderType (conformes au PRAGMA)
+        // serviceType / orderType
         let serviceType = 'produits';
         let orderType = type || 'product';
 
@@ -129,7 +360,7 @@ app.post('/api/reservations', async (c) => {
             }
         }
 
-        // Calcul du total (défensif)
+        // Calcul du total
         let calculatedTotal = Number(total ?? 0);
         if (!calculatedTotal || isNaN(calculatedTotal)) {
             calculatedTotal = cart.reduce((s: number, it: any) => {
@@ -163,13 +394,17 @@ app.post('/api/reservations', async (c) => {
             if (existing) return resp({ error: 'This time slot is already booked' }, 409);
         }
 
-        // Insert (conforme au PRAGMA)
+        // Déterminer le statut de paiement
+        const finalPaymentStatus = paymentStatus || (paymentIntentId ? 'paid' : 'pending');
+
+        // Insert
         const insert = await db.prepare(
             `INSERT INTO reservations (
                 customer_name, customer_email, customer_phone,
                 reservation_date, reservation_time, service_type,
-                order_type, total_amount, order_details
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+                order_type, total_amount, order_details,
+                payment_intent_id, payment_status
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
         ).bind(
             customerName,
             customerEmail,
@@ -179,17 +414,26 @@ app.post('/api/reservations', async (c) => {
             serviceType,
             orderType,
             calculatedTotal,
-            orderDetails
+            orderDetails,
+            paymentIntentId || null,
+            finalPaymentStatus
         ).run();
+
+        // Message de confirmation
+        let confirmationMessage = "✅ Commande confirmée ! Nous vous contactons rapidement.";
+        if (finalPaymentStatus === 'paid') {
+            confirmationMessage = "✅ Paiement confirmé ! Votre réservation est validée. Nous vous contactons rapidement.";
+        }
 
         return resp({
             success: true,
             id: insert.meta.last_row_id,
-            message: "Booking confirmed! We'll contact you soon."
+            message: confirmationMessage,
+            paymentStatus: finalPaymentStatus,
+            paymentIntentId: paymentIntentId || null
         }, 201);
 
     } catch (err: unknown) {
-        // Gestion sûre d'une erreur inconnue
         const errMsg = err instanceof Error ? err.message : String(err);
         console.error('API Error:', errMsg);
         return resp({ error: 'Server error', details: errMsg }, 500);
@@ -201,9 +445,19 @@ app.get('/api/reservations', async (c) => {
     const db = c.env.DB;
 
     try {
-        const result = await db.prepare(
-            "SELECT * FROM reservations ORDER BY reservation_date, reservation_time"
-        ).all();
+        const { searchParams } = new URL(c.req.url);
+        const date = searchParams.get('date');
+
+        let result;
+        if (date) {
+            result = await db.prepare(
+                "SELECT reservation_time FROM reservations WHERE reservation_date = ? AND reservation_time IS NOT NULL"
+            ).bind(date).all();
+        } else {
+            result = await db.prepare(
+                "SELECT * FROM reservations ORDER BY reservation_date, reservation_time"
+            ).all();
+        }
 
         return c.json(result.results);
 

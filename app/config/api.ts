@@ -1,16 +1,14 @@
 // Info : app/config/api.ts
-export const API_BASE_URL = import.meta.env.DEV
-    ? 'http://localhost:8787'
-    : 'https://fireflyofsoulstudio.uk';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://fireflyofsoulstudio.uk';
 
 export const API_ENDPOINTS = {
     RESERVATIONS: `${API_BASE_URL}/api/reservations`,
     CONTACT: `${API_BASE_URL}/api/contact`,
     GALLERY: `${API_BASE_URL}/api/gallery`,
-    SERVICES: `${API_BASE_URL}/api/services`,
+    CREATE_PAYMENT_INTENT: `${API_BASE_URL}/api/create-payment-intent`,
 };
 
-// Services prédéfinis
+// Services prédéfinis (inchangé)
 export const SHOOTING_SERVICES = [
     {
         id: "portrait",

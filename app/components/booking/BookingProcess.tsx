@@ -4,6 +4,7 @@ import { motion } from "motion/react";
 import { useFormDataManager } from "~/hooks/useFormDataManager";
 import { UncontrolledTextArea } from "~/components/ui/UncontrolledTextArea";
 import { UncontrolledInput } from "~/components/ui/UncontrolledInput";
+import StripePayment from "~/components/payment/StripePayment";
 
 // Import des types et configurations centralisés
 import type {
@@ -29,6 +30,8 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
     const [availableTimes, setAvailableTimes] = useState<TimeSlot[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+    const [showPayment, setShowPayment] = useState(false);
+    const [paymentStep, setPaymentStep] = useState<'form' | 'payment'>('form');
 
     const { updateField, getFormData, reset } = useFormDataManager({
         firstName: '',
@@ -162,6 +165,26 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
                 return;
             }
 
+            // Passer au paiement
+            setPaymentStep('payment');
+            setShowPayment(true);
+            setIsSubmitting(false);
+
+        } catch (error) {
+            console.error('Erreur validation:', error);
+            setMessage({
+                type: 'error',
+                text: 'Erreur lors de la validation du formulaire'
+            });
+            setIsSubmitting(false);
+        }
+    };
+
+    // Nouvelle fonction pour gérer le succès du paiement
+    const handlePaymentSuccess = async (paymentIntentId: string) => {
+        try {
+            const formData = getFormData();
+
             const requestData = type === 'session' ? {
                 firstName: formData.firstName.trim(),
                 lastName: formData.lastName.trim(),
@@ -177,7 +200,9 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
                 total: service.price,
                 date: selectedDate,
                 time: selectedTime,
-                type: 'session'
+                type: 'session',
+                paymentIntentId: paymentIntentId,
+                paymentStatus: 'paid'
             } : {
                 firstName: formData.firstName.trim(),
                 lastName: formData.lastName.trim(),
@@ -193,57 +218,50 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
                 total: service.price,
                 date: null,
                 time: null,
-                type: 'product'
+                type: 'product',
+                paymentIntentId: paymentIntentId,
+                paymentStatus: 'paid'
             };
 
-            console.log('📤 Envoi des données:', requestData);
-
+            // Envoyer les données de réservation avec l'ID de paiement
             const response = await fetch(apiEndpoint, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(requestData),
             });
 
             const result = await response.json() as ApiResponse;
 
-            if (response.ok) {
-                if ('success' in result && result.success) {
-                    setMessage({
-                        type: 'success',
-                        text: result.message || '✅ Réservation confirmée ! Nous vous contactons rapidement.'
-                    });
-
-                    setTimeout(() => {
-                        onComplete();
-                        reset();
-                        setSelectedDate("");
-                        setSelectedTime("");
-                    }, 3000);
-                } else {
-                    setMessage({
-                        type: 'error',
-                        text: '❌ Réponse inattendue du serveur'
-                    });
-                    setIsSubmitting(false);
-                }
-            } else {
-                const errorMessage = 'error' in result ? result.error : 'Erreur lors de la réservation';
+            if (response.ok && 'success' in result && result.success) {
                 setMessage({
-                    type: 'error',
-                    text: errorMessage
+                    type: 'success',
+                    text: '✅ Paiement confirmé ! Votre réservation est validée.'
                 });
-                setIsSubmitting(false);
+
+                setTimeout(() => {
+                    onComplete();
+                    reset();
+                    setSelectedDate("");
+                    setSelectedTime("");
+                    setShowPayment(false);
+                    setPaymentStep('form');
+                }, 3000);
+            } else {
+                throw new Error('Erreur lors de la confirmation de la réservation');
             }
         } catch (error) {
-            console.error('Erreur de réservation:', error);
+            console.error('Erreur confirmation réservation:', error);
             setMessage({
                 type: 'error',
-                text: 'Erreur réseau. Veuillez vérifier votre connexion et réessayer.'
+                text: 'Paiement réussi mais erreur lors de la confirmation. Contactez-nous.'
             });
-            setIsSubmitting(false);
         }
+    };
+
+    // Fonction pour annuler le paiement
+    const handlePaymentCancel = () => {
+        setShowPayment(false);
+        setPaymentStep('form');
     };
 
     const formatDate = (dateStr: string) => {
@@ -435,7 +453,7 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
                         whileTap={{ scale: 0.98 }}
                         transition={{ type: "spring", stiffness: 400, damping: 17 }}
                     >
-                        {isSubmitting ? 'Confirmation...' : `Confirmer la ${type === 'session' ? 'Réservation' : 'Commande'}`}
+                        {isSubmitting ? 'Confirmation...' : `Procéder au Paiement - ${service.price}€`}
                     </motion.button>
                 </form>
             </div>
@@ -460,26 +478,44 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
     };
 
     return (
-        <motion.section
-            className="booking-section"
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-        >
-            <div className="container">
-                <div className="booking-process">
-                    <div className="booking-progress">
-                        {steps.map((stepItem) => (
-                            <div key={stepItem.number} className={`progress-step ${step >= stepItem.number ? 'active' : ''}`}>
-                                <div className="step-number">{stepItem.number}</div>
-                                <span>{stepItem.label}</span>
-                            </div>
-                        ))}
-                    </div>
+        <>
+            <motion.section
+                className="booking-section"
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
+            >
+                <div className="container">
+                    <div className="booking-process">
+                        <div className="booking-progress">
+                            {steps.map((stepItem) => (
+                                <div key={stepItem.number} className={`progress-step ${step >= stepItem.number ? 'active' : ''}`}>
+                                    <div className="step-number">{stepItem.number}</div>
+                                    <span>{stepItem.label}</span>
+                                </div>
+                            ))}
+                        </div>
 
-                    {renderCurrentStep()}
+                        {renderCurrentStep()}
+                    </div>
                 </div>
-            </div>
-        </motion.section>
+            </motion.section>
+
+            {/* Modal de paiement */}
+            {showPayment && (
+                <div className="payment-overlay">
+                    <div className="payment-modal">
+                        <StripePayment
+                            amount={service.price}
+                            serviceName={service.name}
+                            bookingData={getFormData()}
+                            onSuccess={handlePaymentSuccess}
+                            onError={(error) => setMessage({ type: 'error', text: error })}
+                            onCancel={handlePaymentCancel}
+                        />
+                    </div>
+                </div>
+            )}
+        </>
     );
 }
