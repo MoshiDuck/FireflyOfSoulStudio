@@ -623,3 +623,173 @@
         font-size: 0.8rem;
     }
 }
+/* Ajouter dans app/routes/public/service/pricing-common.css */
+
+/* Section paiement intégrée */
+.payment-section {
+    margin-top: 2rem;
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 213, 128, 0.2);
+    border-radius: var(--card-border-radius);
+}
+
+/* Adaptation du composant StripePayment pour l'intégration */
+.stripe-payment-container {
+    background: transparent;
+    border: none;
+    padding: 0;
+}
+
+.payment-form {
+    background: transparent;
+}
+
+.payment-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 213, 128, 0.2);
+}
+
+.payment-header h3 {
+    font-family: 'Cinzel', serif;
+    color: var(--warm-gold);
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.payment-amount {
+    color: var(--soft-gray);
+    font-size: 1.1rem;
+}
+
+.payment-amount strong {
+    color: white;
+    font-size: 1.3rem;
+}
+
+.payment-element-wrapper {
+    margin-bottom: 2rem;
+}
+
+/* États de chargement et erreurs */
+.payment-loading,
+.payment-error {
+    text-align: center;
+    padding: 3rem 2rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--card-border-radius);
+    border: 1px solid rgba(255, 213, 128, 0.2);
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 3px solid rgba(255, 213, 128, 0.3);
+    border-top: 3px solid var(--warm-gold);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.payment-error-message {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #f87171;
+    padding: 1rem;
+    border-radius: var(--element-border-radius);
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+/* Actions de paiement */
+.payment-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+    margin-top: 2rem;
+}
+
+.payment-actions .btn {
+    flex: 1;
+    padding: 1rem 1.5rem;
+    border-radius: var(--element-border-radius);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    font-size: 1rem;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 1px solid rgba(255, 213, 128, 0.5) !important;
+    color: var(--warm-gold);
+}
+
+.btn-outline:hover {
+    background: rgba(255, 213, 128, 0.1);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--warm-gold), var(--amber-light));
+    color: var(--deep-night);
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: linear-gradient(135deg, var(--amber-light), var(--warm-gold));
+    transform: translateY(-2px);
+}
+
+.btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Sécurité */
+.payment-security {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+}
+
+.security-badges {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    color: var(--soft-gray);
+    font-size: 0.9rem;
+}
+
+.stripe-logo {
+    background: linear-gradient(135deg, #635bff, #5a67d8);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.8rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .payment-actions {
+        flex-direction: column;
+    }
+
+    .payment-section {
+        padding: 1.5rem;
+        margin-top: 1.5rem;
+    }
+
+    .payment-header h3 {
+        font-size: 1.3rem;
+    }
+}

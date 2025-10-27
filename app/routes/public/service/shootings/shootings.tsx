@@ -110,10 +110,10 @@ export default function Shootings() {
                 <div id="booking-section">
                     <BookingProcess
                         service={selectedService}
-                        onBack={handleBackToServices}
-                        onComplete={handleBookingComplete}
+                        onBack={handleBackToServices} // ou handleBackToProducts
+                        onComplete={handleBookingComplete} // ou handleOrderComplete
                         apiEndpoint={API_ENDPOINTS.RESERVATIONS}
-                        type="session"
+                        type="session" // ou "product"
                     />
                 </div>
             ) : (

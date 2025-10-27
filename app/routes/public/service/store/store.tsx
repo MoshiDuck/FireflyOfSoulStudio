@@ -183,10 +183,10 @@ export default function Store() {
                 <div id="booking-section">
                     <BookingProcess
                         service={selectedService}
-                        onBack={handleBackToProducts}
-                        onComplete={handleOrderComplete}
+                        onBack={handleBackToProducts} // ou handleBackToProducts
+                        onComplete={handleOrderComplete} // ou handleOrderComplete
                         apiEndpoint={API_ENDPOINTS.RESERVATIONS}
-                        type="product"
+                        type="product" // ou "product"
                     />
                 </div>
             ) : (

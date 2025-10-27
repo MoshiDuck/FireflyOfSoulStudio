@@ -30,9 +30,8 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
     const [availableTimes, setAvailableTimes] = useState<TimeSlot[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-    const [showPayment, setShowPayment] = useState(false);
-    const [paymentStep, setPaymentStep] = useState<'form' | 'payment'>('form');
 
+    // CORRECTION : Utilisation unique de useFormDataManager sans état local en double
     const { updateField, getFormData, reset } = useFormDataManager({
         firstName: '',
         lastName: '',
@@ -41,7 +40,8 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
         message: ''
     });
 
-    const TOTAL_STEPS = type === 'session' ? 3 : 2;
+    // Calcul du nombre total d'étapes selon le type
+    const TOTAL_STEPS = type === 'session' ? 4 : 3; // +1 pour l'étape paiement
 
     // Générer les dates disponibles (14 prochains jours ouvrés)
     useEffect(() => {
@@ -120,6 +120,7 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
         return steps[step - 1] || steps[0];
     };
 
+    // CORRECTION : Gestion simplifiée du changement de champ
     const handleFieldChange = (value: string, fieldName: string) => {
         updateField(fieldName as keyof ReturnType<typeof getFormData>, value);
     };
@@ -149,26 +150,24 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
         return null;
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
         setMessage(null);
 
         try {
-            const formData = getFormData();
+            const currentFormData = getFormData();
 
             // VALIDATION UNIFIÉE
-            const validationError = validateForm(formData);
+            const validationError = validateForm(currentFormData);
             if (validationError) {
                 setMessage({ type: 'error', text: validationError });
                 setIsSubmitting(false);
                 return;
             }
 
-            // Passer au paiement
-            setPaymentStep('payment');
-            setShowPayment(true);
-            setIsSubmitting(false);
+            // Passer à l'étape paiement
+            goToNextStep();
 
         } catch (error) {
             console.error('Erreur validation:', error);
@@ -176,20 +175,21 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
                 type: 'error',
                 text: 'Erreur lors de la validation du formulaire'
             });
+        } finally {
             setIsSubmitting(false);
         }
     };
 
-    // Nouvelle fonction pour gérer le succès du paiement
+    // Fonction pour gérer le succès du paiement
     const handlePaymentSuccess = async (paymentIntentId: string) => {
         try {
-            const formData = getFormData();
+            const currentFormData = getFormData();
 
             const requestData = type === 'session' ? {
-                firstName: formData.firstName.trim(),
-                lastName: formData.lastName.trim(),
-                email: formData.email.trim(),
-                phone: formData.phone?.trim() || '',
+                firstName: currentFormData.firstName.trim(),
+                lastName: currentFormData.lastName.trim(),
+                email: currentFormData.email.trim(),
+                phone: currentFormData.phone?.trim() || '',
                 cart: [{
                     productId: service.id,
                     productName: service.name,
@@ -204,10 +204,10 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
                 paymentIntentId: paymentIntentId,
                 paymentStatus: 'paid'
             } : {
-                firstName: formData.firstName.trim(),
-                lastName: formData.lastName.trim(),
-                email: formData.email.trim(),
-                phone: formData.phone?.trim() || '',
+                firstName: currentFormData.firstName.trim(),
+                lastName: currentFormData.lastName.trim(),
+                email: currentFormData.email.trim(),
+                phone: currentFormData.phone?.trim() || '',
                 cart: [{
                     productId: service.id,
                     productName: service.name,
@@ -243,8 +243,7 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
                     reset();
                     setSelectedDate("");
                     setSelectedTime("");
-                    setShowPayment(false);
-                    setPaymentStep('form');
+                    setStep(1);
                 }, 3000);
             } else {
                 throw new Error('Erreur lors de la confirmation de la réservation');
@@ -260,8 +259,7 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
 
     // Fonction pour annuler le paiement
     const handlePaymentCancel = () => {
-        setShowPayment(false);
-        setPaymentStep('form');
+        goToPreviousStep(); // Revenir au formulaire
     };
 
     const formatDate = (dateStr: string) => {
@@ -273,7 +271,7 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
         });
     };
 
-    // ÉTAPES SIMPLIFIÉES AVEC COMPOSANTS PARTAGÉS
+    // ÉTAPE 1 : SÉLECTION DE LA DATE (SESSIONS UNIQUEMENT)
     const Step1 = () => {
         const stepConfig = getCurrentStepConfig();
         return (
@@ -311,6 +309,7 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
         );
     };
 
+    // ÉTAPE 2 : SÉLECTION DE L'HEURE (SESSIONS UNIQUEMENT)
     const Step2 = () => {
         const stepConfig = getCurrentStepConfig();
         return (
@@ -351,9 +350,12 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
         );
     };
 
-    // FORMULAIRE UNIFIÉ POUR TOUS LES TYPES
-    const BookingForm = () => {
+    // ÉTAPE 3 : FORMULAIRE D'INFORMATIONS PERSONNELLES
+    const Step3 = () => {
         const stepConfig = getCurrentStepConfig();
+        // CORRECTION : Récupération des données actuelles pour les valeurs par défaut
+        const currentFormData = getFormData();
+
         return (
             <div className="booking-step">
                 <StepHeader
@@ -370,19 +372,20 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
                     formatDate={formatDate}
                 />
 
-                <form onSubmit={handleSubmit} className="booking-form">
+                <form onSubmit={handleFormSubmit} className="booking-form">
                     <div className="form-grid">
                         <div className="form-group">
                             <label>Prénom *</label>
                             <UncontrolledInput
                                 type="text"
                                 name="firstName"
-                                defaultValue=""
+                                defaultValue={currentFormData.firstName}
                                 onValueChange={handleFieldChange}
                                 required
                                 className="form-input"
                                 placeholder="Marie"
                                 autoComplete="given-name"
+                                autoFocus={true} // CORRECTION : Focus automatique sur le premier champ
                             />
                         </div>
                         <div className="form-group">
@@ -390,7 +393,7 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
                             <UncontrolledInput
                                 type="text"
                                 name="lastName"
-                                defaultValue=""
+                                defaultValue={currentFormData.lastName}
                                 onValueChange={handleFieldChange}
                                 required
                                 className="form-input"
@@ -405,7 +408,7 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
                         <UncontrolledInput
                             type="email"
                             name="email"
-                            defaultValue=""
+                            defaultValue={currentFormData.email}
                             onValueChange={handleFieldChange}
                             required
                             className="form-input"
@@ -419,7 +422,7 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
                         <UncontrolledInput
                             type="tel"
                             name="phone"
-                            defaultValue=""
+                            defaultValue={currentFormData.phone}
                             onValueChange={handleFieldChange}
                             className="form-input"
                             placeholder="+33 6 12 34 56 78"
@@ -431,7 +434,7 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
                         <label>Message (Optionnel)</label>
                         <UncontrolledTextArea
                             name="message"
-                            defaultValue=""
+                            defaultValue={currentFormData.message}
                             onValueChange={handleFieldChange}
                             rows={4}
                             className="form-input"
@@ -453,69 +456,106 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
                         whileTap={{ scale: 0.98 }}
                         transition={{ type: "spring", stiffness: 400, damping: 17 }}
                     >
-                        {isSubmitting ? 'Confirmation...' : `Procéder au Paiement - ${service.price}€`}
+                        {isSubmitting ? 'Validation...' : `Procéder au Paiement - ${service.price}€`}
                     </motion.button>
                 </form>
             </div>
         );
     };
 
-    const steps = STEP_CONFIG[type];
+    // ÉTAPE 4 : PAIEMENT
+    const Step4 = () => {
+        const stepConfig = getCurrentStepConfig();
+        return (
+            <div className="booking-step">
+                <StepHeader
+                    onBack={goToPreviousStep}
+                    title={stepConfig.title}
+                    backLabel={stepConfig.backLabel}
+                />
 
-    // RENDU CONDITIONNEL DES ÉTAPES SIMPLIFIÉ
+                <BookingSummary
+                    type={type}
+                    service={service}
+                    selectedDate={selectedDate}
+                    selectedTime={selectedTime}
+                    formatDate={formatDate}
+                />
+
+                <div className="payment-section">
+                    <StripePayment
+                        amount={service.price}
+                        serviceName={service.name}
+                        bookingData={getFormData()}
+                        onSuccess={handlePaymentSuccess}
+                        onError={(error) => setMessage({ type: 'error', text: error })}
+                        onCancel={handlePaymentCancel}
+                    />
+                </div>
+
+                {message && (
+                    <div className={`message ${message.type}`}>
+                        {message.text}
+                    </div>
+                )}
+            </div>
+        );
+    };
+
+    // Configuration des étapes mise à jour
+    const steps = type === 'session'
+        ? [
+            { number: 1, label: 'Date', title: 'Choisissez une date pour votre séance', backLabel: '← Retour aux séances' },
+            { number: 2, label: 'Heure', title: 'Choisissez un horaire', backLabel: '← Retour' },
+            { number: 3, label: 'Informations', title: 'Vos informations', backLabel: '← Retour' },
+            { number: 4, label: 'Paiement', title: 'Paiement sécurisé', backLabel: '← Retour aux informations' }
+        ]
+        : [
+            { number: 1, label: 'Votre Commande', title: 'Votre commande', backLabel: '← Retour aux produits' },
+            { number: 2, label: 'Informations', title: 'Vos informations', backLabel: '← Retour' },
+            { number: 3, label: 'Paiement', title: 'Paiement sécurisé', backLabel: '← Retour aux informations' }
+        ];
+
+    // RENDU CONDITIONNEL DES ÉTAPES
     const renderCurrentStep = () => {
         if (type === 'session') {
             switch (step) {
                 case 1: return <Step1 />;
                 case 2: return <Step2 />;
-                case 3: return <BookingForm />;
+                case 3: return <Step3 />;
+                case 4: return <Step4 />;
                 default: return <Step1 />;
             }
         } else {
-            // Pour les produits, on affiche directement le formulaire
-            return <BookingForm />;
+            switch (step) {
+                case 1: return <Step3 />; // Pour les produits, on commence directement au formulaire
+                case 2: return <Step4 />; // Puis paiement
+                default: return <Step3 />;
+            }
         }
     };
 
     return (
-        <>
-            <motion.section
-                className="booking-section"
-                initial={{ opacity: 0, y: 50 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, ease: "easeOut" }}
-            >
-                <div className="container">
-                    <div className="booking-process">
-                        <div className="booking-progress">
-                            {steps.map((stepItem) => (
-                                <div key={stepItem.number} className={`progress-step ${step >= stepItem.number ? 'active' : ''}`}>
-                                    <div className="step-number">{stepItem.number}</div>
-                                    <span>{stepItem.label}</span>
-                                </div>
-                            ))}
-                        </div>
-
-                        {renderCurrentStep()}
+        <motion.section
+            className="booking-section"
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+        >
+            <div className="container">
+                <div className="booking-process">
+                    <div className="booking-progress">
+                        {steps.map((stepItem) => (
+                            <div key={stepItem.number} className={`progress-step ${step >= stepItem.number ? 'active' : ''}`}>
+                                <div className="step-number">{stepItem.number}</div>
+                                <span>{stepItem.label}</span>
+                            </div>
+                        ))}
                     </div>
-                </div>
-            </motion.section>
 
-            {/* Modal de paiement */}
-            {showPayment && (
-                <div className="payment-overlay">
-                    <div className="payment-modal">
-                        <StripePayment
-                            amount={service.price}
-                            serviceName={service.name}
-                            bookingData={getFormData()}
-                            onSuccess={handlePaymentSuccess}
-                            onError={(error) => setMessage({ type: 'error', text: error })}
-                            onCancel={handlePaymentCancel}
-                        />
-                    </div>
+                    {renderCurrentStep()}
                 </div>
-            )}
-        </>
+            </div>
+        </motion.section>
     );
 }

@@ -63,12 +63,12 @@ https://github.com/MoshiDuck/FireflyOfSoulStudio
     ```
 2. Commit
     ```bash
-    git commit -m "[FAIT] - Transformer todo en info"
+    git commit -m "[FAIT] - Stripe fonctionne"
     ```
 
 3. Version
    ```bash
-   git tag 0.0.1.3
+   git tag 0.0.1.4
    ```
 
 4. Force le push
