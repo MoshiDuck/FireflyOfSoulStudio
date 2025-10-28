@@ -1,4 +1,4 @@
-// Todo : workers/app.ts - VERSION CORRIGÉE COMPLÈTE
+// workers/app.ts - CORRECTION DES MÉTADONNÉES
 import { Hono } from "hono";
 import { createRequestHandler } from "react-router";
 import { cors } from 'hono/cors'
@@ -34,7 +34,7 @@ app.get('/api/health', (c) => {
     });
 });
 
-// ✅ ROUTE POST POUR CREATE-PAYMENT-INTENT (OPTIMISÉE)
+// ✅ ROUTE POST POUR CREATE-PAYMENT-INTENT (CORRIGÉE AVEC TOUTES LES MÉTADONNÉES)
 app.post('/api/create-payment-intent', async (c) => {
     console.log('🔔 Début création Payment Intent');
 
@@ -42,19 +42,7 @@ app.post('/api/create-payment-intent', async (c) => {
         const { amount, currency = 'eur', metadata = {} } = await c.req.json() as {
             amount: number;
             currency?: string;
-            metadata?: {
-                // CHAMPS SIMPLIFIÉS
-                customer_email?: string;
-                customer_name?: string;
-                service_type?: string;
-                service_name?: string;
-                Service?: string;
-                Prix?: string;
-                reservation_date?: string;
-                reservation_time?: string;
-                payment_type?: string;
-                booking_details?: string;
-            };
+            metadata?: Record<string, any>; // NOUVEAU : Accepte tous les champs
         };
 
         console.log('💰 Données reçues:', {
@@ -96,33 +84,25 @@ app.post('/api/create-payment-intent', async (c) => {
         const stripeAmount = Math.round(amount * 100);
         console.log('💶 Montant converti en cents:', stripeAmount);
 
-        // ✅ PRÉPARATION DES PARAMÈTRES STRIPE SIMPLIFIÉE
+        // ✅ PRÉPARATION DES PARAMÈTRES STRIPE AVEC TOUTES LES MÉTADONNÉES
         const stripeParams = new URLSearchParams({
             amount: stripeAmount.toString(),
             currency,
-
-            // MÉTADONNÉES SIMPLIFIÉES - uniquement les champs demandés
-            'metadata[customer_email]': metadata.customer_email?.substring(0, 500) || 'Unknown',
-            'metadata[customer_name]': metadata.customer_name?.substring(0, 500) || 'Unknown',
-            'metadata[service_type]': metadata.service_type?.substring(0, 500) || 'Unknown',
-            'metadata[service_name]': metadata.service_name?.substring(0, 500) || 'Unknown',
-            'metadata[Service]': metadata.Service?.substring(0, 500) || metadata.service_name?.substring(0, 500) || 'Unknown',
-            'metadata[Prix]': metadata.Prix?.substring(0, 500) || 'Unknown',
-            'metadata[payment_type]': metadata.payment_type?.substring(0, 500) || 'full',
-            'metadata[booking_details]': metadata.booking_details?.substring(0, 500) || 'No details',
-
-            // Champs conditionnels
-            ...(metadata.reservation_date && {
-                'metadata[reservation_date]': metadata.reservation_date.substring(0, 500)
-            }),
-            ...(metadata.reservation_time && {
-                'metadata[reservation_time]': metadata.reservation_time.substring(0, 500)
-            }),
-
             'automatic_payment_methods[enabled]': 'true',
         });
 
-        console.log('📤 Envoi requête à Stripe avec métadonnées simplifiées...');
+        // NOUVEAU : Ajout dynamique de TOUTES les métadonnées
+        if (metadata && typeof metadata === 'object') {
+            for (const [key, value] of Object.entries(metadata)) {
+                if (value !== undefined && value !== null) {
+                    const stringValue = String(value).substring(0, 500);
+                    stripeParams.append(`metadata[${key}]`, stringValue);
+                    console.log(`📝 Métadonnée ajoutée: ${key} = ${stringValue.substring(0, 50)}...`);
+                }
+            }
+        }
+
+        console.log('📤 Envoi requête à Stripe avec métadonnées complètes...');
 
         // ✅ Requête Stripe avec timeout
         const controller = new AbortController();

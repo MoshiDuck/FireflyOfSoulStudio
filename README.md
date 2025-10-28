@@ -63,12 +63,12 @@ https://github.com/MoshiDuck/FireflyOfSoulStudio
     ```
 2. Commit
     ```bash
-    git commit -m "[FAIT] - Correction double paiement stripe"
+    git commit -m "[FAIT] - ajout taxe dans transaction stripe"
     ```
 
 3. Version
    ```bash
-   git tag 0.0.1.8
+   git tag 0.0.1.9
    ```
 
 4. Force le push

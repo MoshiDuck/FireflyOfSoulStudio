@@ -7,21 +7,71 @@ import type { StripePaymentProps } from "~/types/api";
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY!);
 
-// NOUVEAU : Compteur global pour suivre les instances
-let paymentInstanceCounter = 0;
+// FONCTION : Calcul des détails financiers
+const calculateFinancialDetails = (totalAmount: number, paymentType: 'deposit' | 'full') => {
+    const tauxTVA = 0; // 20%
+    const tauxCotisations = 40; // 40%
+    const tauxIR = 11; // 11%
+
+    let prixTTC = totalAmount;
+    let prixHT = prixTTC / (1 + tauxTVA/100);
+
+    if (paymentType === 'deposit') {
+        prixTTC = Math.round(totalAmount * 0.30); // 30% d'acompte
+        prixHT = prixTTC / (1 + tauxTVA/100);
+    }
+
+    const tvaCollectee = prixHT * (tauxTVA/100);
+    const cotisationsSociales = prixHT * (tauxCotisations/100);
+    const baseImposable = prixHT - cotisationsSociales;
+    const impotRevenu = baseImposable * (tauxIR/100);
+    const netReelPourMoi = prixHT - cotisationsSociales - impotRevenu;
+
+    // Calcul pour le total (100%)
+    const prixTTCTotal = totalAmount;
+    const prixHTTotal = prixTTCTotal / (1 + tauxTVA/100);
+    const tvaCollecteeTotal = prixHTTotal * (tauxTVA/100);
+    const cotisationsSocialesTotal = prixHTTotal * (tauxCotisations/100);
+    const baseImposableTotal = prixHTTotal - cotisationsSocialesTotal;
+    const impotRevenuTotal = baseImposableTotal * (tauxIR/100);
+    const netReelPourMoiTotal = prixHTTotal - cotisationsSocialesTotal - impotRevenuTotal;
+
+    return {
+        // Champs pour le paiement actuel (acompte ou total)
+        prix_ttc_acompte: prixTTC.toFixed(2),
+        prix_ttc_total: prixTTCTotal.toFixed(2),
+        tva_collectee_acompte: tvaCollectee.toFixed(2),
+        tva_collectee_total: tvaCollecteeTotal.toFixed(2),
+        cotisations_sociales_acompte: cotisationsSociales.toFixed(2),
+        cotisations_sociales_total: cotisationsSocialesTotal.toFixed(2),
+        impot_revenu_acompte: impotRevenu.toFixed(2),
+        impot_revenu_total: impotRevenuTotal.toFixed(2),
+        net_reel_pour_moi_acompte: netReelPourMoi.toFixed(2),
+        net_reel_pour_moi_total: netReelPourMoiTotal.toFixed(2),
+
+        // Taux et informations générales
+        taux_tva: `${tauxTVA}%`,
+        taux_cotisations: `${tauxCotisations}%`,
+        taux_ir: `${tauxIR}%`,
+        devise: "EUR",
+        date_facturation: new Date().toISOString().split('T')[0],
+        booking_id: `SEANCE${new Date().getFullYear()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
+        calcul_auto_version: "v1.1",
+        transaction_type: paymentType === 'deposit' ? 'acompte' : 'total'
+    };
+};
 
 function CheckoutForm({ clientSecret, ...props }: StripePaymentProps & { clientSecret: string }) {
     const stripe = useStripe();
     const elements = useElements();
     const [isLoading, setIsLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string>("");
-    const [paymentProcessed, setPaymentProcessed] = useState(false); // NOUVEAU : État local
-    const formSubmitted = useRef(false); // NOUVEAU : Référence pour éviter les doubles soumissions
+    const [paymentProcessed, setPaymentProcessed] = useState(false);
+    const formSubmitted = useRef(false);
 
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
 
-        // PROTECTION CONTRE LES DOUBLES SOUMISSIONS
         if (formSubmitted.current || paymentProcessed) {
             console.log('⏸️  Soumission bloquée - déjà en cours ou terminée');
             return;
@@ -66,9 +116,8 @@ function CheckoutForm({ clientSecret, ...props }: StripePaymentProps & { clientS
                 console.error('❌ Erreur de paiement Stripe:', error);
                 setErrorMessage(error.message || "Une erreur est survenue lors du paiement");
                 props.onError(error.message || "Erreur de paiement");
-                formSubmitted.current = false; // Permettre de réessayer
+                formSubmitted.current = false;
             } else {
-                // PAIEMENT RÉUSSI
                 console.log('✅ Paiement réussi - récupération du Payment Intent');
                 setPaymentProcessed(true);
 
@@ -92,7 +141,7 @@ function CheckoutForm({ clientSecret, ...props }: StripePaymentProps & { clientS
             console.error('❌ Erreur inattendue lors du paiement:', error);
             setErrorMessage("Une erreur inattendue est survenue");
             props.onError("Erreur inattendue lors du paiement");
-            formSubmitted.current = false; // Permettre de réessayer
+            formSubmitted.current = false;
         } finally {
             setIsLoading(false);
         }
@@ -266,14 +315,13 @@ export default function StripePayment(props: StripePaymentProps) {
     const [clientSecret, setClientSecret] = useState<string>("");
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string>("");
-    const instanceId = useRef(paymentInstanceCounter++); // NOUVEAU : ID unique par instance
-    const paymentIntentCreated = useRef(false); // NOUVEAU : Pour éviter de créer plusieurs Payment Intents
+    const instanceId = useRef(paymentInstanceCounter++);
+    const paymentIntentCreated = useRef(false);
 
     console.log(`🔄 Instance StripePayment #${instanceId.current} montée`);
 
     useEffect(() => {
         const createPaymentIntent = async () => {
-            // ÉVITER DE CRÉER PLUSIEURS PAYMENT INTENTS
             if (paymentIntentCreated.current) {
                 console.log(`⏸️  Instance #${instanceId.current} - Payment Intent déjà créé`);
                 return;
@@ -286,20 +334,30 @@ export default function StripePayment(props: StripePaymentProps) {
 
                 console.log(`💰 Instance #${instanceId.current} - Création Payment Intent pour ${props.amount}€`);
 
+                // CORRECTION : Utilisation de props.totalServicePrice au lieu de props.service.price
+                const financialDetails = calculateFinancialDetails(props.totalServicePrice, props.paymentType);
+
                 const metadata = {
+                    // Informations client
                     customer_email: props.bookingData.email,
                     customer_name: `${props.bookingData.firstName} ${props.bookingData.lastName}`,
+
+                    // Informations service (SUPPRESSION du doublon Service)
                     service_type: props.type,
-                    service_name: props.serviceName,
-                    Service: props.serviceName,
-                    Prix: `${props.amount}€`,
+                    service_name: props.serviceName, // On garde seulement service_name
                     payment_type: props.paymentType,
+
+                    // Informations de réservation si session
                     ...(props.type === 'session' && props.selectedDate && {
                         reservation_date: props.selectedDate,
                         reservation_time: props.selectedTime
                     }),
-                    booking_details: props.stripeComment,
-                    instance_id: instanceId.current, // NOUVEAU : Pour le débogage
+
+                    // Détails financiers complets
+                    ...financialDetails,
+
+                    // Informations techniques
+                    instance_id: instanceId.current,
                     timestamp: Date.now()
                 };
 
@@ -333,13 +391,14 @@ export default function StripePayment(props: StripePaymentProps) {
                 }
 
                 console.log(`✅ Instance #${instanceId.current} - Payment Intent créé avec succès`);
+                console.log('📊 Métadonnées financières:', financialDetails);
                 setClientSecret(data.clientSecret);
             } catch (err) {
                 console.error(`❌ Instance #${instanceId.current} - Erreur:`, err);
                 const message = err instanceof Error ? err.message : "Erreur inconnue";
                 setError(message);
                 props.onError(message);
-                paymentIntentCreated.current = false; // Permettre de réessayer en cas d'erreur
+                paymentIntentCreated.current = false;
             } finally {
                 setLoading(false);
             }
@@ -349,11 +408,10 @@ export default function StripePayment(props: StripePaymentProps) {
             createPaymentIntent();
         }
 
-        // NETTOYAGE : Réinitialiser si le composant est démonté
         return () => {
             console.log(`🧹 Instance StripePayment #${instanceId.current} démontée`);
         };
-    }, [props.amount, props.serviceName, props.bookingData, props.type, props.selectedDate, props.selectedTime, props.paymentType, props.stripeComment]);
+    }, [props.amount, props.serviceName, props.bookingData, props.type, props.selectedDate, props.selectedTime, props.paymentType, props.totalServicePrice]); // CORRECTION : props.totalServicePrice
 
     if (loading) {
         return (
@@ -463,3 +521,6 @@ export default function StripePayment(props: StripePaymentProps) {
         </div>
     );
 }
+
+// Compteur global pour suivre les instances
+let paymentInstanceCounter = 0;

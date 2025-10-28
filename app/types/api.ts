@@ -77,8 +77,6 @@ export interface CartItemComponent {
     quantity: number;
     selectedCapacity?: Capacity;
 }
-
-// Props pour StripePayment
 export interface StripePaymentProps {
     amount: number;
     serviceName: string;
@@ -95,8 +93,9 @@ export interface StripePaymentProps {
     selectedDate?: string;
     selectedTime?: string;
     type: 'session' | 'product';
-    paymentType: 'deposit' | 'full'; // Nouveau champ
+    paymentType: 'deposit' | 'full';
     stripeComment: string;
+    totalServicePrice: number; // NOUVEAU : Prix total du service
 }
 
 // Types pour les montants de paiement

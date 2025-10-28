@@ -557,6 +557,7 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
     };
 
 // ÉTAPE 4 CORRIGÉE
+// Dans BookingProcess.tsx - Étape 4, mettez à jour l'appel à StripePayment
     const Step4 = () => {
         const stepConfig = getCurrentStepConfig();
         const currentFormData = getFormData();
@@ -601,6 +602,7 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
                             type={type}
                             paymentType={type === 'session' ? 'deposit' : 'full'}
                             stripeComment={stripeComment}
+                            totalServicePrice={service.price} // NOUVEAU : Ajout de cette prop
                         />
                     )}
                 </div>
