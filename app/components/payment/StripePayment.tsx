@@ -8,18 +8,13 @@ import type { StripePaymentProps } from "~/types/api";
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY!);
 
 // FONCTION : Calcul des détails financiers
-const calculateFinancialDetails = (totalAmount: number, paymentType: 'deposit' | 'full') => {
+const calculateFinancialDetails = (amountToPay: number, totalAmount: number, paymentType: 'deposit' | 'full') => {
     const tauxTVA = 0; // 20%
     const tauxCotisations = 40; // 40%
     const tauxIR = 11; // 11%
 
-    let prixTTC = totalAmount;
+    let prixTTC = amountToPay;
     let prixHT = prixTTC / (1 + tauxTVA/100);
-
-    if (paymentType === 'deposit') {
-        prixTTC = Math.round(totalAmount * 0.30); // 30% d'acompte
-        prixHT = prixTTC / (1 + tauxTVA/100);
-    }
 
     const tvaCollectee = prixHT * (tauxTVA/100);
     const cotisationsSociales = prixHT * (tauxCotisations/100);
@@ -68,6 +63,10 @@ function CheckoutForm({ clientSecret, ...props }: StripePaymentProps & { clientS
     const [errorMessage, setErrorMessage] = useState<string>("");
     const [paymentProcessed, setPaymentProcessed] = useState(false);
     const formSubmitted = useRef(false);
+
+    // CORRECTION : Utiliser le montant approprié (acompte pour sessions, total pour produits)
+    const amountToDisplay = props.amount;
+    const amountToUse = props.amount;
 
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
@@ -152,7 +151,7 @@ function CheckoutForm({ clientSecret, ...props }: StripePaymentProps & { clientS
             <div className="payment-header">
                 <h3>{props.paymentType === 'deposit' ? 'Paiement de l\'acompte' : 'Paiement complet'}</h3>
                 <div className="payment-amount">
-                    Montant: <strong>{props.amount}€</strong>
+                    Montant: <strong>{amountToDisplay}€</strong>
                     {props.paymentType === 'deposit' && (
                         <div className="payment-type-badge">Acompte 30%</div>
                     )}
@@ -186,8 +185,8 @@ function CheckoutForm({ clientSecret, ...props }: StripePaymentProps & { clientS
                     {isLoading ? "Traitement en cours..." :
                         paymentProcessed ? "Paiement confirmé ✓" :
                             props.paymentType === 'deposit'
-                                ? `Payer l'acompte de ${props.amount}€`
-                                : `Payer ${props.amount}€`}
+                                ? `Payer l'acompte de ${amountToDisplay}€`
+                                : `Payer ${amountToDisplay}€`}
                 </button>
             </div>
 
@@ -332,19 +331,23 @@ export default function StripePayment(props: StripePaymentProps) {
                 setError("");
                 paymentIntentCreated.current = true;
 
-                console.log(`💰 Instance #${instanceId.current} - Création Payment Intent pour ${props.amount}€`);
+                // CORRECTION : Utiliser le montant approprié selon le contexte
+                // - Pour les sessions : props.amount = acompte (30%)
+                // - Pour les produits : props.amount = total
+                const amountToUse = props.amount;
+                console.log(`💰 Instance #${instanceId.current} - Création Payment Intent pour ${amountToUse}€`);
 
-                // CORRECTION : Utilisation de props.totalServicePrice au lieu de props.service.price
-                const financialDetails = calculateFinancialDetails(props.totalServicePrice, props.paymentType);
+                // CORRECTION : Passer à la fois le montant à payer et le montant total
+                const financialDetails = calculateFinancialDetails(amountToUse, props.totalServicePrice, props.paymentType);
 
                 const metadata = {
                     // Informations client
                     customer_email: props.bookingData.email,
                     customer_name: `${props.bookingData.firstName} ${props.bookingData.lastName}`,
 
-                    // Informations service (SUPPRESSION du doublon Service)
+                    // Informations service
                     service_type: props.type,
-                    service_name: props.serviceName, // On garde seulement service_name
+                    service_name: props.serviceName,
                     payment_type: props.paymentType,
 
                     // Informations de réservation si session
@@ -367,7 +370,7 @@ export default function StripePayment(props: StripePaymentProps) {
                         "Content-Type": "application/json",
                     },
                     body: JSON.stringify({
-                        amount: props.amount,
+                        amount: amountToUse, // CORRECTION : Utiliser le montant approprié
                         currency: "eur",
                         metadata: metadata,
                         paymentType: props.paymentType
@@ -404,14 +407,14 @@ export default function StripePayment(props: StripePaymentProps) {
             }
         };
 
-        if (props.amount > 0 && !clientSecret) {
+        if (props.amount > 0 && !clientSecret) { // CORRECTION : Vérifier props.amount (montant à payer)
             createPaymentIntent();
         }
 
         return () => {
             console.log(`🧹 Instance StripePayment #${instanceId.current} démontée`);
         };
-    }, [props.amount, props.serviceName, props.bookingData, props.type, props.selectedDate, props.selectedTime, props.paymentType, props.totalServicePrice]); // CORRECTION : props.totalServicePrice
+    }, [props.amount, props.serviceName, props.bookingData, props.type, props.selectedDate, props.selectedTime, props.paymentType, props.totalServicePrice]);
 
     if (loading) {
         return (

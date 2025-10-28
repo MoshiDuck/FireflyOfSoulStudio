@@ -56,8 +56,8 @@ export interface BookingRequest {
     phone?: string;
     cart: CartItem[];
     total: number;
-    amountPaid?: number; // Nouveau champ
-    paymentType?: 'deposit' | 'full'; // Nouveau champ
+    amountPaid?: number;
+    paymentType?: 'deposit' | 'full';
     date?: string | null;
     time?: string | null;
     type: 'session' | 'product';
@@ -65,7 +65,8 @@ export interface BookingRequest {
 
 // Props communes
 export interface BookingProcessProps {
-    service: Service;
+    service?: Service;
+    cart?: CartItemComponent[];
     onBack: () => void;
     onComplete: () => void;
     apiEndpoint: string;
@@ -77,6 +78,7 @@ export interface CartItemComponent {
     quantity: number;
     selectedCapacity?: Capacity;
 }
+
 export interface StripePaymentProps {
     amount: number;
     serviceName: string;
@@ -95,7 +97,7 @@ export interface StripePaymentProps {
     type: 'session' | 'product';
     paymentType: 'deposit' | 'full';
     stripeComment: string;
-    totalServicePrice: number; // NOUVEAU : Prix total du service
+    totalServicePrice: number;
 }
 
 // Types pour les montants de paiement

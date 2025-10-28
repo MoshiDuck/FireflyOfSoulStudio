@@ -1,4 +1,4 @@
-// Info : app/routes/public/service/store/store.tsx
+// app/routes/public/service/store/store.tsx
 import React, { useState } from "react";
 import { PageLayout } from "~/components/layout/PageLayout";
 import { HeroSection } from "~/components/ui/HeroSection";
@@ -99,9 +99,9 @@ function ProductCard({ product, onAddToCart }: {
 
 export default function Store() {
     const [cart, setCart] = useState<CartItemComponent[]>([]);
-    const [selectedService, setSelectedService] = useState<Service | null>(null);
     const [isCheckingOut, setIsCheckingOut] = useState(false);
 
+    // ✅ TOUTES les fonctions définies :
     const handleAddToCart = (product: Service, capacity?: Capacity) => {
         const existingItemIndex = cart.findIndex(
             item => item.service.id === product.id && item.selectedCapacity?.size === capacity?.size
@@ -145,9 +145,6 @@ export default function Store() {
             return;
         }
 
-        // Pour la démonstration, on prend le premier produit du panier
-        // Dans une vraie application, vous voudriez peut-être gérer le panier complet
-        setSelectedService(cart[0].service);
         setIsCheckingOut(true);
         setTimeout(() => {
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -156,13 +153,11 @@ export default function Store() {
 
     const handleOrderComplete = () => {
         setIsCheckingOut(false);
-        setSelectedService(null);
         setCart([]);
     };
 
     const handleBackToProducts = () => {
         setIsCheckingOut(false);
-        setSelectedService(null);
     };
 
     return (
@@ -179,14 +174,14 @@ export default function Store() {
                 showScrollIndicator={!isCheckingOut}
             />
 
-            {isCheckingOut && selectedService ? (
+            {isCheckingOut ? (
                 <div id="booking-section">
                     <BookingProcess
-                        service={selectedService}
-                        onBack={handleBackToProducts} // ou handleBackToProducts
-                        onComplete={handleOrderComplete} // ou handleOrderComplete
+                        cart={cart}
+                        onBack={handleBackToProducts}
+                        onComplete={handleOrderComplete}
                         apiEndpoint={API_ENDPOINTS.RESERVATIONS}
-                        type="product" // ou "product"
+                        type="product"
                     />
                 </div>
             ) : (

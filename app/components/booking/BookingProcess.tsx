@@ -13,7 +13,7 @@ import type {
     BookedSlot,
     ApiResponse,
     BookingProcessProps,
-    CartItem
+    CartItemComponent
 } from "~/types/api";
 import { STEP_CONFIG } from "~/config/booking";
 import { API_ENDPOINTS } from "~/config/api";
@@ -23,7 +23,7 @@ import { StepHeader } from "~/components/booking/StepHeader";
 import { ServiceInfo } from "~/components/booking/ServiceInfo";
 import { BookingSummary } from "~/components/booking/BookingSummary";
 
-export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type }: BookingProcessProps) {
+export function BookingProcess({ service, cart, onBack, onComplete, apiEndpoint, type }: BookingProcessProps & { cart?: CartItemComponent[] }) {
     const [step, setStep] = useState(1);
     const [selectedDate, setSelectedDate] = useState<string>("");
     const [selectedTime, setSelectedTime] = useState<string>("");
@@ -31,8 +31,21 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
     const [availableTimes, setAvailableTimes] = useState<TimeSlot[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-    const [paymentCompleted, setPaymentCompleted] = useState(false); // NOUVEAU : État global
+    const [paymentCompleted, setPaymentCompleted] = useState(false);
     const paymentInProgress = useRef(false);
+
+    if (!service && (!cart || cart.length === 0)) {
+        console.error('❌ BookingProcess: service ou cart requis');
+        return (
+            <div className="error-message">
+                <h3>Erreur de configuration</h3>
+                <p>Service ou panier manquant pour le processus de réservation.</p>
+                <button onClick={onBack} className="back-button">
+                    ← Retour
+                </button>
+            </div>
+        );
+    }
 
     const { updateField, getFormData, reset } = useFormDataManager({
         firstName: '',
@@ -41,24 +54,57 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
         phone: '',
         message: ''
     });
-    // Calcul des montants avec acompte pour les séances
+
+    // Calcul des montants avec acompte pour les séances OU pour le panier
     const calculatePaymentAmounts = useCallback(() => {
-        if (type === 'session') {
-            const depositAmount = Math.round(service.price * 0.30);
-            const remainingAmount = service.price - depositAmount;
-            return {
-                depositAmount,
-                remainingAmount,
-                totalAmount: service.price
-            };
-        } else {
-            return {
-                depositAmount: service.price,
-                remainingAmount: 0,
-                totalAmount: service.price
-            };
+        // Si c'est un panier (multiple produits), calculer le total
+        if (cart && cart.length > 0) {
+            const totalAmount = cart.reduce((total, item) => {
+                const price = item.selectedCapacity?.price || item.service.price;
+                return total + (price * item.quantity);
+            }, 0);
+
+            if (type === 'session') {
+                const depositAmount = Math.round(totalAmount * 0.30);
+                const remainingAmount = totalAmount - depositAmount;
+                return {
+                    depositAmount,
+                    remainingAmount,
+                    totalAmount
+                };
+            } else {
+                return {
+                    depositAmount: totalAmount,
+                    remainingAmount: 0,
+                    totalAmount
+                };
+            }
         }
-    }, [service.price, type]);
+        // Sinon, calcul pour un seul service
+        else if (service) {
+            if (type === 'session') {
+                const depositAmount = Math.round(service.price * 0.30);
+                const remainingAmount = service.price - depositAmount;
+                return {
+                    depositAmount,
+                    remainingAmount,
+                    totalAmount: service.price
+                };
+            } else {
+                return {
+                    depositAmount: service.price,
+                    remainingAmount: 0,
+                    totalAmount: service.price
+                };
+            }
+        }
+
+        return {
+            depositAmount: 0,
+            remainingAmount: 0,
+            totalAmount: 0
+        };
+    }, [service, cart, type]);
 
     const paymentAmounts = calculatePaymentAmounts();
     const TOTAL_STEPS = type === 'session' ? 4 : 3;
@@ -82,7 +128,6 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
         const fetchBookedSlots = async () => {
             if (selectedDate) {
                 try {
-                    // CORRECTION : Utilisation de l'endpoint passé en prop
                     const response = await fetch(`${apiEndpoint}?date=${selectedDate}`);
                     if (response.ok) {
                         const bookedSlots = await response.json() as BookedSlot[];
@@ -174,7 +219,16 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
     const generateStripeComment = useCallback((formData: ReturnType<typeof getFormData>, paymentType: 'deposit' | 'full') => {
         const customerInfo = `Client: ${formData.firstName} ${formData.lastName} - Email: ${formData.email}`;
         const phoneInfo = formData.phone ? ` - Tél: ${formData.phone}` : '';
-        const serviceInfo = `Service: ${service.name} (${service.description}) - Prix total: ${service.price}€`;
+
+        let serviceInfo = '';
+        if (cart && cart.length > 0) {
+            const itemsDescription = cart.map(item =>
+                `${item.service.name} (x${item.quantity})`
+            ).join(', ');
+            serviceInfo = `Panier: ${itemsDescription} - Total: ${paymentAmounts.totalAmount}€`;
+        } else if (service) {
+            serviceInfo = `Service: ${service.name} - Prix: ${service.price}€`;
+        }
 
         let paymentInfo = '';
         if (type === 'session') {
@@ -184,7 +238,7 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
                 paymentInfo = ` - Solde: ${paymentAmounts.remainingAmount}€ (70%)`;
             }
         } else {
-            paymentInfo = ` - Paiement complet: ${service.price}€`;
+            paymentInfo = ` - Paiement complet: ${paymentAmounts.totalAmount}€`;
         }
 
         let bookingInfo = '';
@@ -199,7 +253,7 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
 
         const fullComment = `${customerInfo}${phoneInfo} | ${serviceInfo}${paymentInfo}${bookingInfo}${messageInfo}`;
         return fullComment.substring(0, 500);
-    }, [service, type, paymentAmounts, selectedDate, selectedTime]);
+    }, [service, cart, type, paymentAmounts, selectedDate, selectedTime]);
 
     const handleFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -233,8 +287,8 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
             setIsSubmitting(false);
         }
     };
+
     const handlePaymentSuccess = async (paymentIntentId: string, paymentType: 'deposit' | 'full' = 'deposit') => {
-        // PROTECTION CONTRE LES DOUBLES APPELS
         if (paymentInProgress.current) {
             console.log('⏸️  handlePaymentSuccess déjà en cours - appel ignoré');
             return;
@@ -246,20 +300,33 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
         try {
             const currentFormData = getFormData();
 
+            // Préparer le panier pour l'envoi
+            const cartItems = cart && cart.length > 0
+                ? cart.map(item => ({
+                    productId: item.service.id,
+                    productName: item.service.name,
+                    productType: item.service.type,
+                    quantity: item.quantity,
+                    price: item.selectedCapacity?.price || item.service.price
+                }))
+                : service
+                    ? [{
+                        productId: service.id,
+                        productName: service.name,
+                        productType: service.type,
+                        quantity: 1,
+                        price: service.price
+                    }]
+                    : [];
+
             const requestData = type === 'session' ? {
                 firstName: currentFormData.firstName.trim(),
                 lastName: currentFormData.lastName.trim(),
                 email: currentFormData.email.trim(),
                 phone: currentFormData.phone?.trim() || '',
-                cart: [{
-                    productId: service.id,
-                    productName: service.name,
-                    productType: service.type,
-                    quantity: 1,
-                    price: service.price
-                }],
-                total: service.price,
-                amountPaid: paymentType === 'deposit' ? paymentAmounts.depositAmount : service.price,
+                cart: cartItems,
+                total: paymentAmounts.totalAmount,
+                amountPaid: paymentType === 'deposit' ? paymentAmounts.depositAmount : paymentAmounts.totalAmount,
                 paymentType: paymentType,
                 date: selectedDate,
                 time: selectedTime,
@@ -271,15 +338,9 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
                 lastName: currentFormData.lastName.trim(),
                 email: currentFormData.email.trim(),
                 phone: currentFormData.phone?.trim() || '',
-                cart: [{
-                    productId: service.id,
-                    productName: service.name,
-                    productType: service.type,
-                    quantity: 1,
-                    price: service.price
-                }],
-                total: service.price,
-                amountPaid: service.price,
+                cart: cartItems,
+                total: paymentAmounts.totalAmount,
+                amountPaid: paymentAmounts.totalAmount,
                 paymentType: 'full',
                 date: null,
                 time: null,
@@ -288,7 +349,7 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
                 paymentStatus: 'paid'
             };
 
-            console.log('📤 Envoi des données de réservation...');
+            console.log('📤 Envoi des données de réservation...', requestData);
 
             const response = await fetch(apiEndpoint, {
                 method: 'POST',
@@ -303,7 +364,7 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
                 if (type === 'session' && paymentType === 'deposit') {
                     successMessage = '✅ Acompte de 30% confirmé ! Votre séance est réservée. Le solde sera à régler après la séance.';
                 } else {
-                    successMessage = '✅ Paiement confirmé ! Votre réservation est validée.';
+                    successMessage = '✅ Paiement confirmé ! Votre commande est validée.';
                 }
 
                 setMessage({
@@ -311,7 +372,7 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
                     text: successMessage
                 });
 
-                console.log('🎉 Réservation confirmée avec succès');
+                console.log('🎉 Commande confirmée avec succès');
 
                 setTimeout(() => {
                     onComplete();
@@ -320,18 +381,18 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
                     setSelectedTime("");
                     setStep(1);
                     setPaymentCompleted(false);
-                    paymentInProgress.current = false; // RÉINITIALISER
+                    paymentInProgress.current = false;
                 }, 3000);
             } else {
-                throw new Error('Erreur lors de la confirmation de la réservation');
+                throw new Error('Erreur lors de la confirmation de la commande');
             }
         } catch (error) {
-            console.error('❌ Erreur confirmation réservation:', error);
+            console.error('❌ Erreur confirmation commande:', error);
             setMessage({
                 type: 'error',
                 text: 'Paiement réussi mais erreur lors de la confirmation. Contactez-nous.'
             });
-            paymentInProgress.current = false; // RÉINITIALISER EN CAS D'ERREUR
+            paymentInProgress.current = false;
         }
     };
 
@@ -360,7 +421,7 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
                     title={stepConfig.title}
                     backLabel={stepConfig.backLabel}
                 />
-                <ServiceInfo service={service} />
+                {service && <ServiceInfo service={service} />}
                 <div className="date-selection-grid">
                     {availableDates.map(date => (
                         <motion.button
@@ -398,10 +459,12 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
                     title={stepConfig.title}
                     backLabel={stepConfig.backLabel}
                 />
-                <ServiceInfo
-                    service={service}
-                    additionalInfo={formatDate(selectedDate)}
-                />
+                {service && (
+                    <ServiceInfo
+                        service={service}
+                        additionalInfo={formatDate(selectedDate)}
+                    />
+                )}
                 <div className="time-selection-grid">
                     {availableTimes.map(slot => (
                         <motion.button
@@ -445,6 +508,7 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
                 <BookingSummary
                     type={type}
                     service={service}
+                    cart={cart}
                     selectedDate={selectedDate}
                     selectedTime={selectedTime}
                     formatDate={formatDate}
@@ -538,7 +602,7 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
                         {isSubmitting ? 'Validation...' : paymentCompleted ? 'Paiement confirmé...' :
                             type === 'session'
                                 ? `Procéder à l'Acompte - ${paymentAmounts.depositAmount}€`
-                                : `Procéder au Paiement - ${service.price}€`}
+                                : `Procéder au Paiement - ${paymentAmounts.totalAmount}€`}
                     </motion.button>
 
                     {type === 'session' && (
@@ -556,14 +620,12 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
         );
     };
 
-// ÉTAPE 4 CORRIGÉE
-// Dans BookingProcess.tsx - Étape 4, mettez à jour l'appel à StripePayment
+    // ÉTAPE 4 : PAIEMENT
     const Step4 = () => {
         const stepConfig = getCurrentStepConfig();
         const currentFormData = getFormData();
 
-        // Générer le commentaire pour Stripe
-        const stripeComment = generateStripeComment(currentFormData, 'deposit');
+        const stripeComment = generateStripeComment(currentFormData, type === 'session' ? 'deposit' : 'full');
 
         return (
             <div className="booking-step">
@@ -576,6 +638,7 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
                 <BookingSummary
                     type={type}
                     service={service}
+                    cart={cart}
                     selectedDate={selectedDate}
                     selectedTime={selectedTime}
                     formatDate={formatDate}
@@ -587,12 +650,12 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
                         <div className="payment-completed-message">
                             <div className="success-animation">✅</div>
                             <h3>Paiement confirmé !</h3>
-                            <p>Votre réservation est en cours de traitement...</p>
+                            <p>Votre commande est en cours de traitement...</p>
                         </div>
                     ) : (
                         <StripePayment
-                            amount={type === 'session' ? paymentAmounts.depositAmount : service.price}
-                            serviceName={service.name}
+                            amount={type === 'session' ? paymentAmounts.depositAmount : paymentAmounts.totalAmount}
+                            serviceName={cart && cart.length > 0 ? `Panier (${cart.length} articles)` : service?.name || ''}
                             bookingData={getFormData()}
                             onSuccess={(paymentIntentId) => handlePaymentSuccess(paymentIntentId, type === 'session' ? 'deposit' : 'full')}
                             onError={(error) => setMessage({ type: 'error', text: error })}
@@ -602,7 +665,7 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
                             type={type}
                             paymentType={type === 'session' ? 'deposit' : 'full'}
                             stripeComment={stripeComment}
-                            totalServicePrice={service.price} // NOUVEAU : Ajout de cette prop
+                            totalServicePrice={paymentAmounts.totalAmount}
                         />
                     )}
                 </div>

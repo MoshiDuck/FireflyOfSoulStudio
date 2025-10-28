@@ -1,4 +1,4 @@
-// Info : app/routes/public/service/shootings/shootings.tsx
+// app/routes/public/service/shootings/shootings.tsx
 import React, { useState } from "react";
 import { PageLayout } from "~/components/layout/PageLayout";
 import { HeroSection } from "~/components/ui/HeroSection";
@@ -69,6 +69,7 @@ export default function Shootings() {
     const [selectedService, setSelectedService] = useState<Service | null>(null);
     const [isCheckingOut, setIsCheckingOut] = useState(false);
 
+    // ✅ TOUTES les fonctions définies :
     const handleDirectBooking = (service: Service) => {
         setSelectedService(service);
         setIsCheckingOut(true);
@@ -110,10 +111,10 @@ export default function Shootings() {
                 <div id="booking-section">
                     <BookingProcess
                         service={selectedService}
-                        onBack={handleBackToServices} // ou handleBackToProducts
-                        onComplete={handleBookingComplete} // ou handleOrderComplete
+                        onBack={handleBackToServices}
+                        onComplete={handleBookingComplete}
                         apiEndpoint={API_ENDPOINTS.RESERVATIONS}
-                        type="session" // ou "product"
+                        type="session"
                     />
                 </div>
             ) : (
