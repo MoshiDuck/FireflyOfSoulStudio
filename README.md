@@ -63,12 +63,12 @@ https://github.com/MoshiDuck/FireflyOfSoulStudio
     ```
 2. Commit
     ```bash
-    git commit -m "[FAIT] - ajout taxe dans transaction stripe"
+    git commit -m "[FAIT] - Probleme resolu shooting et store"
     ```
 
 3. Version
    ```bash
-   git tag 0.0.1.9
+   git tag 0.0.2.0
    ```
 
 4. Force le push
