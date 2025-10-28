@@ -63,12 +63,12 @@ https://github.com/MoshiDuck/FireflyOfSoulStudio
     ```
 2. Commit
     ```bash
-    git commit -m "[FAIT] - Ajout de comment dans stripe "
+    git commit -m "[FAIT] - Ajout d'acompte "
     ```
 
 3. Version
    ```bash
-   git tag 0.0.1.6
+   git tag 0.0.1.7
    ```
 
 4. Force le push

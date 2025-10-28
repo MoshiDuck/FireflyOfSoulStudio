@@ -1,5 +1,5 @@
-// Info : app/components/booking/BookingProcess.tsx
-import React, { useState, useEffect } from "react";
+// app/components/booking/BookingProcess.tsx
+import React, {useState, useEffect, useCallback, useRef} from "react";
 import { motion } from "motion/react";
 import { useFormDataManager } from "~/hooks/useFormDataManager";
 import { UncontrolledTextArea } from "~/components/ui/UncontrolledTextArea";
@@ -16,6 +16,7 @@ import type {
     CartItem
 } from "~/types/api";
 import { STEP_CONFIG } from "~/config/booking";
+import { API_ENDPOINTS } from "~/config/api";
 
 // Import des composants partagés
 import { StepHeader } from "~/components/booking/StepHeader";
@@ -30,8 +31,9 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
     const [availableTimes, setAvailableTimes] = useState<TimeSlot[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+    const [paymentCompleted, setPaymentCompleted] = useState(false); // NOUVEAU : État global
+    const paymentInProgress = useRef(false);
 
-    // CORRECTION : Utilisation unique de useFormDataManager sans état local en double
     const { updateField, getFormData, reset } = useFormDataManager({
         firstName: '',
         lastName: '',
@@ -39,12 +41,11 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
         phone: '',
         message: ''
     });
-
     // Calcul des montants avec acompte pour les séances
-    const calculatePaymentAmounts = () => {
+    const calculatePaymentAmounts = useCallback(() => {
         if (type === 'session') {
-            const depositAmount = Math.round(service.price * 0.30); // 30% d'acompte
-            const remainingAmount = service.price - depositAmount; // 70% restant
+            const depositAmount = Math.round(service.price * 0.30);
+            const remainingAmount = service.price - depositAmount;
             return {
                 depositAmount,
                 remainingAmount,
@@ -57,11 +58,9 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
                 totalAmount: service.price
             };
         }
-    };
+    }, [service.price, type]);
 
     const paymentAmounts = calculatePaymentAmounts();
-
-    // Calcul du nombre total d'étapes selon le type
     const TOTAL_STEPS = type === 'session' ? 4 : 3;
 
     // Générer les dates disponibles (14 prochains jours ouvrés)
@@ -83,6 +82,7 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
         const fetchBookedSlots = async () => {
             if (selectedDate) {
                 try {
+                    // CORRECTION : Utilisation de l'endpoint passé en prop
                     const response = await fetch(`${apiEndpoint}?date=${selectedDate}`);
                     if (response.ok) {
                         const bookedSlots = await response.json() as BookedSlot[];
@@ -122,32 +122,31 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
     }, [selectedDate, apiEndpoint, type]);
 
     // LOGIQUE DE GESTION DES ÉTAPES
-    const goToNextStep = () => {
-        if (step < TOTAL_STEPS) {
+    const goToNextStep = useCallback(() => {
+        if (step < TOTAL_STEPS && !paymentCompleted) {
             setStep(step + 1);
         }
-    };
+    }, [step, TOTAL_STEPS, paymentCompleted]);
 
-    const goToPreviousStep = () => {
-        if (step > 1) {
+    const goToPreviousStep = useCallback(() => {
+        if (step > 1 && !paymentCompleted) {
             setStep(step - 1);
         } else {
             onBack();
         }
-    };
+    }, [step, paymentCompleted, onBack]);
 
-    const getCurrentStepConfig = () => {
+    const getCurrentStepConfig = useCallback(() => {
         const steps = STEP_CONFIG[type];
         return steps[step - 1] || steps[0];
-    };
+    }, [step, type]);
 
-    // CORRECTION : Gestion simplifiée du changement de champ
-    const handleFieldChange = (value: string, fieldName: string) => {
+    const handleFieldChange = useCallback((value: string, fieldName: string) => {
         updateField(fieldName as keyof ReturnType<typeof getFormData>, value);
-    };
+    }, [updateField, getFormData]);
 
     // VALIDATION UNIFIÉE
-    const validateForm = (formData: ReturnType<typeof getFormData>) => {
+    const validateForm = useCallback((formData: ReturnType<typeof getFormData>) => {
         if (!formData.firstName?.trim() || !formData.lastName?.trim() || !formData.email?.trim()) {
             return 'Veuillez remplir tous les champs obligatoires';
         }
@@ -169,10 +168,10 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
         }
 
         return null;
-    };
+    }, [type, selectedDate, selectedTime, availableTimes]);
 
     // Fonction pour générer le commentaire détaillé pour Stripe
-    const generateStripeComment = (formData: ReturnType<typeof getFormData>, paymentType: 'deposit' | 'full') => {
+    const generateStripeComment = useCallback((formData: ReturnType<typeof getFormData>, paymentType: 'deposit' | 'full') => {
         const customerInfo = `Client: ${formData.firstName} ${formData.lastName} - Email: ${formData.email}`;
         const phoneInfo = formData.phone ? ` - Tél: ${formData.phone}` : '';
         const serviceInfo = `Service: ${service.name} (${service.description}) - Prix total: ${service.price}€`;
@@ -198,21 +197,23 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
 
         const messageInfo = formData.message ? ` - Message: ${formData.message.substring(0, 200)}` : '';
 
-        // Construction du commentaire final (limité à 500 caractères pour Stripe)
         const fullComment = `${customerInfo}${phoneInfo} | ${serviceInfo}${paymentInfo}${bookingInfo}${messageInfo}`;
-
         return fullComment.substring(0, 500);
-    };
+    }, [service, type, paymentAmounts, selectedDate, selectedTime]);
 
     const handleFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (paymentCompleted) {
+            setMessage({ type: 'error', text: 'Le paiement a déjà été effectué. Veuillez patienter...' });
+            return;
+        }
+
         setIsSubmitting(true);
         setMessage(null);
 
         try {
             const currentFormData = getFormData();
-
-            // VALIDATION UNIFIÉE
             const validationError = validateForm(currentFormData);
             if (validationError) {
                 setMessage({ type: 'error', text: validationError });
@@ -220,7 +221,6 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
                 return;
             }
 
-            // Passer à l'étape paiement
             goToNextStep();
 
         } catch (error) {
@@ -233,9 +233,16 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
             setIsSubmitting(false);
         }
     };
-
-    // Fonction pour gérer le succès du paiement
     const handlePaymentSuccess = async (paymentIntentId: string, paymentType: 'deposit' | 'full' = 'deposit') => {
+        // PROTECTION CONTRE LES DOUBLES APPELS
+        if (paymentInProgress.current) {
+            console.log('⏸️  handlePaymentSuccess déjà en cours - appel ignoré');
+            return;
+        }
+
+        paymentInProgress.current = true;
+        setPaymentCompleted(true);
+
         try {
             const currentFormData = getFormData();
 
@@ -281,7 +288,8 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
                 paymentStatus: 'paid'
             };
 
-            // Envoyer les données de réservation avec l'ID de paiement
+            console.log('📤 Envoi des données de réservation...');
+
             const response = await fetch(apiEndpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -303,38 +311,44 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
                     text: successMessage
                 });
 
+                console.log('🎉 Réservation confirmée avec succès');
+
                 setTimeout(() => {
                     onComplete();
                     reset();
                     setSelectedDate("");
                     setSelectedTime("");
                     setStep(1);
+                    setPaymentCompleted(false);
+                    paymentInProgress.current = false; // RÉINITIALISER
                 }, 3000);
             } else {
                 throw new Error('Erreur lors de la confirmation de la réservation');
             }
         } catch (error) {
-            console.error('Erreur confirmation réservation:', error);
+            console.error('❌ Erreur confirmation réservation:', error);
             setMessage({
                 type: 'error',
                 text: 'Paiement réussi mais erreur lors de la confirmation. Contactez-nous.'
             });
+            paymentInProgress.current = false; // RÉINITIALISER EN CAS D'ERREUR
         }
     };
 
-    // Fonction pour annuler le paiement
-    const handlePaymentCancel = () => {
-        goToPreviousStep(); // Revenir au formulaire
-    };
+    const handlePaymentCancel = useCallback(() => {
+        if (!paymentCompleted) {
+            goToPreviousStep();
+        }
+    }, [goToPreviousStep, paymentCompleted]);
 
-    const formatDate = (dateStr: string) => {
+    const formatDate = useCallback((dateStr: string) => {
         const date = new Date(dateStr);
         return date.toLocaleDateString('fr-FR', {
             weekday: 'long',
             month: 'long',
             day: 'numeric'
         });
-    };
+    }, []);
 
     // ÉTAPE 1 : SÉLECTION DE LA DATE (SESSIONS UNIQUEMENT)
     const Step1 = () => {
@@ -515,13 +529,13 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
 
                     <motion.button
                         type="submit"
-                        disabled={isSubmitting}
+                        disabled={isSubmitting || paymentCompleted}
                         className="submit-button"
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         transition={{ type: "spring", stiffness: 400, damping: 17 }}
                     >
-                        {isSubmitting ? 'Validation...' :
+                        {isSubmitting ? 'Validation...' : paymentCompleted ? 'Paiement confirmé...' :
                             type === 'session'
                                 ? `Procéder à l'Acompte - ${paymentAmounts.depositAmount}€`
                                 : `Procéder au Paiement - ${service.price}€`}
@@ -542,7 +556,7 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
         );
     };
 
-    // ÉTAPE 4 : PAIEMENT
+// ÉTAPE 4 CORRIGÉE
     const Step4 = () => {
         const stepConfig = getCurrentStepConfig();
         const currentFormData = getFormData();
@@ -568,19 +582,27 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
                 />
 
                 <div className="payment-section">
-                    <StripePayment
-                        amount={type === 'session' ? paymentAmounts.depositAmount : service.price}
-                        serviceName={service.name}
-                        bookingData={getFormData()}
-                        onSuccess={(paymentIntentId) => handlePaymentSuccess(paymentIntentId, type === 'session' ? 'deposit' : 'full')}
-                        onError={(error) => setMessage({ type: 'error', text: error })}
-                        onCancel={handlePaymentCancel}
-                        selectedDate={selectedDate}
-                        selectedTime={selectedTime}
-                        type={type}
-                        paymentType={type === 'session' ? 'deposit' : 'full'}
-                        stripeComment={stripeComment}
-                    />
+                    {paymentCompleted ? (
+                        <div className="payment-completed-message">
+                            <div className="success-animation">✅</div>
+                            <h3>Paiement confirmé !</h3>
+                            <p>Votre réservation est en cours de traitement...</p>
+                        </div>
+                    ) : (
+                        <StripePayment
+                            amount={type === 'session' ? paymentAmounts.depositAmount : service.price}
+                            serviceName={service.name}
+                            bookingData={getFormData()}
+                            onSuccess={(paymentIntentId) => handlePaymentSuccess(paymentIntentId, type === 'session' ? 'deposit' : 'full')}
+                            onError={(error) => setMessage({ type: 'error', text: error })}
+                            onCancel={handlePaymentCancel}
+                            selectedDate={selectedDate}
+                            selectedTime={selectedTime}
+                            type={type}
+                            paymentType={type === 'session' ? 'deposit' : 'full'}
+                            stripeComment={stripeComment}
+                        />
+                    )}
                 </div>
 
                 {message && (
@@ -592,7 +614,7 @@ export function BookingProcess({ service, onBack, onComplete, apiEndpoint, type 
         );
     };
 
-    // Configuration des étapes mise à jour
+    // Configuration des étapes
     const steps = type === 'session'
         ? [
             { number: 1, label: 'Date', title: 'Choisissez une date pour votre séance', backLabel: '← Retour aux séances' },
