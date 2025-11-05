@@ -12,6 +12,7 @@ interface GalleryPaymentProcessProps {
     customerInfo: CustomerInfo;
     totalAmount?: number;
     amountPaid?: number;
+    existingReservationId?: string; // Nouvelle prop pour l'ID existant
 }
 
 export function GalleryPaymentProcess({
@@ -21,7 +22,8 @@ export function GalleryPaymentProcess({
                                           apiEndpoint,
                                           customerInfo,
                                           totalAmount = 850,
-                                          amountPaid = 255
+                                          amountPaid = 255,
+                                          existingReservationId // Nouvelle prop
                                       }: GalleryPaymentProcessProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -34,52 +36,89 @@ export function GalleryPaymentProcess({
         setPaymentCompleted(true);
 
         try {
-            const requestData = {
-                firstName: customerInfo.firstName.trim(),
-                lastName: customerInfo.lastName.trim(),
-                email: customerInfo.email.trim(),
-                phone: customerInfo.phone?.trim() || '',
-                cart: [{
-                    productId: service.id,
-                    productName: service.name,
-                    productType: 'album',
-                    quantity: 1,
-                    price: service.price
-                }],
-                total: service.price,
-                amountPaid: service.price,
-                paymentType: 'full',
-                date: null,
-                time: null,
-                type: 'product',
-                paymentIntentId: paymentIntentId,
-                paymentStatus: 'paid'
-            };
+            // Si nous avons un existingReservationId, nous mettons à jour la réservation existante
+            if (existingReservationId) {
+                const updateData = {
+                    paymentIntentId: paymentIntentId,
+                    amountPaid: totalAmount, // Le montant total est maintenant payé
+                    paymentStatus: 'paid' as const
+                };
 
-            const response = await fetch(apiEndpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(requestData),
-            });
-
-            const result = await response.json() as ApiResponse<{ id: number }>;
-
-            if (response.ok && result.success === true) {
-                setMessage({
-                    type: 'success',
-                    text: 'Paiement confirmé ! Déverrouillage de votre album...'
+                // Utiliser l'endpoint de mise à jour pour la réservation existante
+                const response = await fetch(`/api/reservations/${existingReservationId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updateData),
                 });
 
-                setTimeout(() => {
-                    onComplete();
-                    setPaymentCompleted(false);
-                    paymentInProgress.current = false;
-                }, 2000);
+                const result = await response.json() as ApiResponse<{ id: number }>;
+
+                if (response.ok && result.success === true) {
+                    setMessage({
+                        type: 'success',
+                        text: 'Solde payé avec succès ! Déverrouillage de votre album...'
+                    });
+
+                    setTimeout(() => {
+                        onComplete();
+                        setPaymentCompleted(false);
+                        paymentInProgress.current = false;
+                    }, 2000);
+                } else {
+                    const errorMessage = result.success === false
+                        ? result.error
+                        : 'Erreur lors de la confirmation du solde';
+                    throw new Error(errorMessage);
+                }
             } else {
-                const errorMessage = result.success === false
-                    ? result.error
-                    : 'Erreur lors de la confirmation';
-                throw new Error(errorMessage);
+                // Code existant pour la création d'une nouvelle réservation (cas initial)
+                const requestData = {
+                    firstName: customerInfo.firstName.trim(),
+                    lastName: customerInfo.lastName.trim(),
+                    email: customerInfo.email.trim(),
+                    phone: customerInfo.phone?.trim() || '',
+                    cart: [{
+                        productId: service.id,
+                        productName: service.name,
+                        productType: 'album',
+                        quantity: 1,
+                        price: service.price
+                    }],
+                    total: service.price,
+                    amountPaid: service.price,
+                    paymentType: 'full',
+                    date: null,
+                    time: null,
+                    type: 'product',
+                    paymentIntentId: paymentIntentId,
+                    paymentStatus: 'paid'
+                };
+
+                const response = await fetch(apiEndpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestData),
+                });
+
+                const result = await response.json() as ApiResponse<{ id: number }>;
+
+                if (response.ok && result.success === true) {
+                    setMessage({
+                        type: 'success',
+                        text: 'Paiement confirmé ! Déverrouillage de votre album...'
+                    });
+
+                    setTimeout(() => {
+                        onComplete();
+                        setPaymentCompleted(false);
+                        paymentInProgress.current = false;
+                    }, 2000);
+                } else {
+                    const errorMessage = result.success === false
+                        ? result.error
+                        : 'Erreur lors de la confirmation';
+                    throw new Error(errorMessage);
+                }
             }
         } catch (error) {
             console.error('Erreur confirmation:', error);
@@ -104,7 +143,7 @@ export function GalleryPaymentProcess({
         return `${customerInfoText}${phoneInfo} | ${serviceInfo}`.substring(0, 500);
     };
 
-    const remainingAmount = service.price;
+    const remainingAmount = totalAmount - amountPaid;
 
     return (
         <motion.section

@@ -63,12 +63,12 @@ https://github.com/MoshiDuck/FireflyOfSoulStudio
     ```
 2. Commit
     ```bash
-    git commit -m "[FAIT] - Ajouter upload photo et photo dans gallery"
+    git commit -m "[FAIT] - Paiement dans gallery"
     ```
 
 3. Version
    ```bash
-   git tag 0.0.2.1
+   git tag 0.0.2.2
    ```
 
 4. Force le push

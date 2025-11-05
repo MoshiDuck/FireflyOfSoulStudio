@@ -3,7 +3,7 @@ import { PageLayout } from "~/components/layout/PageLayout";
 import { HeroSection } from "~/components/ui/HeroSection";
 import { SectionHeader } from "~/components/ui/SectionHeader";
 import { CTASection } from "~/components/ui/CTASection";
-import { GalleryPaymentProcess } from "~/components/booking/GalleryPaymentProcess"; // ← Nouveau composant
+import { GalleryPaymentProcess } from "~/components/booking/GalleryPaymentProcess";
 import { useState, useEffect } from "react";
 import { API_ENDPOINTS } from "~/config/api";
 import "../../../components/components.css";
@@ -22,7 +22,7 @@ interface PhotoAlbum {
     photos?: Photo[];
     totalAmount?: number;
     amountPaid?: number;
-    customerInfo?: { // ← Ajout des infos client
+    customerInfo?: {
         firstName: string;
         lastName: string;
         email: string;
@@ -279,7 +279,7 @@ export default function Gallery() {
                             photoCount: result.data.photos.length,
                             totalAmount: result.data.totalAmount,
                             amountPaid: result.data.amountPaid,
-                            customerInfo: result.data.customerInfo // ← Récupération des infos client
+                            customerInfo: result.data.customerInfo
                         };
                         setCurrentAlbum(updatedAlbum);
 
@@ -430,6 +430,9 @@ export default function Gallery() {
                                 lastName: currentAlbum.name.split(' ')[0] || "Album",
                                 email: currentAlbum.clientEmail || "client@example.com"
                             }}
+                            totalAmount={paymentStatus?.totalAmount || currentAlbum.totalAmount || 850}
+                            amountPaid={paymentStatus?.amountPaid || currentAlbum.amountPaid || 255}
+                            existingReservationId={selectedAlbum} // ← IMPORTANT: ID de la réservation existante
                         />
                     </div>
                 </div>

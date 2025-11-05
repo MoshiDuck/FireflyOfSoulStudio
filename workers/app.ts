@@ -1334,6 +1334,102 @@ app.options('/api/create-payment-intent', (c) => {
     });
 });
 
+app.put('/api/reservations/:id', async (c) => {
+    const db = c.env.DB;
+    const reservationId = c.req.param('id');
+
+    try {
+        const {
+            paymentIntentId,
+            amountPaid,
+            paymentStatus
+        } = await c.req.json() as {
+            paymentIntentId?: string;
+            amountPaid?: number;
+            paymentStatus?: string;
+        };
+
+        console.log('📝 Mise à jour réservation existante:', {
+            reservationId,
+            paymentIntentId,
+            amountPaid,
+            paymentStatus
+        });
+
+        // Vérifier que la réservation existe
+        const existingReservation = await db.prepare(
+            "SELECT * FROM reservations WHERE id = ?"
+        ).bind(reservationId).first() as Record<string, any> | null;
+
+        if (!existingReservation) {
+            return c.json({
+                success: false,
+                error: "Réservation non trouvée",
+                details: `La réservation avec l'ID ${reservationId} n'existe pas`
+            }, 404);
+        }
+
+        // Préparer les champs de mise à jour
+        const updates: string[] = [];
+        const values: any[] = [];
+
+        if (paymentIntentId) {
+            updates.push("payment_intent_id = ?");
+            values.push(paymentIntentId);
+        }
+
+        if (amountPaid !== undefined) {
+            updates.push("amount_paid = ?");
+            values.push(amountPaid);
+        }
+
+        if (paymentStatus) {
+            updates.push("payment_status = ?");
+            values.push(paymentStatus);
+        }
+
+        if (updates.length === 0) {
+            return c.json({
+                success: false,
+                error: "Aucune donnée à mettre à jour"
+            }, 400);
+        }
+
+        // Ajouter l'ID à la fin pour la clause WHERE
+        values.push(reservationId);
+
+        const updateQuery = `
+            UPDATE reservations 
+            SET ${updates.join(', ')} 
+            WHERE id = ?
+        `;
+
+        console.log('📝 Requête de mise à jour:', updateQuery, values);
+
+        const result = await db.prepare(updateQuery).bind(...values).run();
+
+        const response: ApiResponse = {
+            success: true,
+            message: "Réservation mise à jour avec succès",
+            data: {
+                id: reservationId,
+                updated: result.meta.changes > 0
+            }
+        };
+
+        console.log('✅ Réservation mise à jour:', reservationId);
+        return c.json(response);
+
+    } catch (error) {
+        console.error('❌ Erreur mise à jour réservation:', error);
+        return c.json({
+            success: false,
+            error: "Erreur lors de la mise à jour de la réservation",
+            details: getErrorMessage(error)
+        }, 500);
+    }
+});
+
 // ✅ ROUTE RESERVATIONS
 app.post('/api/reservations', async (c) => {
     const db = c.env.DB;
