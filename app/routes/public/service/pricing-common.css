@@ -793,3 +793,628 @@
         font-size: 1.3rem;
     }
 }
+/* Styles modernes pour BookingProcess - FENÊTRE AGRANDIE */
+.booking-section-modern {
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--deep-night) 0%, var(--dark-blue) 100%);
+    padding: 2rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.booking-container-modern {
+    width: 100%;
+    max-width: 600px; /* Augmenté de 520px à 600px */
+    margin: 0 auto;
+}
+
+/* Barre de progression */
+.progress-bar-modern {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 3rem;
+    position: relative;
+}
+
+.progress-step-modern {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+    flex: 1;
+}
+
+.step-indicator {
+    width: 40px; /* Légèrement agrandi */
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 213, 128, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--soft-gray);
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.step-indicator.active {
+    background: var(--warm-gold);
+    border-color: var(--warm-gold);
+    color: var(--deep-night);
+}
+
+.step-label {
+    color: var(--soft-gray);
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    text-align: center;
+}
+
+.step-connector {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    right: -50%;
+    height: 2px;
+    background: rgba(255, 213, 128, 0.2);
+    z-index: 1;
+    transition: all 0.3s ease;
+}
+
+.step-connector.active {
+    background: var(--warm-gold);
+}
+
+/* Contenu de l'étape - PLUS LARGE */
+.step-content-modern {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 213, 128, 0.15);
+    border-radius: 20px;
+    padding: 2.5rem; /* Augmenté le padding */
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.booking-step-modern {
+    width: 100%;
+}
+
+/* Header d'étape */
+.booking-step-header-modern {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    width: 100%;
+}
+
+.back-btn-minimal {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--warm-gold);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+
+.back-btn-minimal:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateX(-2px);
+}
+
+.back-icon {
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+.step-title-modern {
+    text-align: center;
+    flex: 1;
+    min-width: 0; /* Empêche le débordement */
+}
+
+.step-title-modern h2 {
+    color: white;
+    font-family: 'Cinzel', serif;
+    font-size: 1.6rem; /* Légèrement plus grand */
+    margin: 0 0 0.5rem 0;
+    line-height: 1.3;
+    word-wrap: break-word;
+}
+
+.step-title-modern p {
+    color: var(--soft-gray);
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+.step-progress {
+    color: var(--soft-gray);
+    font-size: 0.85rem;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+/* Espacement du contenu */
+.step-content-spacing {
+    margin-bottom: 2rem;
+    width: 100%;
+}
+
+/* Carte de service - MEILLEURE UTILISATION DE L'ESPACE */
+.service-card-modern {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid rgba(255, 213, 128, 0.1);
+    margin-bottom: 2rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.service-icon {
+    font-size: 1.6rem;
+    background: rgba(255, 213, 128, 0.1);
+    border-radius: 10px;
+    width: 52px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.service-info {
+    flex: 1;
+    min-width: 0; /* Empêche le débordement */
+}
+
+.service-info h3 {
+    color: white;
+    font-family: 'Cinzel', serif;
+    font-size: 1.2rem;
+    margin: 0 0 0.5rem 0;
+    line-height: 1.3;
+    word-wrap: break-word;
+}
+
+.service-info p {
+    color: var(--soft-gray);
+    font-size: 0.95rem;
+    margin: 0;
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+
+.service-price {
+    color: var(--warm-gold);
+    font-family: 'Cinzel', serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+/* Grilles de date et heure - MEILLEURE RÉPARTITION */
+.date-grid-modern {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 4 colonnes au lieu de 3 */
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.time-grid-modern {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.date-option-modern,
+.time-option-modern {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 213, 128, 0.2);
+    border-radius: 12px;
+    padding: 1rem 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    color: inherit;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.date-option-modern:hover,
+.time-option-modern.available:hover {
+    border-color: rgba(255, 213, 128, 0.4);
+    background: rgba(255, 213, 128, 0.05);
+}
+
+.time-option-modern.booked {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.date-day {
+    font-family: 'Cinzel', serif;
+    color: var(--warm-gold);
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.date-weekday {
+    color: white;
+    font-size: 0.8rem;
+    margin-bottom: 0.25rem;
+}
+
+.date-month {
+    color: var(--soft-gray);
+    font-size: 0.75rem;
+}
+
+.time-slot {
+    font-family: 'Cinzel', serif;
+    color: var(--warm-gold);
+    font-size: 0.95rem;
+    margin-bottom: 0.25rem;
+}
+
+.time-status {
+    color: var(--soft-gray);
+    font-size: 0.7rem;
+}
+
+/* Section récapitulative */
+.summary-section {
+    margin-bottom: 2rem;
+    width: 100%;
+}
+
+.booking-details-modern {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    padding: 1.25rem;
+    border: 1px solid rgba(255, 213, 128, 0.1);
+    margin-bottom: 1.5rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    color: var(--soft-gray);
+    font-size: 0.95rem;
+    width: 100%;
+}
+
+.detail-item:not(:last-child) {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.payment-breakdown-modern {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    padding: 1.75rem;
+    border: 1px solid rgba(255, 213, 128, 0.1);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.amount-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    color: var(--soft-gray);
+    font-size: 0.95rem;
+    width: 100%;
+}
+
+.amount-line.total {
+    color: var(--warm-gold);
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.amount-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, rgba(255,213,128,0.3) 50%, transparent 100%);
+    margin: 1rem 0;
+    width: 100%;
+}
+
+/* FORMULAIRE MODERNE - CORRIGÉ POUR NE PAS DÉPASSER */
+.booking-form-modern {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.booking-form-modern > * {
+    margin-bottom: 1.5rem;
+    width: 100%;
+}
+
+.booking-form-modern > *:last-child {
+    margin-bottom: 0;
+}
+
+.form-grid-modern {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+    width: 100%;
+}
+
+.form-group-modern {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1.5rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.form-group-modern:last-child {
+    margin-bottom: 0;
+}
+
+.form-group-modern label {
+    color: var(--warm-gold);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.form-input-modern {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 213, 128, 0.3);
+    border-radius: 8px;
+    padding: 0.85rem 1rem;
+    color: white;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.3s ease;
+    font-size: 0.95rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.form-input-modern:focus {
+    outline: none;
+    border-color: var(--warm-gold);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.form-input-modern::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+/* Bouton de soumission */
+.submit-btn-modern {
+    width: 100%;
+    background: linear-gradient(135deg, var(--warm-gold), var(--amber-light));
+    color: var(--deep-night);
+    border: none;
+    border-radius: 8px;
+    padding: 1.1rem 2rem;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1.05rem;
+    margin-top: 1rem;
+    box-sizing: border-box;
+}
+
+.submit-btn-modern:hover:not(:disabled) {
+    background: linear-gradient(135deg, var(--amber-light), var(--warm-gold));
+    transform: translateY(-2px);
+}
+
+.submit-btn-modern:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Section de paiement - PLUS LARGE */
+.payment-section-modern {
+    margin-top: 2rem;
+    width: 100%;
+}
+
+.payment-success {
+    text-align: center;
+    padding: 3rem 2rem;
+    width: 100%;
+}
+
+.success-check {
+    width: 85px;
+    height: 85px;
+    background: var(--warm-gold);
+    color: var(--deep-night);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.2rem;
+    font-weight: bold;
+    margin: 0 auto 1.5rem;
+    animation: scaleIn 0.6s ease-out;
+}
+
+.payment-success h3 {
+    color: white;
+    font-family: 'Cinzel', serif;
+    margin: 0 0 0.5rem 0;
+    font-size: 1.5rem;
+}
+
+.payment-success p {
+    color: var(--soft-gray);
+    margin: 0;
+    font-size: 1rem;
+}
+
+/* Messages de statut */
+.status-message {
+    padding: 1.1rem;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 500;
+    font-size: 0.95rem;
+    margin: 1.5rem 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.status-message.success {
+    background: rgba(34, 197, 94, 0.1);
+    color: #10b981;
+    border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.status-message.error {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+/* État d'erreur */
+.booking-error {
+    text-align: center;
+    padding: 3rem 2rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    width: 100%;
+}
+
+.booking-error h3 {
+    color: #ef4444;
+    margin-bottom: 1rem;
+    font-size: 1.3rem;
+}
+
+.booking-error p {
+    color: var(--soft-gray);
+    margin-bottom: 1.5rem;
+    font-size: 1rem;
+}
+
+/* Animations */
+@keyframes scaleIn {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    70% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* RESPONSIVE - OPTIMISÉ POUR LA NOUVELLE TAILLE */
+@media (max-width: 768px) {
+    .booking-section-modern {
+        padding: 1rem 0.5rem;
+        align-items: flex-start;
+    }
+
+    .booking-container-modern {
+        max-width: 100%;
+    }
+
+    .step-content-modern {
+        padding: 2rem 1.5rem;
+    }
+
+    .form-grid-modern {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .date-grid-modern {
+        grid-template-columns: repeat(3, 1fr); /* 3 colonnes sur mobile */
+    }
+
+    .time-grid-modern {
+        grid-template-columns: repeat(2, 1fr); /* 2 colonnes sur mobile */
+    }
+
+    .booking-step-header-modern {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+
+    .step-progress {
+        order: -1;
+    }
+
+    .service-card-modern {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+        padding: 1.25rem;
+    }
+
+    .payment-breakdown-modern {
+        padding: 1.25rem;
+    }
+
+    .step-title-modern h2 {
+        font-size: 1.4rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .date-grid-modern {
+        grid-template-columns: repeat(2, 1fr); /* 2 colonnes sur très petits écrans */
+    }
+
+    .time-grid-modern {
+        grid-template-columns: 1fr; /* 1 colonne sur très petits écrans */
+    }
+
+    .step-content-modern {
+        padding: 1.5rem 1rem;
+    }
+}
+
+/* Override Stripe pour la réservation - MEILLEURE INTÉGRATION */
+.booking-stripe-payment {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    width: 100% !important;
+}
+
+.booking-stripe-payment .StripeElement {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 8px !important;
+    padding: 12px 16px !important;
+    color: white !important;
+}

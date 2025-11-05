@@ -5,7 +5,7 @@ export interface Service {
     price: number;
     description: string;
     duration: string;
-    type: 'session' | 'product';
+    type: 'session' | 'product' | 'album';
     features?: string[];
     capacities?: Capacity[];
 }
@@ -26,18 +26,20 @@ export interface BookedSlot {
     reservation_time: string;
 }
 
-// Types pour les réponses API
-export interface ApiSuccessResponse {
-    success: boolean;
-    id: number;
+export interface ApiSuccessResponse<T = any> {
+    success: true;
+    id?: number;
     message: string;
+    data?: T;
 }
 
 export interface ApiErrorResponse {
+    success: false;  // ← AJOUTÉ
     error: string;
+    details?: string;
 }
 
-export type ApiResponse = ApiSuccessResponse | ApiErrorResponse;
+export type ApiResponse<T = any> = ApiSuccessResponse<T> | ApiErrorResponse;
 
 // Types pour le panier
 export interface CartItem {
@@ -99,8 +101,12 @@ export interface StripePaymentProps {
     stripeComment: string;
     totalServicePrice: number;
 }
-
-// Types pour les montants de paiement
+export interface CustomerInfo {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone?: string;
+}
 export interface PaymentAmounts {
     depositAmount: number;
     remainingAmount: number;

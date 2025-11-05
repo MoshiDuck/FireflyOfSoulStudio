@@ -1,27 +1,13 @@
 // app/components/booking/BookingProcess.tsx
-import React, {useState, useEffect, useCallback, useRef} from "react";
-import { motion } from "motion/react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import { useFormDataManager } from "~/hooks/useFormDataManager";
 import { UncontrolledTextArea } from "~/components/ui/UncontrolledTextArea";
 import { UncontrolledInput } from "~/components/ui/UncontrolledInput";
 import StripePayment from "~/components/payment/StripePayment";
-
-// Import des types et configurations centralisés
-import type {
-    Service,
-    TimeSlot,
-    BookedSlot,
-    ApiResponse,
-    BookingProcessProps,
-    CartItemComponent
-} from "~/types/api";
+import type { Service, TimeSlot, BookedSlot, ApiResponse, BookingProcessProps, CartItemComponent } from "~/types/api";
 import { STEP_CONFIG } from "~/config/booking";
 import { API_ENDPOINTS } from "~/config/api";
-
-// Import des composants partagés
-import { StepHeader } from "~/components/booking/StepHeader";
-import { ServiceInfo } from "~/components/booking/ServiceInfo";
-import { BookingSummary } from "~/components/booking/BookingSummary";
 
 export function BookingProcess({ service, cart, onBack, onComplete, apiEndpoint, type }: BookingProcessProps & { cart?: CartItemComponent[] }) {
     const [step, setStep] = useState(1);
@@ -35,12 +21,11 @@ export function BookingProcess({ service, cart, onBack, onComplete, apiEndpoint,
     const paymentInProgress = useRef(false);
 
     if (!service && (!cart || cart.length === 0)) {
-        console.error('❌ BookingProcess: service ou cart requis');
         return (
-            <div className="error-message">
+            <div className="booking-error">
                 <h3>Erreur de configuration</h3>
-                <p>Service ou panier manquant pour le processus de réservation.</p>
-                <button onClick={onBack} className="back-button">
+                <p>Service ou panier requis pour le processus de réservation.</p>
+                <button onClick={onBack} className="back-btn-minimal">
                     ← Retour
                 </button>
             </div>
@@ -55,9 +40,7 @@ export function BookingProcess({ service, cart, onBack, onComplete, apiEndpoint,
         message: ''
     });
 
-    // Calcul des montants avec acompte pour les séances OU pour le panier
     const calculatePaymentAmounts = useCallback(() => {
-        // Si c'est un panier (multiple produits), calculer le total
         if (cart && cart.length > 0) {
             const totalAmount = cart.reduce((total, item) => {
                 const price = item.selectedCapacity?.price || item.service.price;
@@ -67,49 +50,26 @@ export function BookingProcess({ service, cart, onBack, onComplete, apiEndpoint,
             if (type === 'session') {
                 const depositAmount = Math.round(totalAmount * 0.30);
                 const remainingAmount = totalAmount - depositAmount;
-                return {
-                    depositAmount,
-                    remainingAmount,
-                    totalAmount
-                };
+                return { depositAmount, remainingAmount, totalAmount };
             } else {
-                return {
-                    depositAmount: totalAmount,
-                    remainingAmount: 0,
-                    totalAmount
-                };
+                return { depositAmount: totalAmount, remainingAmount: 0, totalAmount };
             }
-        }
-        // Sinon, calcul pour un seul service
-        else if (service) {
+        } else if (service) {
             if (type === 'session') {
                 const depositAmount = Math.round(service.price * 0.30);
                 const remainingAmount = service.price - depositAmount;
-                return {
-                    depositAmount,
-                    remainingAmount,
-                    totalAmount: service.price
-                };
+                return { depositAmount, remainingAmount, totalAmount: service.price };
             } else {
-                return {
-                    depositAmount: service.price,
-                    remainingAmount: 0,
-                    totalAmount: service.price
-                };
+                return { depositAmount: service.price, remainingAmount: 0, totalAmount: service.price };
             }
         }
-
-        return {
-            depositAmount: 0,
-            remainingAmount: 0,
-            totalAmount: 0
-        };
+        return { depositAmount: 0, remainingAmount: 0, totalAmount: 0 };
     }, [service, cart, type]);
 
     const paymentAmounts = calculatePaymentAmounts();
     const TOTAL_STEPS = type === 'session' ? 4 : 3;
 
-    // Générer les dates disponibles (14 prochains jours ouvrés)
+    // Génération des dates
     useEffect(() => {
         const dates: string[] = [];
         const today = new Date();
@@ -123,23 +83,19 @@ export function BookingProcess({ service, cart, onBack, onComplete, apiEndpoint,
         setAvailableDates(dates);
     }, []);
 
-    // Récupérer les créneaux réservés pour la date sélectionnée
+    // Récupération des créneaux
     useEffect(() => {
         const fetchBookedSlots = async () => {
-            if (selectedDate) {
+            if (selectedDate && type === 'session') {
                 try {
                     const response = await fetch(`${apiEndpoint}?date=${selectedDate}`);
                     if (response.ok) {
                         const bookedSlots = await response.json() as BookedSlot[];
                         const bookedTimes = bookedSlots.map(slot => slot.reservation_time);
-
                         const allTimeSlots: TimeSlot[] = [];
                         for (let hour = 9; hour < 18; hour++) {
                             const time = `${hour.toString().padStart(2, '0')}:00`;
-                            allTimeSlots.push({
-                                time,
-                                available: !bookedTimes.includes(time)
-                            });
+                            allTimeSlots.push({ time, available: !bookedTimes.includes(time) });
                         }
                         setAvailableTimes(allTimeSlots);
                     }
@@ -153,10 +109,7 @@ export function BookingProcess({ service, cart, onBack, onComplete, apiEndpoint,
         const generateFallbackTimeSlots = () => {
             const times: TimeSlot[] = [];
             for (let hour = 9; hour < 18; hour++) {
-                times.push({
-                    time: `${hour.toString().padStart(2, '0')}:00`,
-                    available: true
-                });
+                times.push({ time: `${hour.toString().padStart(2, '0')}:00`, available: true });
             }
             setAvailableTimes(times);
         };
@@ -166,7 +119,6 @@ export function BookingProcess({ service, cart, onBack, onComplete, apiEndpoint,
         }
     }, [selectedDate, apiEndpoint, type]);
 
-    // LOGIQUE DE GESTION DES ÉTAPES
     const goToNextStep = useCallback(() => {
         if (step < TOTAL_STEPS && !paymentCompleted) {
             setStep(step + 1);
@@ -190,37 +142,31 @@ export function BookingProcess({ service, cart, onBack, onComplete, apiEndpoint,
         updateField(fieldName as keyof ReturnType<typeof getFormData>, value);
     }, [updateField, getFormData]);
 
-    // VALIDATION UNIFIÉE
     const validateForm = useCallback((formData: ReturnType<typeof getFormData>) => {
         if (!formData.firstName?.trim() || !formData.lastName?.trim() || !formData.email?.trim()) {
             return 'Veuillez remplir tous les champs obligatoires';
         }
-
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(formData.email)) {
             return 'Veuillez entrer une adresse email valide';
         }
-
         if (type === 'session' && (!selectedDate || !selectedTime)) {
             return 'Veuillez sélectionner une date et une heure';
         }
-
         if (type === 'session') {
             const selectedSlot = availableTimes.find(slot => slot.time === selectedTime);
             if (selectedSlot && !selectedSlot.available) {
                 return 'Ce créneau a été réservé entre-temps. Veuillez choisir un autre horaire.';
             }
         }
-
         return null;
     }, [type, selectedDate, selectedTime, availableTimes]);
 
-    // Fonction pour générer le commentaire détaillé pour Stripe
     const generateStripeComment = useCallback((formData: ReturnType<typeof getFormData>, paymentType: 'deposit' | 'full') => {
         const customerInfo = `Client: ${formData.firstName} ${formData.lastName} - Email: ${formData.email}`;
         const phoneInfo = formData.phone ? ` - Tél: ${formData.phone}` : '';
-
         let serviceInfo = '';
+
         if (cart && cart.length > 0) {
             const itemsDescription = cart.map(item =>
                 `${item.service.name} (x${item.quantity})`
@@ -232,11 +178,9 @@ export function BookingProcess({ service, cart, onBack, onComplete, apiEndpoint,
 
         let paymentInfo = '';
         if (type === 'session') {
-            if (paymentType === 'deposit') {
-                paymentInfo = ` - Acompte: ${paymentAmounts.depositAmount}€ (30%)`;
-            } else {
-                paymentInfo = ` - Solde: ${paymentAmounts.remainingAmount}€ (70%)`;
-            }
+            paymentInfo = paymentType === 'deposit'
+                ? ` - Acompte: ${paymentAmounts.depositAmount}€ (30%)`
+                : ` - Solde: ${paymentAmounts.remainingAmount}€ (70%)`;
         } else {
             paymentInfo = ` - Paiement complet: ${paymentAmounts.totalAmount}€`;
         }
@@ -250,14 +194,12 @@ export function BookingProcess({ service, cart, onBack, onComplete, apiEndpoint,
         }
 
         const messageInfo = formData.message ? ` - Message: ${formData.message.substring(0, 200)}` : '';
-
         const fullComment = `${customerInfo}${phoneInfo} | ${serviceInfo}${paymentInfo}${bookingInfo}${messageInfo}`;
         return fullComment.substring(0, 500);
     }, [service, cart, type, paymentAmounts, selectedDate, selectedTime]);
 
     const handleFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
         if (paymentCompleted) {
             setMessage({ type: 'error', text: 'Le paiement a déjà été effectué. Veuillez patienter...' });
             return;
@@ -274,33 +216,21 @@ export function BookingProcess({ service, cart, onBack, onComplete, apiEndpoint,
                 setIsSubmitting(false);
                 return;
             }
-
             goToNextStep();
-
         } catch (error) {
-            console.error('Erreur validation:', error);
-            setMessage({
-                type: 'error',
-                text: 'Erreur lors de la validation du formulaire'
-            });
+            setMessage({ type: 'error', text: 'Erreur lors de la validation du formulaire' });
         } finally {
             setIsSubmitting(false);
         }
     };
 
     const handlePaymentSuccess = async (paymentIntentId: string, paymentType: 'deposit' | 'full' = 'deposit') => {
-        if (paymentInProgress.current) {
-            console.log('⏸️  handlePaymentSuccess déjà en cours - appel ignoré');
-            return;
-        }
-
+        if (paymentInProgress.current) return;
         paymentInProgress.current = true;
         setPaymentCompleted(true);
 
         try {
             const currentFormData = getFormData();
-
-            // Préparer le panier pour l'envoi
             const cartItems = cart && cart.length > 0
                 ? cart.map(item => ({
                     productId: item.service.id,
@@ -349,8 +279,6 @@ export function BookingProcess({ service, cart, onBack, onComplete, apiEndpoint,
                 paymentStatus: 'paid'
             };
 
-            console.log('📤 Envoi des données de réservation...', requestData);
-
             const response = await fetch(apiEndpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -360,19 +288,11 @@ export function BookingProcess({ service, cart, onBack, onComplete, apiEndpoint,
             const result = await response.json() as ApiResponse;
 
             if (response.ok && 'success' in result && result.success) {
-                let successMessage = '';
-                if (type === 'session' && paymentType === 'deposit') {
-                    successMessage = '✅ Acompte de 30% confirmé ! Votre séance est réservée. Le solde sera à régler après la séance.';
-                } else {
-                    successMessage = '✅ Paiement confirmé ! Votre commande est validée.';
-                }
+                let successMessage = type === 'session' && paymentType === 'deposit'
+                    ? '✅ Acompte de 30% confirmé ! Votre séance est réservée. Le solde sera à régler après la séance.'
+                    : '✅ Paiement confirmé ! Votre commande est validée.';
 
-                setMessage({
-                    type: 'success',
-                    text: successMessage
-                });
-
-                console.log('🎉 Commande confirmée avec succès');
+                setMessage({ type: 'success', text: successMessage });
 
                 setTimeout(() => {
                     onComplete();
@@ -382,12 +302,11 @@ export function BookingProcess({ service, cart, onBack, onComplete, apiEndpoint,
                     setStep(1);
                     setPaymentCompleted(false);
                     paymentInProgress.current = false;
-                }, 3000);
+                }, 2000);
             } else {
                 throw new Error('Erreur lors de la confirmation de la commande');
             }
         } catch (error) {
-            console.error('❌ Erreur confirmation commande:', error);
             setMessage({
                 type: 'error',
                 text: 'Paiement réussi mais erreur lors de la confirmation. Contactez-nous.'
@@ -411,113 +330,175 @@ export function BookingProcess({ service, cart, onBack, onComplete, apiEndpoint,
         });
     }, []);
 
-    // ÉTAPE 1 : SÉLECTION DE LA DATE (SESSIONS UNIQUEMENT)
-    const Step1 = () => {
-        const stepConfig = getCurrentStepConfig();
-        return (
-            <div className="booking-step">
-                <StepHeader
-                    onBack={goToPreviousStep}
-                    title={stepConfig.title}
-                    backLabel={stepConfig.backLabel}
-                />
-                {service && <ServiceInfo service={service} />}
-                <div className="date-selection-grid">
-                    {availableDates.map(date => (
-                        <motion.button
-                            key={date}
-                            onClick={() => {
-                                setSelectedDate(date);
+    // Composants d'étape modernes
+    const StepHeader = ({ title, subtitle }: { title: string; subtitle?: string }) => (
+        <div className="booking-step-header-modern">
+            <button className="back-btn-minimal" onClick={goToPreviousStep}>
+                <span className="back-icon">←</span>
+            </button>
+            <div className="step-title-modern">
+                <h2>{title}</h2>
+                {subtitle && <p>{subtitle}</p>}
+            </div>
+        </div>
+    );
+
+    const ServiceCard = () => (
+        <div className="service-card-modern">
+            <div className="service-icon">📸</div>
+            <div className="service-info">
+                <h3>{service?.name || 'Votre Commande'}</h3>
+                <p>{service?.description || `${cart?.length} article${cart && cart.length > 1 ? 's' : ''} dans le panier`}</p>
+            </div>
+            <div className="service-price">{paymentAmounts.totalAmount}€</div>
+        </div>
+    );
+
+    // Étape 1 : Sélection de la date
+    const Step1 = () => (
+        <motion.div
+            className="booking-step-modern"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+        >
+            <StepHeader
+                title="Choisissez votre date"
+                subtitle="Sélectionnez une date pour votre séance"
+            />
+
+            <div className="step-content-spacing">
+                <ServiceCard />
+            </div>
+
+            <div className="date-grid-modern">
+                {availableDates.map(date => (
+                    <motion.button
+                        key={date}
+                        onClick={() => {
+                            setSelectedDate(date);
+                            goToNextStep();
+                        }}
+                        className="date-option-modern"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                    >
+                        <div className="date-day">{new Date(date).getDate()}</div>
+                        <div className="date-weekday">
+                            {new Date(date).toLocaleDateString('fr-FR', { weekday: 'short' })}
+                        </div>
+                        <div className="date-month">
+                            {new Date(date).toLocaleDateString('fr-FR', { month: 'short' })}
+                        </div>
+                    </motion.button>
+                ))}
+            </div>
+        </motion.div>
+    );
+
+    // Étape 2 : Sélection de l'heure
+    const Step2 = () => (
+        <motion.div
+            className="booking-step-modern"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+        >
+            <StepHeader
+                title="Sélectionnez l'heure"
+                subtitle={`Créneaux disponibles pour le ${formatDate(selectedDate)}`}
+            />
+
+            <div className="step-content-spacing">
+                <ServiceCard />
+            </div>
+
+            <div className="time-grid-modern">
+                {availableTimes.map(slot => (
+                    <motion.button
+                        key={slot.time}
+                        onClick={() => {
+                            if (slot.available) {
+                                setSelectedTime(slot.time);
                                 goToNextStep();
-                            }}
-                            className="date-option"
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                        >
-                            <div className="date-day">{new Date(date).getDate()}</div>
-                            <div className="date-weekday">
-                                {new Date(date).toLocaleDateString('fr-FR', { weekday: 'short' })}
-                            </div>
-                            <div className="date-month">
-                                {new Date(date).toLocaleDateString('fr-FR', { month: 'short' })}
-                            </div>
-                        </motion.button>
-                    ))}
-                </div>
+                            }
+                        }}
+                        disabled={!slot.available}
+                        className={`time-option-modern ${slot.available ? 'available' : 'booked'}`}
+                        whileHover={slot.available ? { scale: 1.02 } : {}}
+                        whileTap={slot.available ? { scale: 0.98 } : {}}
+                    >
+                        <div className="time-slot">{slot.time}</div>
+                        <div className="time-status">
+                            {slot.available ? 'Disponible' : 'Réservé'}
+                        </div>
+                    </motion.button>
+                ))}
             </div>
-        );
-    };
+        </motion.div>
+    );
 
-    // ÉTAPE 2 : SÉLECTION DE L'HEURE (SESSIONS UNIQUEMENT)
-    const Step2 = () => {
-        const stepConfig = getCurrentStepConfig();
-        return (
-            <div className="booking-step">
-                <StepHeader
-                    onBack={goToPreviousStep}
-                    title={stepConfig.title}
-                    backLabel={stepConfig.backLabel}
-                />
-                {service && (
-                    <ServiceInfo
-                        service={service}
-                        additionalInfo={formatDate(selectedDate)}
-                    />
-                )}
-                <div className="time-selection-grid">
-                    {availableTimes.map(slot => (
-                        <motion.button
-                            key={slot.time}
-                            onClick={() => {
-                                if (slot.available) {
-                                    setSelectedTime(slot.time);
-                                    goToNextStep();
-                                }
-                            }}
-                            disabled={!slot.available}
-                            className={`time-option ${slot.available ? 'available' : 'booked'}`}
-                            whileHover={slot.available ? { scale: 1.05 } : {}}
-                            whileTap={slot.available ? { scale: 0.95 } : {}}
-                            transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                        >
-                            <div className="time-slot">{slot.time}</div>
-                            <div className="time-status">
-                                {slot.available ? 'Disponible' : 'Réservé'}
-                            </div>
-                        </motion.button>
-                    ))}
-                </div>
-            </div>
-        );
-    };
-
-    // ÉTAPE 3 : FORMULAIRE D'INFORMATIONS PERSONNELLES
+    // Étape 3 : Informations personnelles
     const Step3 = () => {
-        const stepConfig = getCurrentStepConfig();
         const currentFormData = getFormData();
 
         return (
-            <div className="booking-step">
+            <motion.div
+                className="booking-step-modern"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+            >
                 <StepHeader
-                    onBack={goToPreviousStep}
-                    title={stepConfig.title}
-                    backLabel={stepConfig.backLabel}
+                    title="Vos informations"
+                    subtitle="Nous utiliserons ces informations pour confirmer votre réservation"
                 />
 
-                <BookingSummary
-                    type={type}
-                    service={service}
-                    cart={cart}
-                    selectedDate={selectedDate}
-                    selectedTime={selectedTime}
-                    formatDate={formatDate}
-                    paymentAmounts={paymentAmounts}
-                />
+                <div className="summary-section">
+                    <ServiceCard />
 
-                <form onSubmit={handleFormSubmit} className="booking-form">
-                    <div className="form-grid">
-                        <div className="form-group">
+                    {type === 'session' && selectedDate && (
+                        <div className="booking-details-modern">
+                            <div className="detail-item">
+                                <span>Date</span>
+                                <span>{formatDate(selectedDate)}</span>
+                            </div>
+                            <div className="detail-item">
+                                <span>Heure</span>
+                                <span>{selectedTime}</span>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="payment-breakdown-modern">
+                        {type === 'session' ? (
+                            <>
+                                <div className="amount-line">
+                                    <span>Acompte (30%)</span>
+                                    <span>{paymentAmounts.depositAmount}€</span>
+                                </div>
+                                <div className="amount-line">
+                                    <span>Solde après séance</span>
+                                    <span>{paymentAmounts.remainingAmount}€</span>
+                                </div>
+                                <div className="amount-divider"></div>
+                                <div className="amount-line total">
+                                    <span>Total</span>
+                                    <span>{paymentAmounts.totalAmount}€</span>
+                                </div>
+                            </>
+                        ) : (
+                            <div className="amount-line total">
+                                <span>Total</span>
+                                <span>{paymentAmounts.totalAmount}€</span>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                <form onSubmit={handleFormSubmit} className="booking-form-modern">
+                    <div className="form-grid-modern">
+                        <div className="form-group-modern">
                             <label>Prénom *</label>
                             <UncontrolledInput
                                 type="text"
@@ -525,13 +506,13 @@ export function BookingProcess({ service, cart, onBack, onComplete, apiEndpoint,
                                 defaultValue={currentFormData.firstName}
                                 onValueChange={handleFieldChange}
                                 required
-                                className="form-input"
+                                className="form-input-modern"
                                 placeholder="Marie"
                                 autoComplete="given-name"
                                 autoFocus={true}
                             />
                         </div>
-                        <div className="form-group">
+                        <div className="form-group-modern">
                             <label>Nom *</label>
                             <UncontrolledInput
                                 type="text"
@@ -539,14 +520,14 @@ export function BookingProcess({ service, cart, onBack, onComplete, apiEndpoint,
                                 defaultValue={currentFormData.lastName}
                                 onValueChange={handleFieldChange}
                                 required
-                                className="form-input"
+                                className="form-input-modern"
                                 placeholder="Dupont"
                                 autoComplete="family-name"
                             />
                         </div>
                     </div>
 
-                    <div className="form-group">
+                    <div className="form-group-modern">
                         <label>Email *</label>
                         <UncontrolledInput
                             type="email"
@@ -554,146 +535,163 @@ export function BookingProcess({ service, cart, onBack, onComplete, apiEndpoint,
                             defaultValue={currentFormData.email}
                             onValueChange={handleFieldChange}
                             required
-                            className="form-input"
+                            className="form-input-modern"
                             placeholder="votre.email@example.com"
                             autoComplete="email"
                         />
                     </div>
 
-                    <div className="form-group">
+                    <div className="form-group-modern">
                         <label>Téléphone (Optionnel)</label>
                         <UncontrolledInput
                             type="tel"
                             name="phone"
                             defaultValue={currentFormData.phone}
                             onValueChange={handleFieldChange}
-                            className="form-input"
+                            className="form-input-modern"
                             placeholder="+33 6 12 34 56 78"
                             autoComplete="tel"
                         />
                     </div>
 
-                    <div className="form-group">
+                    <div className="form-group-modern">
                         <label>Message (Optionnel)</label>
                         <UncontrolledTextArea
                             name="message"
                             defaultValue={currentFormData.message}
                             onValueChange={handleFieldChange}
-                            rows={4}
-                            className="form-input"
-                            placeholder={`Des informations supplémentaires sur votre ${type === 'session' ? 'projet' : 'commande'}...`}
+                            rows={3}
+                            className="form-input-modern"
+                            placeholder={`Informations supplémentaires sur votre ${type === 'session' ? 'projet' : 'commande'}...`}
                         />
                     </div>
 
-                    {message && (
-                        <div className={`message ${message.type}`}>
-                            {message.text}
-                        </div>
-                    )}
+                    <AnimatePresence>
+                        {message && (
+                            <motion.div
+                                className={`status-message ${message.type}`}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                            >
+                                {message.text}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
 
                     <motion.button
                         type="submit"
                         disabled={isSubmitting || paymentCompleted}
-                        className="submit-button"
+                        className="submit-btn-modern"
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        transition={{ type: "spring", stiffness: 400, damping: 17 }}
                     >
                         {isSubmitting ? 'Validation...' : paymentCompleted ? 'Paiement confirmé...' :
                             type === 'session'
-                                ? `Procéder à l'Acompte - ${paymentAmounts.depositAmount}€`
-                                : `Procéder au Paiement - ${paymentAmounts.totalAmount}€`}
+                                ? `Payer l'acompte - ${paymentAmounts.depositAmount}€`
+                                : `Continuer vers le paiement - ${paymentAmounts.totalAmount}€`}
                     </motion.button>
-
-                    {type === 'session' && (
-                        <div className="payment-info-note">
-                            <p>💡 <strong>Paiement en deux temps :</strong></p>
-                            <ul>
-                                <li><strong>Acompte de 30% maintenant : {paymentAmounts.depositAmount}€</strong></li>
-                                <li>Solde de 70% après la séance : {paymentAmounts.remainingAmount}€</li>
-                                <li>Total : {paymentAmounts.totalAmount}€</li>
-                            </ul>
-                        </div>
-                    )}
                 </form>
-            </div>
+            </motion.div>
         );
     };
 
-    // ÉTAPE 4 : PAIEMENT
+    // Étape 4 : Paiement
     const Step4 = () => {
-        const stepConfig = getCurrentStepConfig();
         const currentFormData = getFormData();
-
         const stripeComment = generateStripeComment(currentFormData, type === 'session' ? 'deposit' : 'full');
 
         return (
-            <div className="booking-step">
+            <motion.div
+                className="booking-step-modern"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+            >
                 <StepHeader
-                    onBack={goToPreviousStep}
-                    title={stepConfig.title}
-                    backLabel={stepConfig.backLabel}
+                    title="Paiement sécurisé"
+                    subtitle="Finalisez votre réservation avec Stripe"
                 />
 
-                <BookingSummary
-                    type={type}
-                    service={service}
-                    cart={cart}
-                    selectedDate={selectedDate}
-                    selectedTime={selectedTime}
-                    formatDate={formatDate}
-                    paymentAmounts={paymentAmounts}
-                />
-
-                <div className="payment-section">
-                    {paymentCompleted ? (
-                        <div className="payment-completed-message">
-                            <div className="success-animation">✅</div>
-                            <h3>Paiement confirmé !</h3>
-                            <p>Votre commande est en cours de traitement...</p>
+                <div className="summary-section">
+                    <ServiceCard />
+                    <div className="payment-breakdown-modern">
+                        <div className="amount-line total">
+                            <span>Montant à payer</span>
+                            <span>
+                                {type === 'session' ? paymentAmounts.depositAmount : paymentAmounts.totalAmount}€
+                            </span>
                         </div>
-                    ) : (
-                        <StripePayment
-                            amount={type === 'session' ? paymentAmounts.depositAmount : paymentAmounts.totalAmount}
-                            serviceName={cart && cart.length > 0 ? `Panier (${cart.length} articles)` : service?.name || ''}
-                            bookingData={getFormData()}
-                            onSuccess={(paymentIntentId) => handlePaymentSuccess(paymentIntentId, type === 'session' ? 'deposit' : 'full')}
-                            onError={(error) => setMessage({ type: 'error', text: error })}
-                            onCancel={handlePaymentCancel}
-                            selectedDate={selectedDate}
-                            selectedTime={selectedTime}
-                            type={type}
-                            paymentType={type === 'session' ? 'deposit' : 'full'}
-                            stripeComment={stripeComment}
-                            totalServicePrice={paymentAmounts.totalAmount}
-                        />
-                    )}
+                    </div>
                 </div>
 
-                {message && (
-                    <div className={`message ${message.type}`}>
-                        {message.text}
-                    </div>
-                )}
-            </div>
+                <div className="payment-section-modern">
+                    <AnimatePresence mode="wait">
+                        {paymentCompleted ? (
+                            <motion.div
+                                className="payment-success"
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.9 }}
+                            >
+                                <div className="success-check">✓</div>
+                                <h3>Paiement accepté</h3>
+                                <p>Traitement de votre commande...</p>
+                            </motion.div>
+                        ) : (
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                            >
+                                <StripePayment
+                                    amount={type === 'session' ? paymentAmounts.depositAmount : paymentAmounts.totalAmount}
+                                    serviceName={cart && cart.length > 0 ? `Panier (${cart.length} articles)` : service?.name || ''}
+                                    bookingData={getFormData()}
+                                    onSuccess={(paymentIntentId) => handlePaymentSuccess(paymentIntentId, type === 'session' ? 'deposit' : 'full')}
+                                    onError={(error) => setMessage({ type: 'error', text: error })}
+                                    onCancel={handlePaymentCancel}
+                                    selectedDate={selectedDate}
+                                    selectedTime={selectedTime}
+                                    type={type}
+                                    paymentType={type === 'session' ? 'deposit' : 'full'}
+                                    stripeComment={stripeComment}
+                                    totalServicePrice={paymentAmounts.totalAmount}
+                                />
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
+
+                <AnimatePresence>
+                    {message && (
+                        <motion.div
+                            className={`status-message ${message.type}`}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                        >
+                            {message.text}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </motion.div>
         );
     };
 
-    // Configuration des étapes
+    // Étapes de progression
     const steps = type === 'session'
         ? [
-            { number: 1, label: 'Date', title: 'Choisissez une date pour votre séance', backLabel: '← Retour aux séances' },
-            { number: 2, label: 'Heure', title: 'Choisissez un horaire', backLabel: '← Retour' },
-            { number: 3, label: 'Informations', title: 'Vos informations', backLabel: '← Retour' },
-            { number: 4, label: 'Paiement', title: 'Paiement sécurisé', backLabel: '← Retour aux informations' }
+            { number: 1, label: 'Date' },
+            { number: 2, label: 'Heure' },
+            { number: 3, label: 'Info' },
+            { number: 4, label: 'Paiement' }
         ]
         : [
-            { number: 1, label: 'Votre Commande', title: 'Votre commande', backLabel: '← Retour aux produits' },
-            { number: 2, label: 'Informations', title: 'Vos informations', backLabel: '← Retour' },
-            { number: 3, label: 'Paiement', title: 'Paiement sécurisé', backLabel: '← Retour aux informations' }
+            { number: 1, label: 'Commande' },
+            { number: 2, label: 'Paiement' }
         ];
 
-    // RENDU CONDITIONNEL DES ÉTAPES
     const renderCurrentStep = () => {
         if (type === 'session') {
             switch (step) {
@@ -714,23 +712,32 @@ export function BookingProcess({ service, cart, onBack, onComplete, apiEndpoint,
 
     return (
         <motion.section
-            className="booking-section"
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="booking-section-modern"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.4 }}
         >
-            <div className="container">
-                <div className="booking-process">
-                    <div className="booking-progress">
-                        {steps.map((stepItem) => (
-                            <div key={stepItem.number} className={`progress-step ${step >= stepItem.number ? 'active' : ''}`}>
-                                <div className="step-number">{stepItem.number}</div>
-                                <span>{stepItem.label}</span>
+            <div className="booking-container-modern">
+                {/* Barre de progression */}
+                <div className="progress-bar-modern">
+                    {steps.map((stepItem, index) => (
+                        <div key={stepItem.number} className="progress-step-modern">
+                            <div className={`step-indicator ${step >= stepItem.number ? 'active' : ''}`}>
+                                {step > stepItem.number ? '✓' : stepItem.number}
                             </div>
-                        ))}
-                    </div>
+                            <span className="step-label">{stepItem.label}</span>
+                            {index < steps.length - 1 && (
+                                <div className={`step-connector ${step > stepItem.number ? 'active' : ''}`}></div>
+                            )}
+                        </div>
+                    ))}
+                </div>
 
-                    {renderCurrentStep()}
+                {/* Contenu de l'étape */}
+                <div className="step-content-modern">
+                    <AnimatePresence mode="wait">
+                        {renderCurrentStep()}
+                    </AnimatePresence>
                 </div>
             </div>
         </motion.section>

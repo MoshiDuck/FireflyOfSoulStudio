@@ -284,20 +284,6 @@
     font-weight: 600;
 }
 
-.checkout-btn {
-    width: 100%;
-    background: linear-gradient(135deg, var(--warm-gold), var(--amber-light));
-    color: var(--deep-night);
-    border: none;
-    padding: 1rem 2rem;
-    border-radius: var(--element-border-radius);
-    font-family: 'Inter', sans-serif;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 1rem;
-}
-
 .checkout-btn:hover {
     background: linear-gradient(135deg, var(--amber-light), var(--warm-gold));
     transform: translateY(-2px);

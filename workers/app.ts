@@ -2,6 +2,7 @@
 import { Hono } from "hono";
 import { createRequestHandler } from "react-router";
 import { cors } from 'hono/cors';
+import type {ApiErrorResponse} from "~/types/api";
 
 interface Bindings {
     DB: D1Database;
@@ -37,11 +38,10 @@ interface AlbumResponse {
     createdAt: string;
 }
 
-interface CreateAlbumRequest {
-    name: string;
-    description?: string;
-    clientEmail?: string;
-    shootDate?: string;
+interface PaymentStatus {
+    hasPaidDeposit: boolean;
+    hasPaidFull: boolean;
+    albumId: string;
 }
 
 interface MultipartInitResponse {
@@ -65,6 +65,8 @@ interface AlbumStats {
     monthlyCost: string;
     recentAlbums: any[];
 }
+
+
 
 function normalizeFolderName(name: string): string {
     return name
@@ -771,13 +773,12 @@ app.put('/api/upload/:albumId/*', async (c) => {
     }
 });
 
-app.get('/api/albums/:albumId/photos', async (c) => {
-    try {
-        const albumId = c.req.param('albumId');
-        const limit = c.req.query('limit') ? parseInt(c.req.query('limit')!) : undefined;
+app.get('/api/albums/:albumId/payment-status', async (c) => {
+    const db = c.env.DB;
+    const albumId = c.req.param('albumId');
 
-        // Récupérer l'album pour obtenir son nom
-        const db = c.env.DB;
+    try {
+        // Récupérer l'album depuis la table reservations
         const album = await db.prepare(
             "SELECT * FROM reservations WHERE id = ? AND service_type = 'photo_album'"
         ).bind(albumId).first() as Record<string, any> | null;
@@ -787,6 +788,53 @@ app.get('/api/albums/:albumId/photos', async (c) => {
                 error: "Album non trouvé",
                 details: `L'album avec l'ID ${albumId} n'existe pas`
             }, 404);
+        }
+
+        // Déterminer le statut de paiement
+        const totalAmount = album.total_amount || 0;
+        const amountPaid = album.amount_paid || 0;
+        const paymentStatus = album.payment_status || 'pending';
+
+        const hasPaidDeposit = amountPaid > 0;
+        const hasPaidFull = paymentStatus === 'paid' || amountPaid >= totalAmount;
+
+        const response: ApiResponse<PaymentStatus> = {
+            success: true,
+            data: {
+                hasPaidDeposit,
+                hasPaidFull,
+                albumId: albumId
+            }
+        };
+
+        return c.json(response);
+
+    } catch (error) {
+        console.error('❌ Erreur statut paiement album:', error);
+        return c.json({
+            error: "Erreur lors de la récupération du statut de paiement",
+            details: getErrorMessage(error)
+        }, 500);
+    }
+});
+
+app.get('/api/albums/:albumId/photos', async (c) => {
+    try {
+        const albumId = c.req.param('albumId');
+        const limit = c.req.query('limit') ? parseInt(c.req.query('limit')!) : undefined;
+
+        // Récupérer l'album pour obtenir son nom ET les montants
+        const db = c.env.DB;
+        const album = await db.prepare(
+            "SELECT * FROM reservations WHERE id = ? AND service_type = 'photo_album'"
+        ).bind(albumId).first() as Record<string, any> | null;
+
+        if (!album) {
+            return c.json({
+                success: false,
+                error: "Album non trouvé",
+                details: `L'album avec l'ID ${albumId} n'existe pas`
+            } as ApiErrorResponse, 404);
         }
 
         // Utiliser le nom de l'album pour le dossier R2
@@ -804,7 +852,6 @@ app.get('/api/albums/:albumId/photos', async (c) => {
 
         console.log('📊 Photos trouvées:', listed.objects.length);
 
-        // CORRECTION : Utilisation du domaine R2 public
         const photos = listed.objects.map(obj => ({
             key: obj.key,
             size: obj.size,
@@ -816,24 +863,49 @@ app.get('/api/albums/:albumId/photos', async (c) => {
             }
         }));
 
+        // CORRECTION : Extraire les infos client
+        const customerName = album.customer_name || '';
+        const nameParts = customerName.split(' ');
+        const firstName = nameParts[0] || '';
+        const lastName = nameParts.slice(1).join(' ') || '';
+
+        const customerInfo = {
+            firstName,
+            lastName,
+            email: album.customer_email || '',
+            phone: album.customer_phone || ''
+        };
+
+        // CORRECTION : Retourner avec la structure ApiSuccessResponse
         const response: ApiResponse = {
             success: true,
+            message: "Album récupéré avec succès",
             data: {
                 albumId: albumId,
                 albumName: albumName,
+                totalAmount: album.total_amount,
+                amountPaid: album.amount_paid,
+                customerInfo: customerInfo,
                 photos: photos,
                 total: photos.length
             }
         };
+
+        console.log('💰 Données retournées:', {
+            totalAmount: album.total_amount,
+            amountPaid: album.amount_paid,
+            customerInfo: customerInfo
+        });
 
         return c.json(response);
 
     } catch (error) {
         console.error('❌ Erreur liste photos:', error);
         return c.json({
+            success: false,
             error: "Erreur lors de la récupération des photos",
             details: getErrorMessage(error)
-        }, 500);
+        } as ApiErrorResponse, 500);
     }
 });
 
