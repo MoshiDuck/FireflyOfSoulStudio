@@ -2,7 +2,7 @@
 import { Navbar } from "~/components/layout/navbar/navbar";
 import { useState, useEffect } from "react";
 import { motion } from "motion/react";
-import { useLocation } from "react-router";
+import { useLocation, Link } from "react-router";
 import "./dev.css";
 
 interface SystemInfo {
@@ -19,32 +19,74 @@ interface SystemInfo {
     };
 }
 
+interface AlbumStats {
+    totalAlbums: number;
+    totalPhotos: number;
+    totalSizeFormatted: string;
+    monthlyCost: string;
+    recentAlbums: any[];
+}
+
+interface AlbumStatsResponse {
+    success: boolean;
+    data?: {
+        totalAlbums: number;
+        totalPhotos: number;
+        totalSizeFormatted: string;
+        monthlyCost: string;
+        recentAlbums: any[];
+    };
+    error?: string;
+}
+
+
 function DevPanel() {
-    const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
     const [orders, setOrders] = useState<any[]>([]);
+    const [albumStats, setAlbumStats] = useState<AlbumStats | null>(null);
+    const [isLoadingStats, setIsLoadingStats] = useState(false);
 
     useEffect(() => {
-        setSystemInfo({
-            timestamp: new Date().toISOString(),
-            userAgent: navigator.userAgent,
-            viewport: {
-                width: window.innerWidth,
-                height: window.innerHeight
-            },
-            features: {
-                cookies: navigator.cookieEnabled,
-                javaScript: true,
-                online: navigator.onLine
-            }
-        });
-
         // Données simulées
         setOrders([
             { id: 1, client: "Jean Dupont", status: "En attente", amount: "150€" },
             { id: 2, client: "Marie Martin", status: "Validée", amount: "200€" },
             { id: 3, client: "Pierre Lambert", status: "Expédiée", amount: "180€" }
         ]);
+
+        // Charger les stats des albums
+        loadAlbumStats();
     }, []);
+
+    const loadAlbumStats = async () => {
+        setIsLoadingStats(true);
+        try {
+            const response = await fetch('/api/albums/stats');
+
+            if (!response.ok) {
+                throw new Error(`Erreur HTTP: ${response.status}`);
+            }
+
+            const result: AlbumStatsResponse = await response.json();
+
+            if (result.success && result.data) {
+                setAlbumStats({
+                    totalAlbums: result.data.totalAlbums,
+                    totalPhotos: result.data.totalPhotos,
+                    totalSizeFormatted: result.data.totalSizeFormatted,
+                    monthlyCost: result.data.monthlyCost,
+                    recentAlbums: result.data.recentAlbums
+                });
+                console.log('✅ Statistiques chargées:', result.data);
+            } else {
+                throw new Error(result.error || 'Erreur inconnue');
+            }
+        } catch (error) {
+            console.error('❌ Erreur chargement stats albums:', error);
+            // Optionnel: afficher un message d'erreur à l'utilisateur
+        } finally {
+            setIsLoadingStats(false);
+        }
+    };
 
     const handleValidateOrder = (orderId: number) => {
         setOrders(orders.map(order =>
@@ -68,13 +110,92 @@ function DevPanel() {
         <div className="dev-panel">
             <div className="dev-panel-header">
                 <h1>🛠️ Panel Développeur</h1>
-                <p>Gestion des commandes et outils de développement</p>
+                <p>Gestion des commandes, albums photos et outils de développement</p>
                 <div className="access-info">
                     <small>🔒 Protégé par Cloudflare Access</small>
                 </div>
             </div>
 
             <div className="dev-sections">
+                {/* NOUVELLE SECTION : Gestion des Albums Photos */}
+                <div className="dev-section">
+                    <div className="section-header-with-action">
+                        <h3>📸 Gestion des Albums Photos</h3>
+                        <Link to="/admin/photo-upload" className="btn-primary">
+                            🚀 Accéder à l'Upload
+                        </Link>
+                    </div>
+
+                    {isLoadingStats ? (
+                        <div className="loading-stats">
+                            <p>Chargement des statistiques...</p>
+                        </div>
+                    ) : albumStats ? (
+                        <div className="album-stats">
+                            <div className="stats-grid">
+                                <div className="stat-item">
+                                    <div className="stat-number">{albumStats.totalAlbums}</div>
+                                    <div className="stat-label">Albums</div>
+                                </div>
+                                <div className="stat-item">
+                                    <div className="stat-number">{albumStats.totalPhotos}</div>
+                                    <div className="stat-label">Photos</div>
+                                </div>
+                                <div className="stat-item">
+                                    <div className="stat-number">{albumStats.totalSizeFormatted}</div>
+                                    <div className="stat-label">Stockage</div>
+                                </div>
+                                <div className="stat-item">
+                                    <div className="stat-number">{albumStats.monthlyCost}</div>
+                                    <div className="stat-label">Coût/mois</div>
+                                </div>
+                            </div>
+
+                            <div className="recent-albums">
+                                <h4>Albums Récents</h4>
+                                {albumStats.recentAlbums.length > 0 ? (
+                                    <div className="albums-list-mini">
+                                        {albumStats.recentAlbums.map((album: any) => (
+                                            <div key={album.id} className="album-item-mini">
+                                                <div className="album-info-mini">
+                                                    <div className="album-name">{album.name}</div>
+                                                    <div className="album-details">
+                                                        <small>{album.photoCount} photos • {album.sizeFormatted}</small>
+                                                    </div>
+                                                </div>
+                                                <div className="album-date">
+                                                    {new Date(album.createdAt).toLocaleDateString('fr-FR')}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="no-albums">Aucun album créé</p>
+                                )}
+                            </div>
+
+                            <div className="album-actions">
+                                <button
+                                    onClick={loadAlbumStats}
+                                    className="dev-action-btn"
+                                >
+                                    🔄 Actualiser Stats
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="no-stats">
+                            <p>Impossible de charger les statistiques des albums</p>
+                            <button
+                                onClick={loadAlbumStats}
+                                className="dev-action-btn"
+                            >
+                                🔄 Réessayer
+                            </button>
+                        </div>
+                    )}
+                </div>
+
                 <div className="dev-section">
                     <h3>📦 Commandes en Cours</h3>
                     <div className="orders-list">
@@ -112,18 +233,6 @@ function DevPanel() {
                 </div>
 
                 <div className="dev-section">
-                    <h3>📊 Informations Système</h3>
-                    <div className="dev-info-grid">
-                        {systemInfo && Object.entries(systemInfo).map(([key, value]) => (
-                            <div key={key} className="info-item">
-                                <strong>{key}:</strong>
-                                <span>{JSON.stringify(value)}</span>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                <div className="dev-section">
                     <h3>⚡ Actions Rapides</h3>
                     <div className="dev-actions">
                         <button
@@ -138,34 +247,6 @@ function DevPanel() {
                         >
                             🧹 Clear Console
                         </button>
-                        <button
-                            onClick={() => alert('Statut: OK')}
-                            className="dev-action-btn"
-                        >
-                            🔍 Vérifier Statut
-                        </button>
-                    </div>
-                </div>
-
-                <div className="dev-section">
-                    <h3>🔍 Diagnostics</h3>
-                    <div className="dev-diagnostics">
-                        <div className="diagnostic-item">
-                            <span>Statut API:</span>
-                            <span className="status-ok">✅ Opérationnel</span>
-                        </div>
-                        <div className="diagnostic-item">
-                            <span>Base de données:</span>
-                            <span className="status-ok">✅ Connectée</span>
-                        </div>
-                        <div className="diagnostic-item">
-                            <span>Performance:</span>
-                            <span className="status-ok">✅ Optimale</span>
-                        </div>
-                        <div className="diagnostic-item">
-                            <span>Cloudflare Access:</span>
-                            <span className="status-ok">✅ Actif</span>
-                        </div>
                     </div>
                 </div>
             </div>

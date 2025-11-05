@@ -1,5 +1,4 @@
 // Info : app/routes.ts
-// app/routes.ts
 import {type RouteConfig, index, route} from "@react-router/dev/routes";
 
 export default [
@@ -12,4 +11,5 @@ export default [
     route("reviews", "routes/content/reviews/reviews.tsx"),
     route("faq", "routes/content/faq/faq.tsx"),
     route("dev", "routes/admin/dev/dev.tsx"),
+    route("admin/photo-upload", "routes/admin/photo-upload/photo-upload.tsx"),
 ] satisfies RouteConfig;

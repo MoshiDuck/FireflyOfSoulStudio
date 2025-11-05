@@ -49,7 +49,7 @@ export function Navbar() {
         { path: "/home", label: "Home" },
         { path: "/gallery", label: "Gallery" },
         { path: "/shootings", label: "Shootings" },
-        { path: "/store", label: "Store" }
+        //{ path: "/store", label: "Store" }
     ];
 
     const secondaryItems = [

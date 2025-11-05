@@ -63,7 +63,7 @@ https://github.com/MoshiDuck/FireflyOfSoulStudio
     ```
 2. Commit
     ```bash
-    git commit -m "[FAIT] - Probleme resolu shooting et store"
+    git commit -m "[FAIT] - Ajouter upload photo et photo dans gallery"
     ```
 
 3. Version

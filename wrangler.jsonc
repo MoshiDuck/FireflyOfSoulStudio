@@ -1,26 +1,41 @@
 // Todo : wrangler.jsonc
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "fireflyofsoulstudio",
-  "compatibility_date": "2025-10-08",
-  "main": "./workers/app.ts",
-
-  "observability": {
-    "enabled": true
-  },
-  "upload_source_maps": true,
-  "routes": [
-    {
-      "pattern": "fireflyofsoulstudio.uk",
-      "custom_domain": true
-    }
-  ],
-
-  "d1_databases": [
-    {
-      "binding": "DB",
-      "database_name": "firefly-reservations",
-      "database_id": "4648ffba-4dc7-4edd-8c7d-91182a2e2c4e"
-    }
-  ]
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "fireflyofsoulstudio",
+	"compatibility_date": "2025-10-08",
+	"main": "./workers/app.ts",
+	"observability": {
+		"enabled": true
+	},
+	"upload_source_maps": true,
+	"routes": [
+		{
+			"pattern": "fireflyofsoulstudio.uk",
+			"custom_domain": true
+		}
+	],
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "firefly-reservations",
+			"database_id": "4648ffba-4dc7-4edd-8c7d-91182a2e2c4e"
+		}
+	],
+	"r2_buckets": [
+		{
+			"binding": "PHOTO_ALBUMS",
+			"bucket_name": "firefly-photo-albums",
+			"preview_bucket_name": "firefly-photo-albums-preview"
+		},
+		{
+			"bucket_name": "firefly-photo-albums",
+			"binding": "firefly_photo_albums",
+			"remote": true
+		}
+	],
+	"vars": {
+        "R2_PUBLIC_DOMAIN": "https://pub-8b80175e5e284c2e86c47d9f5d3c3569.r2.dev",
+		"UPLOAD_MAX_FILE_SIZE": "10485760",
+		"ALLOWED_IMAGE_TYPES": "image/jpeg,image/png,image/webp,image/heic,image/heif"
+	}
 }
