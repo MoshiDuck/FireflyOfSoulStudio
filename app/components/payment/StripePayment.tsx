@@ -7,56 +7,40 @@ import type { StripePaymentProps } from "~/types/api";
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY!);
 
-// FONCTION : Calcul des détails financiers
-const calculateFinancialDetails = (amountToPay: number, totalAmount: number, paymentType: 'deposit' | 'full') => {
-    const tauxTVA = 0; // 20%
-    const tauxCotisations = 40; // 40%
-    const tauxIR = 11; // 11%
+interface CheckoutFormProps extends StripePaymentProps {
+    clientSecret: string;
+}
 
-    let prixTTC = amountToPay;
-    let prixHT = prixTTC / (1 + tauxTVA/100);
 
-    const tvaCollectee = prixHT * (tauxTVA/100);
-    const cotisationsSociales = prixHT * (tauxCotisations/100);
-    const baseImposable = prixHT - cotisationsSociales;
-    const impotRevenu = baseImposable * (tauxIR/100);
-    const netReelPourMoi = prixHT - cotisationsSociales - impotRevenu;
 
-    // Calcul pour le total (100%)
-    const prixTTCTotal = totalAmount;
-    const prixHTTotal = prixTTCTotal / (1 + tauxTVA/100);
-    const tvaCollecteeTotal = prixHTTotal * (tauxTVA/100);
-    const cotisationsSocialesTotal = prixHTTotal * (tauxCotisations/100);
-    const baseImposableTotal = prixHTTotal - cotisationsSocialesTotal;
-    const impotRevenuTotal = baseImposableTotal * (tauxIR/100);
-    const netReelPourMoiTotal = prixHTTotal - cotisationsSocialesTotal - impotRevenuTotal;
+interface CreateInvoicePaymentResponse {
+    success: boolean;
+    clientSecret: string;
+    paymentIntentId: string;
+    invoiceId: string;
+    invoiceUrl: string;
+    invoicePdf: string;
+    customerId: string;
+    status: string;
+    error?: string;
+}
 
-    return {
-        // Champs pour le paiement actuel (acompte ou total)
-        prix_ttc_acompte: prixTTC.toFixed(2),
-        prix_ttc_total: prixTTCTotal.toFixed(2),
-        tva_collectee_acompte: tvaCollectee.toFixed(2),
-        tva_collectee_total: tvaCollecteeTotal.toFixed(2),
-        cotisations_sociales_acompte: cotisationsSociales.toFixed(2),
-        cotisations_sociales_total: cotisationsSocialesTotal.toFixed(2),
-        impot_revenu_acompte: impotRevenu.toFixed(2),
-        impot_revenu_total: impotRevenuTotal.toFixed(2),
-        net_reel_pour_moi_acompte: netReelPourMoi.toFixed(2),
-        net_reel_pour_moi_total: netReelPourMoiTotal.toFixed(2),
+// AJOUT: Interface pour les erreurs d'API
+interface ApiErrorResponse {
+    error: string;
+    details?: string;
+}
 
-        // Taux et informations générales
-        taux_tva: `${tauxTVA}%`,
-        taux_cotisations: `${tauxCotisations}%`,
-        taux_ir: `${tauxIR}%`,
-        devise: "EUR",
-        date_facturation: new Date().toISOString().split('T')[0],
-        booking_id: `SEANCE${new Date().getFullYear()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
-        calcul_auto_version: "v1.1",
-        transaction_type: paymentType === 'deposit' ? 'acompte' : 'total'
-    };
-};
+// AJOUT: Interface pour la réponse standard de payment intent
+interface CreatePaymentIntentResponse {
+    clientSecret: string;
+    paymentIntentId: string;
+    status: string;
+    usedCatalog: boolean;
+    error?: string;
+}
 
-function CheckoutForm({ clientSecret, ...props }: StripePaymentProps & { clientSecret: string }) {
+function CheckoutForm({ clientSecret, ...props }: CheckoutFormProps) {
     const stripe = useStripe();
     const elements = useElements();
     const [isLoading, setIsLoading] = useState(false);
@@ -64,19 +48,10 @@ function CheckoutForm({ clientSecret, ...props }: StripePaymentProps & { clientS
     const [paymentProcessed, setPaymentProcessed] = useState(false);
     const formSubmitted = useRef(false);
 
-    // CORRECTION : Utiliser le montant approprié (acompte pour sessions, total pour produits)
-    const amountToDisplay = props.amount;
-    const amountToUse = props.amount;
-
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
 
-        if (formSubmitted.current || paymentProcessed) {
-            console.log('⏸️  Soumission bloquée - déjà en cours ou terminée');
-            return;
-        }
-
-        if (!stripe || !elements) {
+        if (formSubmitted.current || paymentProcessed || !stripe || !elements) {
             return;
         }
 
@@ -93,20 +68,13 @@ function CheckoutForm({ clientSecret, ...props }: StripePaymentProps & { clientS
                 return;
             }
 
-            console.log('🔐 Début de la confirmation du paiement...');
+            console.log('💳 Confirmation du paiement...');
 
             const { error } = await stripe.confirmPayment({
                 elements,
                 clientSecret,
                 confirmParams: {
                     return_url: `${window.location.origin}/payment/success`,
-                    payment_method_data: {
-                        billing_details: {
-                            name: `${props.bookingData.firstName} ${props.bookingData.lastName}`,
-                            email: props.bookingData.email,
-                            phone: props.bookingData.phone,
-                        },
-                    },
                 },
                 redirect: 'if_required',
             });
@@ -116,26 +84,22 @@ function CheckoutForm({ clientSecret, ...props }: StripePaymentProps & { clientS
                 setErrorMessage(error.message || "Une erreur est survenue lors du paiement");
                 props.onError(error.message || "Erreur de paiement");
                 formSubmitted.current = false;
-            } else {
-                console.log('✅ Paiement réussi - récupération du Payment Intent');
-                setPaymentProcessed(true);
-
-                try {
-                    const { paymentIntent } = await stripe.retrievePaymentIntent(clientSecret);
-                    console.log('📋 Payment Intent status:', paymentIntent?.status);
-
-                    if (paymentIntent && (paymentIntent.status === 'succeeded' || paymentIntent.status === 'processing')) {
-                        console.log('🎉 Appel de onSuccess avec ID:', paymentIntent.id);
-                        props.onSuccess(paymentIntent.id);
-                    } else {
-                        console.log('⚠️  Statut inattendu, appel de onSuccess quand même');
-                        props.onSuccess('payment_successful_' + Date.now());
-                    }
-                } catch (retrieveError) {
-                    console.error('❌ Erreur récupération Payment Intent:', retrieveError);
-                    props.onSuccess('payment_successful_' + Date.now());
-                }
+                return;
             }
+
+            console.log('✅ Paiement réussi - Facture envoyée automatiquement');
+            setPaymentProcessed(true);
+
+            const retrievedPaymentIntent = await stripe.retrievePaymentIntent(clientSecret);
+            const paymentIntentId = retrievedPaymentIntent.paymentIntent?.id;
+
+            if (paymentIntentId) {
+                console.log('🎉 Appel de onSuccess avec ID:', paymentIntentId);
+                props.onSuccess(paymentIntentId);
+            } else {
+                props.onSuccess('payment_successful_' + Date.now());
+            }
+
         } catch (error) {
             console.error('❌ Erreur inattendue lors du paiement:', error);
             setErrorMessage("Une erreur inattendue est survenue");
@@ -151,10 +115,13 @@ function CheckoutForm({ clientSecret, ...props }: StripePaymentProps & { clientS
             <div className="payment-header">
                 <h3>{props.paymentType === 'deposit' ? 'Paiement de l\'acompte' : 'Paiement complet'}</h3>
                 <div className="payment-amount">
-                    Montant: <strong>{amountToDisplay}€</strong>
+                    Montant: <strong>{props.amount}€</strong>
                     {props.paymentType === 'deposit' && (
                         <div className="payment-type-badge">Acompte 30%</div>
                     )}
+                </div>
+                <div className="invoice-notice">
+                    📧 Une facture vous sera automatiquement envoyée par email après le paiement
                 </div>
             </div>
 
@@ -185,8 +152,8 @@ function CheckoutForm({ clientSecret, ...props }: StripePaymentProps & { clientS
                     {isLoading ? "Traitement en cours..." :
                         paymentProcessed ? "Paiement confirmé ✓" :
                             props.paymentType === 'deposit'
-                                ? `Payer l'acompte de ${amountToDisplay}€`
-                                : `Payer ${amountToDisplay}€`}
+                                ? `Payer l'acompte de ${props.amount}€`
+                                : `Payer ${props.amount}€`}
                 </button>
             </div>
 
@@ -194,135 +161,151 @@ function CheckoutForm({ clientSecret, ...props }: StripePaymentProps & { clientS
                 <div className="deposit-info">
                     <p>💡 <strong>Paiement en deux temps :</strong></p>
                     <p>Vous payez un acompte de 30% maintenant. Le solde sera à régler après votre séance photo.</p>
+                    <p>Une facture pour l'acompte vous sera envoyée immédiatement après le paiement.</p>
                 </div>
             )}
 
             <style>{`
-                .stripe-payment-form {
-                    max-width: 500px;
-                    margin: 0 auto;
-                    padding: 20px;
-                }
-                
-                .payment-header {
-                    text-align: center;
-                    margin-bottom: 20px;
-                }
-                
-                .payment-header h3 {
-                    color: #FFD580;
-                    margin-bottom: 10px;
-                }
-                
-                .payment-amount {
-                    font-size: 18px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 10px;
-                }
-                
-                .payment-type-badge {
-                    background: #FFD580;
-                    color: #0D0D0D;
-                    padding: 4px 8px;
-                    border-radius: 12px;
-                    font-size: 12px;
-                    font-weight: bold;
-                }
-                
-                .payment-element-container {
-                    margin-bottom: 20px;
-                }
-                
-                .payment-error {
-                    background: rgba(198, 40, 40, 0.1);
-                    color: #ff6b6b;
-                    padding: 12px;
-                    border-radius: 8px;
-                    border: 1px solid rgba(198, 40, 40, 0.3);
-                    margin-bottom: 15px;
-                    text-align: center;
-                }
-                
-                .payment-actions {
-                    display: flex;
-                    gap: 10px;
-                    margin-bottom: 20px;
-                }
-                
-                .cancel-button {
-                    flex: 1;
-                    padding: 12px;
-                    background: transparent;
-                    color: #e0e0e0;
-                    border: 1px solid #666;
-                    border-radius: 8px;
-                    cursor: pointer;
-                    transition: all 0.2s ease;
-                }
-                
-                .cancel-button:hover:not(:disabled) {
-                    background: #333;
-                }
-                
-                .cancel-button:disabled {
-                    opacity: 0.5;
-                    cursor: not-allowed;
-                }
-                
-                .submit-payment-button {
-                    flex: 2;
-                    padding: 12px;
-                    background: #FFD580;
-                    color: #0D0D0D;
-                    border: none;
-                    border-radius: 8px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    transition: all 0.2s ease;
-                }
-                
-                .submit-payment-button:hover:not(:disabled) {
-                    background: #FFCA28;
-                    transform: translateY(-1px);
-                }
-                
-                .submit-payment-button:disabled {
-                    opacity: 0.6;
-                    cursor: not-allowed;
-                    transform: none;
-                }
-                
-                .deposit-info {
-                    background: rgba(255, 213, 128, 0.1);
-                    padding: 15px;
-                    border-radius: 8px;
-                    border: 1px solid rgba(255, 213, 128, 0.3);
-                    font-size: 14px;
-                }
-                
-                .deposit-info p {
-                    margin: 0;
-                }
-            `}</style>
+        .stripe-payment-form {
+          max-width: 500px;
+          margin: 0 auto;
+          padding: 20px;
+        }
+        
+        .payment-header {
+          text-align: center;
+          margin-bottom: 20px;
+        }
+        
+        .payment-header h3 {
+          color: #FFD580;
+          margin-bottom: 10px;
+        }
+        
+        .payment-amount {
+          font-size: 18px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          margin-bottom: 10px;
+        }
+        
+        .invoice-notice {
+          background: rgba(255, 213, 128, 0.1);
+          padding: 10px;
+          border-radius: 8px;
+          border: 1px solid rgba(255, 213, 128, 0.3);
+          font-size: 14px;
+          margin-top: 10px;
+        }
+        
+        .payment-type-badge {
+          background: #FFD580;
+          color: #0D0D0D;
+          padding: 4px 8px;
+          border-radius: 12px;
+          font-size: 12px;
+          font-weight: bold;
+        }
+        
+        .payment-element-container {
+          margin-bottom: 20px;
+        }
+        
+        .payment-error {
+          background: rgba(198, 40, 40, 0.1);
+          color: #ff6b6b;
+          padding: 12px;
+          border-radius: 8px;
+          border: 1px solid rgba(198, 40, 40, 0.3);
+          margin-bottom: 15px;
+          text-align: center;
+        }
+        
+        .payment-actions {
+          display: flex;
+          gap: 10px;
+          margin-bottom: 20px;
+        }
+        
+        .cancel-button {
+          flex: 1;
+          padding: 12px;
+          background: transparent;
+          color: #e0e0e0;
+          border: 1px solid #666;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+        
+        .cancel-button:hover:not(:disabled) {
+          background: #333;
+        }
+        
+        .cancel-button:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+        
+        .submit-payment-button {
+          flex: 2;
+          padding: 12px;
+          background: #FFD580;
+          color: #0D0D0D;
+          border: none;
+          border-radius: 8px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+        
+        .submit-payment-button:hover:not(:disabled) {
+          background: #FFCA28;
+          transform: translateY(-1px);
+        }
+        
+        .submit-payment-button:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+          transform: none;
+        }
+        
+        .deposit-info {
+          background: rgba(255, 213, 128, 0.1);
+          padding: 15px;
+          border-radius: 8px;
+          border: 1px solid rgba(255, 213, 128, 0.3);
+          font-size: 14px;
+        }
+        
+        .deposit-info p {
+          margin: 5px 0;
+        }
+      `}</style>
         </form>
     );
 }
 
-export default function StripePayment(props: StripePaymentProps) {
+// NOUVEAU: Props étendues pour inclure les informations client nécessaires à la facture
+interface StripePaymentWithInvoiceProps extends StripePaymentProps {
+    customerEmail: string;
+    customerName: string;
+    description: string;
+    phone?: string;
+    useInvoice?: boolean; // Option pour utiliser le système de facture
+}
+
+export default function StripePayment(props: StripePaymentWithInvoiceProps) {
     const [clientSecret, setClientSecret] = useState<string>("");
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string>("");
-    const instanceId = useRef(paymentInstanceCounter++);
     const paymentIntentCreated = useRef(false);
 
-    console.log(`🔄 Instance StripePayment #${instanceId.current} montée`);
-
     useEffect(() => {
-        const createPaymentIntent = async () => {
+        const createPayment = async () => {
             if (paymentIntentCreated.current) {
-                console.log(`⏸️  Instance #${instanceId.current} - Payment Intent déjà créé`);
                 return;
             }
 
@@ -331,73 +314,90 @@ export default function StripePayment(props: StripePaymentProps) {
                 setError("");
                 paymentIntentCreated.current = true;
 
-                // CORRECTION : Utiliser le montant approprié selon le contexte
-                // - Pour les sessions : props.amount = acompte (30%)
-                // - Pour les produits : props.amount = total
-                const amountToUse = props.amount;
-                console.log(`💰 Instance #${instanceId.current} - Création Payment Intent pour ${amountToUse}€`);
+                // Utiliser le nouvel endpoint avec facture si useInvoice est true
+                if (props.useInvoice) {
+                    console.log('🧾 Utilisation du paiement avec facture automatique');
 
-                // CORRECTION : Passer à la fois le montant à payer et le montant total
-                const financialDetails = calculateFinancialDetails(amountToUse, props.totalServicePrice, props.paymentType);
+                    const response = await fetch(API_ENDPOINTS.CREATE_INVOICE_PAYMENT, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            amount: props.amount,
+                            customerEmail: props.customerEmail,
+                            customerName: props.customerName,
+                            description: props.description,
+                            phone: props.phone,
+                            paymentType: props.paymentType,
+                            serviceName: props.serviceName,
+                            type: props.type,
+                            metadata: {
+                                service_type: props.type,
+                                payment_method: 'stripe_invoice'
+                            }
+                        }),
+                    });
 
-                const metadata = {
-                    // Informations client
-                    customer_email: props.bookingData.email,
-                    customer_name: `${props.bookingData.firstName} ${props.bookingData.lastName}`,
+                    if (!response.ok) {
+                        // CORRECTION: Typer errorData
+                        const errorData = await response.json() as ApiErrorResponse;
+                        throw new Error(errorData.error || errorData.details || "Erreur lors de la création du paiement avec facture");
+                    }
 
-                    // Informations service
-                    service_type: props.type,
-                    service_name: props.serviceName,
-                    payment_type: props.paymentType,
+                    const data = await response.json() as CreateInvoicePaymentResponse;
 
-                    // Informations de réservation si session
-                    ...(props.type === 'session' && props.selectedDate && {
-                        reservation_date: props.selectedDate,
-                        reservation_time: props.selectedTime
-                    }),
+                    if (!data.clientSecret) {
+                        throw new Error("Client secret manquant dans la réponse");
+                    }
 
-                    // Détails financiers complets
-                    ...financialDetails,
+                    console.log('✅ Paiement avec facture créé avec succès:', {
+                        invoiceId: data.invoiceId,
+                        status: data.status
+                    });
+                    setClientSecret(data.clientSecret);
+                } else {
+                    // Utiliser l'ancien endpoint sans facture (rétrocompatibilité)
+                    const priceId = props.paymentType === 'deposit'
+                        ? props.stripeDepositPriceId
+                        : props.stripePriceId;
 
-                    // Informations techniques
-                    instance_id: instanceId.current,
-                    timestamp: Date.now()
-                };
+                    console.log('💰 Création Payment Intent standard:', {
+                        amount: props.amount,
+                        priceId,
+                        paymentType: props.paymentType,
+                        serviceName: props.serviceName,
+                        type: props.type
+                    });
 
-                const response = await fetch(API_ENDPOINTS.CREATE_PAYMENT_INTENT, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        amount: amountToUse, // CORRECTION : Utiliser le montant approprié
-                        currency: "eur",
-                        metadata: metadata,
-                        paymentType: props.paymentType
-                    }),
-                });
+                    const response = await fetch(API_ENDPOINTS.CREATE_PAYMENT_INTENT, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            amount: props.amount,
+                            priceId: priceId,
+                            paymentType: props.paymentType,
+                            serviceName: props.serviceName,
+                            type: props.type
+                        }),
+                    });
 
-                type PaymentIntentResponse = {
-                    clientSecret?: string;
-                    error?: string;
-                    details?: string;
-                };
+                    if (!response.ok) {
+                        // CORRECTION: Typer errorData
+                        const errorData = await response.json() as ApiErrorResponse;
+                        throw new Error(errorData.error || errorData.details || "Erreur lors de la création du paiement");
+                    }
 
-                const data = await response.json() as PaymentIntentResponse;
+                    // CORRECTION: Typer data
+                    const data = await response.json() as CreatePaymentIntentResponse;
 
-                if (!response.ok) {
-                    throw new Error(data.error || "Erreur lors de la création du paiement");
+                    if (!data.clientSecret) {
+                        throw new Error("Client secret manquant dans la réponse");
+                    }
+
+                    console.log('✅ Payment Intent créé avec succès');
+                    setClientSecret(data.clientSecret);
                 }
-
-                if (!data.clientSecret) {
-                    throw new Error("Réponse invalide du serveur : clientSecret manquant");
-                }
-
-                console.log(`✅ Instance #${instanceId.current} - Payment Intent créé avec succès`);
-                console.log('📊 Métadonnées financières:', financialDetails);
-                setClientSecret(data.clientSecret);
             } catch (err) {
-                console.error(`❌ Instance #${instanceId.current} - Erreur:`, err);
+                console.error('❌ Erreur création paiement:', err);
                 const message = err instanceof Error ? err.message : "Erreur inconnue";
                 setError(message);
                 props.onError(message);
@@ -407,42 +407,43 @@ export default function StripePayment(props: StripePaymentProps) {
             }
         };
 
-        if (props.amount > 0 && !clientSecret) { // CORRECTION : Vérifier props.amount (montant à payer)
-            createPaymentIntent();
+        if (props.amount > 0 && !clientSecret) {
+            createPayment();
         }
 
         return () => {
-            console.log(`🧹 Instance StripePayment #${instanceId.current} démontée`);
+            console.log(`🧹 Instance StripePayment démontée`);
         };
-    }, [props.amount, props.serviceName, props.bookingData, props.type, props.selectedDate, props.selectedTime, props.paymentType, props.totalServicePrice]);
+    }, [props.amount, props.serviceName, props.type, props.paymentType, props.stripePriceId, props.stripeDepositPriceId, props.useInvoice, props.customerEmail, props.customerName, props.description, props.phone]);
 
     if (loading) {
         return (
             <div className="payment-loading">
                 <div className="spinner"></div>
                 <div>Initialisation du paiement sécurisé...</div>
+                {props.useInvoice && <div>Préparation de votre facture...</div>}
 
                 <style>{`
-                    .payment-loading {
-                        text-align: center;
-                        padding: 40px 20px;
-                    }
-                    
-                    .spinner {
-                        border: 3px solid #f3f3f3;
-                        border-top: 3px solid #FFD580;
-                        border-radius: 50%;
-                        width: 30px;
-                        height: 30px;
-                        animation: spin 1s linear infinite;
-                        margin: 0 auto 15px;
-                    }
-                    
-                    @keyframes spin {
-                        0% { transform: rotate(0deg); }
-                        100% { transform: rotate(360deg); }
-                    }
-                `}</style>
+          .payment-loading {
+            text-align: center;
+            padding: 40px 20px;
+          }
+          
+          .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #FFD580;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+          }
+          
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
             </div>
         );
     }
@@ -456,35 +457,35 @@ export default function StripePayment(props: StripePaymentProps) {
                 </button>
 
                 <style>{`
-                    .payment-error-container {
-                        text-align: center;
-                        padding: 30px 20px;
-                    }
-                    
-                    .error-message {
-                        background: rgba(198, 40, 40, 0.1);
-                        color: #ff6b6b;
-                        padding: 15px;
-                        border-radius: 8px;
-                        border: 1px solid rgba(198, 40, 40, 0.3);
-                        margin-bottom: 15px;
-                    }
-                    
-                    .retry-button {
-                        padding: 10px 20px;
-                        background: #FFD580;
-                        color: #0D0D0D;
-                        border: none;
-                        border-radius: 8px;
-                        font-weight: 600;
-                        cursor: pointer;
-                        transition: all 0.2s ease;
-                    }
-                    
-                    .retry-button:hover {
-                        background: #FFCA28;
-                    }
-                `}</style>
+          .payment-error-container {
+            text-align: center;
+            padding: 30px 20px;
+          }
+          
+          .error-message {
+            background: rgba(198, 40, 40, 0.1);
+            color: #ff6b6b;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(198, 40, 40, 0.3);
+            margin-bottom: 15px;
+          }
+          
+          .retry-button {
+            padding: 10px 20px;
+            background: #FFD580;
+            color: #0D0D0D;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+          }
+          
+          .retry-button:hover {
+            background: #FFCA28;
+          }
+        `}</style>
             </div>
         );
     }
@@ -524,6 +525,3 @@ export default function StripePayment(props: StripePaymentProps) {
         </div>
     );
 }
-
-// Compteur global pour suivre les instances
-let paymentInstanceCounter = 0;

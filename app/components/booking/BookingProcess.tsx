@@ -9,6 +9,17 @@ import type { Service, TimeSlot, BookedSlot, ApiResponse, BookingProcessProps, C
 import { STEP_CONFIG } from "~/config/booking";
 import { API_ENDPOINTS } from "~/config/api";
 
+interface FinalizeInvoiceResponse {
+    success: boolean;
+    invoiceId: string;
+    invoiceUrl: string;
+    invoicePdf: string;
+    status: string;
+    message: string;
+    error?: string;
+}
+
+
 export function BookingProcess({ service, cart, onBack, onComplete, apiEndpoint, type }: BookingProcessProps & { cart?: CartItemComponent[] }) {
     const [step, setStep] = useState(1);
     const [selectedDate, setSelectedDate] = useState<string>("");
@@ -69,7 +80,6 @@ export function BookingProcess({ service, cart, onBack, onComplete, apiEndpoint,
     const paymentAmounts = calculatePaymentAmounts();
     const TOTAL_STEPS = type === 'session' ? 4 : 3;
 
-    // Génération des dates
     useEffect(() => {
         const dates: string[] = [];
         const today = new Date();
@@ -83,7 +93,6 @@ export function BookingProcess({ service, cart, onBack, onComplete, apiEndpoint,
         setAvailableDates(dates);
     }, []);
 
-    // Récupération des créneaux
     useEffect(() => {
         const fetchBookedSlots = async () => {
             if (selectedDate && type === 'session') {
@@ -330,7 +339,6 @@ export function BookingProcess({ service, cart, onBack, onComplete, apiEndpoint,
         });
     }, []);
 
-    // Composants d'étape modernes
     const StepHeader = ({ title, subtitle }: { title: string; subtitle?: string }) => (
         <div className="booking-step-header-modern">
             <button className="back-btn-minimal" onClick={goToPreviousStep}>
@@ -354,7 +362,6 @@ export function BookingProcess({ service, cart, onBack, onComplete, apiEndpoint,
         </div>
     );
 
-    // Étape 1 : Sélection de la date
     const Step1 = () => (
         <motion.div
             className="booking-step-modern"
@@ -396,7 +403,6 @@ export function BookingProcess({ service, cart, onBack, onComplete, apiEndpoint,
         </motion.div>
     );
 
-    // Étape 2 : Sélection de l'heure
     const Step2 = () => (
         <motion.div
             className="booking-step-modern"
@@ -438,7 +444,6 @@ export function BookingProcess({ service, cart, onBack, onComplete, apiEndpoint,
         </motion.div>
     );
 
-    // Étape 3 : Informations personnelles
     const Step3 = () => {
         const currentFormData = getFormData();
 
@@ -596,10 +601,8 @@ export function BookingProcess({ service, cart, onBack, onComplete, apiEndpoint,
         );
     };
 
-    // Étape 4 : Paiement
     const Step4 = () => {
         const currentFormData = getFormData();
-        const stripeComment = generateStripeComment(currentFormData, type === 'session' ? 'deposit' : 'full');
 
         return (
             <motion.div
@@ -619,8 +622,8 @@ export function BookingProcess({ service, cart, onBack, onComplete, apiEndpoint,
                         <div className="amount-line total">
                             <span>Montant à payer</span>
                             <span>
-                                {type === 'session' ? paymentAmounts.depositAmount : paymentAmounts.totalAmount}€
-                            </span>
+                {type === 'session' ? paymentAmounts.depositAmount : paymentAmounts.totalAmount}€
+              </span>
                         </div>
                     </div>
                 </div>
@@ -647,17 +650,20 @@ export function BookingProcess({ service, cart, onBack, onComplete, apiEndpoint,
                                 <StripePayment
                                     amount={type === 'session' ? paymentAmounts.depositAmount : paymentAmounts.totalAmount}
                                     serviceName={cart && cart.length > 0 ? `Panier (${cart.length} articles)` : service?.name || ''}
-                                    bookingData={getFormData()}
                                     onSuccess={(paymentIntentId) => handlePaymentSuccess(paymentIntentId, type === 'session' ? 'deposit' : 'full')}
-                                    onError={(error) => setMessage({ type: 'error', text: error })}
+                                    onError={(error) => setMessage({type: 'error', text: error})}
                                     onCancel={handlePaymentCancel}
-                                    selectedDate={selectedDate}
-                                    selectedTime={selectedTime}
                                     type={type}
                                     paymentType={type === 'session' ? 'deposit' : 'full'}
-                                    stripeComment={stripeComment}
+                                    stripePriceId={service?.stripePriceId}
+                                    stripeDepositPriceId={service?.stripeDepositPriceId}
                                     totalServicePrice={paymentAmounts.totalAmount}
-                                />
+                                    useInvoice={true}
+                                    customerEmail={currentFormData.email}
+                                    customerName={`${currentFormData.firstName} ${currentFormData.lastName}`}
+                                    description={generateStripeComment(currentFormData, type === 'session' ? 'deposit' : 'full')}
+                                    phone={currentFormData.phone}
+                                    bookingData={getFormData()}                               />
                             </motion.div>
                         )}
                     </AnimatePresence>
@@ -679,7 +685,6 @@ export function BookingProcess({ service, cart, onBack, onComplete, apiEndpoint,
         );
     };
 
-    // Étapes de progression
     const steps = type === 'session'
         ? [
             { number: 1, label: 'Date' },
@@ -718,7 +723,6 @@ export function BookingProcess({ service, cart, onBack, onComplete, apiEndpoint,
             transition={{ duration: 0.4 }}
         >
             <div className="booking-container-modern">
-                {/* Barre de progression */}
                 <div className="progress-bar-modern">
                     {steps.map((stepItem, index) => (
                         <div key={stepItem.number} className="progress-step-modern">
@@ -733,7 +737,6 @@ export function BookingProcess({ service, cart, onBack, onComplete, apiEndpoint,
                     ))}
                 </div>
 
-                {/* Contenu de l'étape */}
                 <div className="step-content-modern">
                     <AnimatePresence mode="wait">
                         {renderCurrentStep()}

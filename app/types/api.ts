@@ -2,12 +2,14 @@
 export interface Service {
     id: string;
     name: string;
-    price: number;
     description: string;
+    price: number;
     duration: string;
-    type: 'session' | 'product' | 'album';
     features?: string[];
-    capacities?: Capacity[];
+    type: 'session' | 'product';
+    stripeProductId?: string;
+    stripePriceId?: string;
+    stripeDepositPriceId?: string;
 }
 
 export interface Capacity {
@@ -78,19 +80,16 @@ export interface BookingProcessProps {
 export interface CartItemComponent {
     service: Service;
     quantity: number;
-    selectedCapacity?: Capacity;
+    selectedCapacity?: {
+        size: string;
+        price: number;
+    };
 }
 
 export interface StripePaymentProps {
     amount: number;
     serviceName: string;
-    bookingData: {
-        firstName: string;
-        lastName: string;
-        email: string;
-        phone?: string;
-        message?: string;
-    };
+    bookingData: BookingData;
     onSuccess: (paymentIntentId: string) => void;
     onError: (error: string) => void;
     onCancel: () => void;
@@ -98,9 +97,19 @@ export interface StripePaymentProps {
     selectedTime?: string;
     type: 'session' | 'product';
     paymentType: 'deposit' | 'full';
-    stripeComment: string;
+    stripePriceId?: string;
+    stripeDepositPriceId?: string;
     totalServicePrice: number;
 }
+
+export interface BookingData {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone?: string;
+    message?: string;
+}
+
 export interface CustomerInfo {
     firstName: string;
     lastName: string;

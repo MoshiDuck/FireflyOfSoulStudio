@@ -63,12 +63,12 @@ https://github.com/MoshiDuck/FireflyOfSoulStudio
     ```
 2. Commit
     ```bash
-    git commit -m "[FAIT] - Paiement dans gallery"
+    git commit -m "[FAIT] - Utiliser catalogue Stripe et optimisation app.ts"
     ```
 
 3. Version
    ```bash
-   git tag 0.0.2.2
+   git tag 0.0.2.4
    ```
 
 4. Force le push

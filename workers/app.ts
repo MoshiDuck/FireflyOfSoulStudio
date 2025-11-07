@@ -1,7 +1,7 @@
 // workers/app.ts
-import { Hono } from "hono";
-import { createRequestHandler } from "react-router";
-import { cors } from 'hono/cors';
+import {Hono} from "hono";
+import {createRequestHandler} from "react-router";
+import {cors} from 'hono/cors';
 import type {ApiErrorResponse} from "~/types/api";
 
 interface Bindings {
@@ -11,7 +11,43 @@ interface Bindings {
     R2_PUBLIC_DOMAIN: string;
 }
 
-// Interfaces pour les réponses API
+interface StripePaymentIntentResponse {
+    id: string;
+    client_secret: string;
+    status: string;
+    error?: {
+        message: string;
+        type?: string;
+    };
+}
+
+interface StripeErrorResponse {
+    error: {
+        message: string;
+        type?: string;
+    };
+}
+
+interface CreatePaymentIntentRequest {
+    amount: number;
+    priceId?: string;
+    paymentType: 'deposit' | 'full';
+    serviceName: string;
+    type: 'session' | 'product';
+}
+
+interface CreatePaymentIntentSuccessResponse {
+    clientSecret: string;
+    paymentIntentId: string;
+    status: string;
+    usedCatalog: boolean;
+}
+
+interface CreatePaymentIntentErrorResponse {
+    error: string;
+    details?: string;
+}
+
 interface ApiResponse<T = any> {
     success: boolean;
     message?: string;
@@ -66,7 +102,73 @@ interface AlbumStats {
     recentAlbums: any[];
 }
 
+interface StripeCustomerResponse {
+    id?: string;
+    error?: {
+        message: string;
+        type?: string;
+    };
+}
 
+interface StripeInvoiceItemResponse {
+    id?: string;
+    error?: { message: string };
+}
+
+interface StripeInvoiceResponse {
+    id?: string;
+    hosted_invoice_url?: string;
+    invoice_pdf?: string;
+    status?: string;
+    error?: { message: string };
+}
+
+interface StripeProduct {
+    id: string;
+    name: string;
+    description: string | null;
+    metadata: Record<string, any>;
+}
+
+interface StripePrice {
+    id: string;
+    unit_amount: number | null;
+    currency: string;
+    type: string;
+    recurring?: {
+        interval: string;
+        interval_count: number;
+    };
+    metadata: Record<string, any>;
+}
+
+interface StripeProductsResponse {
+    data: StripeProduct[];
+    error?: { message: string };
+}
+
+interface StripePricesResponse {
+    data: StripePrice[];
+    error?: { message: string };
+}
+
+interface R2Objects {
+    objects: R2Object[];
+    truncated: boolean;
+    cursor?: string;
+}
+
+interface CreateInvoicePaymentRequest {
+    amount: number;
+    customerEmail: string;
+    customerName: string;
+    description: string;
+    metadata?: Record<string, any>;
+    phone?: string;
+    paymentType: 'deposit' | 'full';
+    serviceName: string;
+    type: 'session' | 'product';
+}
 
 function normalizeFolderName(name: string): string {
     return name
@@ -79,7 +181,6 @@ function normalizeFolderName(name: string): string {
 
 const app = new Hono<{ Bindings: Bindings }>();
 
-// Middleware CORS pour toutes les routes API
 app.use('/api/*', cors({
     origin: '*',
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -93,6 +194,254 @@ function getErrorMessage(error: unknown): string {
     return String(error);
 }
 
+// Fonction utilitaire pour les erreurs Stripe
+async function handleStripeError(response: Response): Promise<{ error: string; details?: string }> {
+    try {
+        const data = await response.json() as StripeErrorResponse;
+        console.error('❌ Erreur Stripe:', data);
+        return {
+            error: data.error?.message || 'Erreur Stripe inconnue',
+            details: data.error?.type
+        };
+    } catch {
+        return {
+            error: `Erreur HTTP ${response.status}`,
+            details: 'Impossible de parser la réponse Stripe'
+        };
+    }
+}
+
+app.post('/api/create-invoice-payment', async (c) => {
+    try {
+        const {
+            amount,
+            customerEmail,
+            customerName,
+            description,
+            metadata,
+            phone,
+            paymentType,
+            serviceName,
+            type
+        } = await c.req.json() as CreateInvoicePaymentRequest;
+
+        console.log('🧾 Création paiement avec facture automatique:', {
+            customerEmail,
+            customerName,
+            amount,
+            description,
+            paymentType
+        });
+
+        // Validation
+        if (!amount || amount <= 0) {
+            return c.json({
+                success: false,
+                error: "Montant invalide"
+            }, 400);
+        }
+
+        if (!customerEmail || !customerName) {
+            return c.json({
+                success: false,
+                error: "Email et nom du client sont requis"
+            }, 400);
+        }
+
+        // 1. Créer ou récupérer le client Stripe
+        console.log('👤 Création/récupération du client Stripe...');
+        const customerParams = new URLSearchParams({
+            email: customerEmail.trim(),
+            name: customerName.trim(),
+            ...(phone && {phone: phone.trim()}),
+        });
+
+        // Ajouter les métadonnées au client
+        if (metadata && typeof metadata === 'object') {
+            for (const [key, value] of Object.entries(metadata)) {
+                if (value !== undefined && value !== null) {
+                    const stringValue = String(value).substring(0, 500);
+                    customerParams.append(`metadata[${key}]`, stringValue);
+                }
+            }
+        }
+
+        const customerResponse = await fetch('https://api.stripe.com/v1/customers', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${c.env.STRIPE_SECRET_KEY}`,
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: customerParams,
+        });
+
+        const customerData = await customerResponse.json() as StripeCustomerResponse;
+
+        if (!customerResponse.ok || !customerData.id) {
+            console.error('❌ Erreur création client Stripe:', customerData);
+            const errorMessage = customerData.error?.message || 'Erreur lors de la création du client Stripe';
+            return c.json({
+                success: false,
+                error: errorMessage
+            }, 400);
+        }
+
+        const customerId = customerData.id;
+        console.log('✅ Client Stripe créé:', customerId);
+
+        // 2. Créer l'item de facture
+        console.log('📦 Création de l\'item de facture...');
+        const invoiceItemParams = new URLSearchParams({
+            customer: customerId,
+            amount: Math.round(amount * 100).toString(),
+            currency: 'eur',
+            description: description || `${serviceName} - ${paymentType === 'deposit' ? 'Acompte' : 'Paiement complet'}`,
+        });
+
+        const invoiceMetadata = {
+            ...metadata,
+            service_name: serviceName,
+            payment_type: paymentType,
+            product_type: type,
+            invoice_auto_generated: 'true',
+            auto_send_email: 'true'
+        };
+
+        for (const [key, value] of Object.entries(invoiceMetadata)) {
+            if (value !== undefined && value !== null) {
+                const stringValue = String(value).substring(0, 500);
+                invoiceItemParams.append(`metadata[${key}]`, stringValue);
+            }
+        }
+
+        const invoiceItemResponse = await fetch('https://api.stripe.com/v1/invoiceitems', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${c.env.STRIPE_SECRET_KEY}`,
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: invoiceItemParams,
+        });
+
+        if (!invoiceItemResponse.ok) {
+            const errorData = await handleStripeError(invoiceItemResponse);
+            return c.json({
+                success: false,
+                error: "Erreur création item de facture",
+                details: errorData.error
+            }, 400);
+        }
+
+        const invoiceItem = await invoiceItemResponse.json() as StripeInvoiceItemResponse;
+        console.log('✅ Item de facture créé:', invoiceItem.id);
+
+        // 3. Créer la facture
+        console.log('📄 Création de la facture...');
+        const invoiceParams = new URLSearchParams({
+            customer: customerId,
+            auto_advance: 'true',
+            collection_method: 'charge_automatically',
+            'automatic_tax[enabled]': 'true',
+            'metadata[auto_send_email]': 'true',
+        });
+
+        for (const [key, value] of Object.entries(invoiceMetadata)) {
+            if (value !== undefined && value !== null) {
+                const stringValue = String(value).substring(0, 500);
+                invoiceParams.append(`metadata[${key}]`, stringValue);
+            }
+        }
+
+        const invoiceResponse = await fetch('https://api.stripe.com/v1/invoices', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${c.env.STRIPE_SECRET_KEY}`,
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: invoiceParams,
+        });
+
+        const invoice = await invoiceResponse.json() as StripeInvoiceResponse;
+
+        if (!invoiceResponse.ok || !invoice.id) {
+            console.error('❌ Erreur création facture:', invoice);
+            const errorMessage = invoice.error?.message || 'Erreur création facture';
+            return c.json({
+                success: false,
+                error: errorMessage
+            }, 400);
+        }
+
+        console.log('✅ Facture créée (non finalisée):', invoice.id);
+
+        // 4. Créer le PaymentIntent
+        console.log('💳 Création du Payment Intent...');
+        const stripeAmount = Math.round(amount * 100);
+
+        const paymentIntentParams = new URLSearchParams({
+            amount: stripeAmount.toString(),
+            currency: 'eur',
+            customer: customerId,
+            'automatic_payment_methods[enabled]': 'true',
+            description: description || `${serviceName} - ${paymentType === 'deposit' ? 'Acompte' : 'Paiement complet'}`,
+            'metadata[invoice_id]': invoice.id,
+            'metadata[auto_send_invoice]': 'true',
+        });
+
+        paymentIntentParams.append('metadata[service_name]', serviceName);
+        paymentIntentParams.append('metadata[payment_type]', paymentType);
+        paymentIntentParams.append('metadata[product_type]', type);
+        paymentIntentParams.append('metadata[customer_id]', customerId);
+        paymentIntentParams.append('metadata[customer_email]', customerEmail);
+
+        const paymentIntentResponse = await fetch('https://api.stripe.com/v1/payment_intents', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${c.env.STRIPE_SECRET_KEY}`,
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: paymentIntentParams,
+        });
+
+        if (!paymentIntentResponse.ok) {
+            const errorData = await handleStripeError(paymentIntentResponse);
+            return c.json({
+                success: false,
+                error: "Erreur création paiement",
+                details: errorData.error
+            }, 400);
+        }
+
+        const paymentIntent = await paymentIntentResponse.json() as StripePaymentIntentResponse;
+
+        if (!paymentIntent.client_secret) {
+            return c.json({
+                success: false,
+                error: "Client secret manquant dans la réponse Stripe"
+            }, 500);
+        }
+
+        console.log('✅ Payment Intent créé avec succès, facture liée:', invoice.id);
+
+        return c.json({
+            success: true,
+            clientSecret: paymentIntent.client_secret,
+            paymentIntentId: paymentIntent.id,
+            invoiceId: invoice.id,
+            customerId: customerId,
+            status: 'invoice_created_pending_payment'
+        });
+
+    } catch (error) {
+        console.error('❌ Erreur création paiement avec facture:', error);
+        return c.json({
+            success: false,
+            error: "Erreur lors de la création du paiement avec facture",
+            details: getErrorMessage(error)
+        }, 500);
+    }
+});
+
 // ✅ HEALTH CHECK
 app.get('/api/health', (c) => {
     return c.json({
@@ -104,7 +453,6 @@ app.get('/api/health', (c) => {
     });
 });
 
-// ✅ ROUTE: Statistiques des albums
 app.get('/api/albums/stats', async (c) => {
     const db = c.env.DB;
 
@@ -116,34 +464,29 @@ app.get('/api/albums/stats', async (c) => {
 
         const totalAlbums = albumsCountResult?.count || 0;
 
-        // Lister tous les objets dans R2 pour calculer les statistiques de stockage
-        let totalPhotos = 0;
-        let totalSize = 0;
-
         // Fonction pour lister récursivement tous les objets
         const listAllObjects = async (prefix: string): Promise<{ objects: R2Object[] }> => {
             let allObjects: R2Object[] = [];
             let cursor: string | undefined;
 
             do {
-                const listed: R2ListOptions | any = await c.env.PHOTO_ALBUMS.list({
+                const listed: R2Objects = await c.env.PHOTO_ALBUMS.list({
                     prefix,
-                    cursor,
-                    limit: 1000 // Augmentez la limite si nécessaire
+                    limit: 1000
                 });
 
                 allObjects = allObjects.concat(listed.objects);
                 cursor = listed.truncated ? listed.cursor : undefined;
             } while (cursor);
 
-            return { objects: allObjects };
+            return {objects: allObjects};
         };
 
         // Lister tous les objets avec le préfixe albums/
-        const { objects: allObjects } = await listAllObjects('albums/');
+        const {objects: allObjects} = await listAllObjects('albums/');
 
-        totalPhotos = allObjects.length;
-        totalSize = allObjects.reduce((sum, obj) => sum + obj.size, 0);
+        const totalPhotos = allObjects.length;
+        const totalSize = allObjects.reduce((sum, obj) => sum + (obj.size || 0), 0);
 
         // Formater la taille
         const formatBytes = (bytes: number): string => {
@@ -156,7 +499,7 @@ app.get('/api/albums/stats', async (c) => {
 
         const totalSizeFormatted = formatBytes(totalSize);
 
-        // Calculer le coût mensuel estimé (exemple: $0.015 par GB/mois pour R2)
+        // Calculer le coût mensuel estimé
         const costPerGBPerMonth = 0.015;
         const totalSizeInGB = totalSize / (1024 * 1024 * 1024);
         const monthlyCost = (totalSizeInGB * costPerGBPerMonth).toFixed(2) + ' €';
@@ -167,8 +510,8 @@ app.get('/api/albums/stats', async (c) => {
         ).all();
 
         const recentAlbums = await Promise.all(
-            recentAlbumsResult.results.map(async (album: any) => {
-                const albumName = album.customer_name;
+            (recentAlbumsResult.results || []).map(async (album: any) => {
+                const albumName = album.customer_name || '';
                 const albumFolderName = normalizeFolderName(albumName);
                 const prefix = `albums/${albumFolderName}/`;
 
@@ -177,19 +520,19 @@ app.get('/api/albums/stats', async (c) => {
                 let albumSize = 0;
 
                 try {
-                    const { objects: albumObjects } = await listAllObjects(prefix);
+                    const {objects: albumObjects} = await listAllObjects(prefix);
                     albumPhotos = albumObjects.length;
-                    albumSize = albumObjects.reduce((sum, obj) => sum + obj.size, 0);
+                    albumSize = albumObjects.reduce((sum, obj) => sum + (obj.size || 0), 0);
                 } catch (error) {
                     console.warn(`❌ Erreur listing album ${albumFolderName}:`, error);
                 }
 
                 return {
-                    id: String(album.id),
+                    id: String(album.id || ''),
                     name: albumName,
                     photoCount: albumPhotos,
                     sizeFormatted: formatBytes(albumSize),
-                    createdAt: album.created_at
+                    createdAt: album.created_at || new Date().toISOString()
                 };
             })
         );
@@ -217,177 +560,297 @@ app.get('/api/albums/stats', async (c) => {
     }
 });
 
-app.post('/api/create-payment-intent', async (c) => {
-    console.log('🔔 Début création Payment Intent');
-
+app.post('/api/create-customer', async (c) => {
     try {
-        const { amount, currency = 'eur', metadata = {} } = await c.req.json() as {
-            amount: number;
-            currency?: string;
+        const {email, name, phone, metadata} = await c.req.json() as {
+            email: string;
+            name: string;
+            phone?: string;
             metadata?: Record<string, any>;
         };
 
-        console.log('💰 Données reçues:', {
-            amount,
-            currency,
-            metadata,
-            hasStripeKey: !!c.env.STRIPE_SECRET_KEY
-        });
-
-        // ✅ Validation robuste du montant
-        if (typeof amount !== 'number' || amount < 1) {
-            console.error('❌ Montant invalide:', amount);
+        // Validation des données requises
+        if (!email || !name) {
             return c.json({
-                error: "Montant invalide",
-                details: `Le montant doit être un nombre supérieur à 0. Reçu: ${amount}`
+                success: false,
+                error: "Email et nom sont requis"
             }, 400);
         }
 
-        // ✅ Vérification de la clé Stripe
-        if (!c.env.STRIPE_SECRET_KEY) {
-            console.error('❌ STRIPE_SECRET_KEY manquante dans les variables d\'environnement');
-            return c.json({
-                error: 'Configuration Stripe manquante',
-                details: 'La clé secrète Stripe n\'est pas configurée',
-            }, 500);
-        }
+        console.log('👤 Création client Stripe pour:', email);
 
-        // Vérification du format de la clé Stripe
-        if (!c.env.STRIPE_SECRET_KEY.startsWith('sk_')) {
-            console.error('❌ Format de clé Stripe invalide');
-            return c.json({
-                error: 'Clé Stripe invalide',
-                details: 'La clé Stripe ne commence pas par sk_'
-            }, 500);
-        }
-
-        console.log('🔑 Clé Stripe validée, longueur:', c.env.STRIPE_SECRET_KEY.length);
-
-        const stripeAmount = Math.round(amount * 100);
-        console.log('💶 Montant converti en cents:', stripeAmount);
-
-        // ✅ PRÉPARATION DES PARAMÈTRES STRIPE AVEC MÉTADONNÉES
         const stripeParams = new URLSearchParams({
-            amount: stripeAmount.toString(),
-            currency,
-            'automatic_payment_methods[enabled]': 'true',
+            email: email.trim(),
+            name: name.trim(),
+            ...(phone && {phone: phone.trim()}),
         });
 
-        // Ajout dynamique des métadonnées
+        // Ajouter les métadonnées une par une
         if (metadata && typeof metadata === 'object') {
             for (const [key, value] of Object.entries(metadata)) {
                 if (value !== undefined && value !== null) {
                     const stringValue = String(value).substring(0, 500);
                     stripeParams.append(`metadata[${key}]`, stringValue);
-                    console.log(`📝 Métadonnée ajoutée: ${key} = ${stringValue.substring(0, 50)}...`);
                 }
             }
         }
 
-        console.log('📤 Envoi requête à Stripe avec métadonnées complètes...');
+        console.log('📤 Envoi requête à Stripe pour créer le client...');
 
-        // ✅ Requête Stripe avec timeout
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        const response = await fetch('https://api.stripe.com/v1/customers', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${c.env.STRIPE_SECRET_KEY}`,
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: stripeParams,
+        });
 
-        try {
-            const stripeResponse = await fetch('https://api.stripe.com/v1/payment_intents', {
+        const data = await response.json() as StripeCustomerResponse;
+
+        console.log('📡 Réponse Stripe création client:', {
+            status: response.status,
+            hasId: !!data.id,
+            error: data.error
+        });
+
+        if (!response.ok) {
+            console.error('❌ Erreur Stripe création client:', data.error);
+            const errorMessage = data.error?.message || 'Erreur lors de la création du client Stripe';
+            return c.json({
+                success: false,
+                error: errorMessage,
+                stripeError: data.error
+            }, 400);
+        }
+
+        if (!data.id) {
+            console.error('❌ ID client manquant dans la réponse Stripe');
+            return c.json({
+                success: false,
+                error: 'ID client manquant dans la réponse Stripe'
+            }, 500);
+        }
+
+        console.log('✅ Client Stripe créé avec succès:', data.id);
+        return c.json({
+            success: true,
+            id: data.id
+        });
+
+    } catch (error) {
+        console.error('❌ Erreur inattendue création client:', error);
+        return c.json({
+            success: false,
+            error: "Erreur interne lors de la création du client",
+            details: getErrorMessage(error)
+        }, 500);
+    }
+});
+
+app.post('/api/create-payment-intent', async (c) => {
+    console.log('🔔 Début création Payment Intent');
+
+    try {
+        const {amount, priceId, paymentType, serviceName, type} = await c.req.json() as CreatePaymentIntentRequest;
+
+        console.log('💰 Données reçues:', {
+            amount,
+            priceId,
+            paymentType,
+            serviceName,
+            type
+        });
+
+        // Validation
+        if (!c.env.STRIPE_SECRET_KEY) {
+            return c.json({
+                error: "STRIPE_SECRET_KEY manquante",
+                details: "Configuration Stripe manquante"
+            }, 500);
+        }
+
+        if (!amount || amount <= 0) {
+            return c.json({
+                error: "Montant invalide",
+                details: "Le montant doit être supérieur à 0"
+            }, 400);
+        }
+
+        const stripeAmount = Math.round(amount * 100);
+        console.log('🎯 Création Payment Intent avec montant:', stripeAmount);
+
+        // SI on a un priceId valide, utiliser le catalogue Stripe
+        if (priceId && priceId.startsWith('price_')) {
+            console.log('🎯 Utilisation du catalogue Stripe avec priceId:', priceId);
+
+            const stripeParams = new URLSearchParams({
+                amount: stripeAmount.toString(),
+                currency: 'eur',
+                'automatic_payment_methods[enabled]': 'true',
+            });
+
+            // Ajouter le price comme metadata pour référence
+            stripeParams.append('metadata[price_id]', priceId);
+            stripeParams.append('metadata[service_name]', serviceName);
+            stripeParams.append('metadata[payment_type]', paymentType);
+            stripeParams.append('metadata[product_type]', type);
+
+            const response = await fetch('https://api.stripe.com/v1/payment_intents', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${c.env.STRIPE_SECRET_KEY}`,
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },
                 body: stripeParams,
-                signal: controller.signal
             });
 
-            clearTimeout(timeoutId);
+            if (response.ok) {
+                const data = await response.json() as StripePaymentIntentResponse;
 
-            const data = await stripeResponse.json() as {
-                id?: string;
-                client_secret?: string;
-                status?: string;
-                error?: {
-                    message?: string;
-                    type?: string;
-                    code?: string;
-                };
-            };
-
-            console.log('📡 Réponse Stripe:', {
-                status: stripeResponse.status,
-                ok: stripeResponse.ok,
-                hasClientSecret: !!data.client_secret,
-                clientSecretLength: data.client_secret?.length,
-                error: data.error,
-                paymentIntentId: data.id
-            });
-
-            if (!stripeResponse.ok) {
-                console.error('❌ Erreur Stripe API:', data);
-
-                let errorMessage = "Erreur de paiement";
-                if (data.error?.code === 'authentication_failed') {
-                    errorMessage = "Clé API Stripe invalide";
-                } else if (data.error?.code === 'invalid_request_error') {
-                    errorMessage = "Requête Stripe invalide";
-                } else if (data.error?.message) {
-                    errorMessage = data.error.message;
+                if (data.client_secret) {
+                    console.log('✅ Payment Intent créé avec catalogue Stripe');
+                    const successResponse: CreatePaymentIntentSuccessResponse = {
+                        clientSecret: data.client_secret,
+                        paymentIntentId: data.id,
+                        status: data.status,
+                        usedCatalog: true
+                    };
+                    return c.json(successResponse);
                 }
-
-                return c.json({
-                    error: "Erreur Stripe",
-                    details: errorMessage,
-                    code: data.error?.code,
-                    type: data.error?.type
-                }, 500);
             }
 
-            if (!data.client_secret) {
-                console.error('❌ Client secret manquant dans la réponse Stripe');
-                return c.json({
-                    error: "Client secret manquant",
-                    details: "Stripe n'a pas retourné de client_secret",
-                    stripeResponse: data
-                }, 500);
-            }
-
-            if (!data.client_secret.includes('_secret_')) {
-                console.error('❌ Format client_secret invalide reçu de Stripe');
-                return c.json({
-                    error: "Format de client secret invalide",
-                    details: "Le client_secret ne correspond pas au format attendu par Stripe Elements",
-                    clientSecretReceived: data.client_secret
-                }, 500);
-            }
-
-            console.log('✅ Payment Intent créé avec succès:', {
-                id: data.id,
-                clientSecretPreview: `${data.client_secret.substring(0, 25)}...`,
-                status: data.status
-            });
-
-            return c.json({
-                clientSecret: data.client_secret,
-                paymentIntentId: data.id,
-                status: data.status,
-            });
-
-        } catch (fetchError) {
-            clearTimeout(timeoutId);
-            if (fetchError instanceof Error && fetchError.name === 'AbortError') {
-                throw new Error('Timeout de la requête Stripe (10s)');
-            }
-            throw fetchError;
+            // Si on arrive ici, il y a eu une erreur avec le catalogue
+            console.warn('⚠️ Erreur avec catalogue, fallback vers méthode standard');
         }
 
+        // MÉTHODE STANDARD (fallback)
+        console.log('🔄 Utilisation méthode standard (sans catalogue)');
+
+        const stripeParams = new URLSearchParams({
+            amount: stripeAmount.toString(),
+            currency: 'eur',
+            'automatic_payment_methods[enabled]': 'true',
+        });
+
+        // Ajouter les métadonnées
+        stripeParams.append('metadata[service_name]', serviceName);
+        stripeParams.append('metadata[payment_type]', paymentType);
+        stripeParams.append('metadata[product_type]', type);
+        if (priceId) {
+            stripeParams.append('metadata[original_price_id]', priceId);
+        }
+
+        const response = await fetch('https://api.stripe.com/v1/payment_intents', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${c.env.STRIPE_SECRET_KEY}`,
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: stripeParams,
+        });
+
+        if (!response.ok) {
+            const errorData = await handleStripeError(response);
+            return c.json({
+                error: "Erreur création paiement",
+                details: errorData.error
+            }, 400);
+        }
+
+        const data = await response.json() as StripePaymentIntentResponse;
+
+        if (!data.client_secret) {
+            return c.json({
+                error: "Client secret manquant dans la réponse Stripe"
+            }, 500);
+        }
+
+        console.log('✅ Payment Intent créé (méthode standard)');
+        const successResponse: CreatePaymentIntentSuccessResponse = {
+            clientSecret: data.client_secret,
+            paymentIntentId: data.id,
+            status: data.status,
+            usedCatalog: false
+        };
+        return c.json(successResponse);
+
     } catch (error) {
-        console.error('❌ Erreur inattendue:', error);
+        console.error('❌ Erreur création Payment Intent:', error);
+        const errorResponse: CreatePaymentIntentErrorResponse = {
+            error: "Erreur lors de la création du paiement",
+            details: getErrorMessage(error)
+        };
+        return c.json(errorResponse, 500);
+    }
+});
+
+app.get('/api/stripe-products', async (c) => {
+    try {
+        const response = await fetch('https://api.stripe.com/v1/products?active=true&limit=100', {
+            headers: {
+                'Authorization': `Bearer ${c.env.STRIPE_SECRET_KEY}`,
+            },
+        });
+
+        if (!response.ok) {
+            const errorData = await handleStripeError(response);
+            return c.json({
+                success: false,
+                error: errorData.error
+            }, 400);
+        }
+
+        const products = await response.json() as StripeProductsResponse;
+
+        // Récupérer les prix pour chaque produit
+        const productsWithPrices = await Promise.all(
+            (products.data || []).map(async (product) => {
+                const pricesResponse = await fetch(`https://api.stripe.com/v1/prices?product=${product.id}&active=true`, {
+                    headers: {
+                        'Authorization': `Bearer ${c.env.STRIPE_SECRET_KEY}`,
+                    },
+                });
+
+                if (!pricesResponse.ok) {
+                    return {
+                        id: product.id,
+                        name: product.name,
+                        description: product.description,
+                        metadata: product.metadata,
+                        prices: []
+                    };
+                }
+
+                const prices = await pricesResponse.json() as StripePricesResponse;
+
+                return {
+                    id: product.id,
+                    name: product.name,
+                    description: product.description,
+                    metadata: product.metadata,
+                    prices: (prices.data || []).map((price) => ({
+                        id: price.id,
+                        unit_amount: (price.unit_amount || 0) / 100,
+                        currency: price.currency,
+                        type: price.type,
+                        recurring: price.recurring,
+                        metadata: price.metadata
+                    }))
+                };
+            })
+        );
 
         return c.json({
-            error: "Erreur lors de la création du paiement",
-            details: getErrorMessage(error),
-            timestamp: new Date().toISOString()
+            success: true,
+            data: productsWithPrices
+        });
+
+    } catch (error) {
+        console.error('❌ Erreur récupération produits Stripe:', error);
+        return c.json({
+            success: false,
+            error: getErrorMessage(error)
         }, 500);
     }
 });
@@ -409,7 +872,6 @@ app.post('/api/multipart/init/:albumName/:filename', async (c) => {
         // Utiliser directement le nom d'album comme dossier
         const key = `albums/${albumName}/${filename}`;
 
-        // Détection du type MIME
         const fileExtension = filename.toLowerCase().split('.').pop();
         const mimeTypes: { [key: string]: string } = {
             'jpg': 'image/jpeg',
@@ -424,7 +886,7 @@ app.post('/api/multipart/init/:albumName/:filename', async (c) => {
 
         const contentType = mimeTypes[fileExtension || ''] || 'application/octet-stream';
 
-        console.log('📁 Création multipart upload:', { key, contentType });
+        console.log('📁 Création multipart upload:', {key, contentType});
 
         const multipartUpload = await c.env.PHOTO_ALBUMS.createMultipartUpload(key, {
             httpMetadata: {
@@ -444,7 +906,7 @@ app.post('/api/multipart/init/:albumName/:filename', async (c) => {
     } catch (error) {
         console.error('❌ Erreur initiation multipart:', error);
         return c.json({
-            error: "Erreur lors de l'initialisation de l'upload multipart",
+            error: "Erreur lors de l'initialisation de upload multipart",
             details: getErrorMessage(error)
         }, 500);
     }
@@ -477,7 +939,7 @@ app.put('/api/multipart/upload/:albumName/:filename', async (c) => {
         const key = `albums/${albumName}/${filename}`;
         const body = await c.req.arrayBuffer();
 
-        console.log('📦 Upload partie:', { partNumber: partNumberInt, size: body.byteLength });
+        console.log('📦 Upload partie:', {partNumber: partNumberInt, size: body.byteLength});
 
         // Vérification de la taille de la partie
         if (body.byteLength < 5 * 1024 * 1024 && body.byteLength > 0) {
@@ -487,7 +949,7 @@ app.put('/api/multipart/upload/:albumName/:filename', async (c) => {
         const multipartUpload = c.env.PHOTO_ALBUMS.resumeMultipartUpload(key, uploadId);
         const uploadedPart = await multipartUpload.uploadPart(partNumberInt, body);
 
-        console.log('✅ Partie uploadée:', { partNumber: partNumberInt, etag: uploadedPart.etag });
+        console.log('✅ Partie upload:', {partNumber: partNumberInt, etag: uploadedPart.etag});
 
         return c.json({
             partNumber: partNumberInt,
@@ -498,7 +960,7 @@ app.put('/api/multipart/upload/:albumName/:filename', async (c) => {
     } catch (error) {
         console.error('❌ Erreur upload partie:', error);
         return c.json({
-            error: "Erreur lors de l'upload de la partie",
+            error: "Erreur lors de upload de la partie",
             details: getErrorMessage(error)
         }, 500);
     }
@@ -519,7 +981,7 @@ app.post('/api/multipart/complete/:albumName/:filename', async (c) => {
             }, 400);
         }
 
-        const { parts }: MultipartCompleteRequest = await c.req.json();
+        const {parts}: MultipartCompleteRequest = await c.req.json();
 
         if (!parts || !Array.isArray(parts) || parts.length === 0) {
             return c.json({
@@ -544,7 +1006,7 @@ app.post('/api/multipart/complete/:albumName/:filename', async (c) => {
         // Génération de l'URL publique
         const publicUrl = `${c.env.R2_PUBLIC_DOMAIN}/${key}`;
 
-        console.log('✅ Multipart complet réussi:', { key, size: object.size });
+        console.log('✅ Multipart complet réussi:', {key, size: object.size});
 
         return c.json({
             success: true,
@@ -558,13 +1020,13 @@ app.post('/api/multipart/complete/:albumName/:filename', async (c) => {
     } catch (error) {
         console.error('❌ Erreur finalisation multipart:', error);
         return c.json({
-            error: "Erreur lors de la finalisation de l'upload multipart",
+            error: "Erreur lors de la finalisation de upload multipart",
             details: getErrorMessage(error)
         }, 500);
     }
 });
 
-// Annuler un upload multipart - MODIFIÉ pour utiliser le nom d'album
+// Annuler un upload multipart
 app.delete('/api/multipart/abort/:albumName/:filename', async (c) => {
     try {
         const albumName = c.req.param('albumName');
@@ -595,7 +1057,7 @@ app.delete('/api/multipart/abort/:albumName/:filename', async (c) => {
     } catch (error) {
         console.error('❌ Erreur annulation multipart:', error);
         return c.json({
-            error: "Erreur lors de l'annulation de l'upload multipart",
+            error: "Erreur lors de l'annulation de upload multipart",
             details: getErrorMessage(error)
         }, 500);
     }
@@ -611,9 +1073,9 @@ app.post('/api/debug-upload', async (c) => {
             success: true,
             debug: {
                 headers: {
-                    'content-type': headers['content-type'],
-                    'content-length': headers['content-length'],
-                    'user-agent': headers['user-agent']
+                    'content-type': headers['content-type'] || '',
+                    'content-length': headers['content-length'] || '',
+                    'user-agent': headers['user-agent'] || ''
                 },
                 bodyLength: body.length,
                 bodyPreview: body.substring(0, 200) + '...',
@@ -662,15 +1124,15 @@ app.put('/api/upload/:albumId/*', async (c) => {
         // Types autorisés élargis
         const allowedTypes = [
             'image/jpeg',
-            'image/jpg', // Ajouté
+            'image/jpg',
             'image/png',
             'image/webp',
             'image/heic',
             'image/heif',
             'image/tiff',
             'image/bmp',
-            'application/octet-stream', // Type générique
-            'binary/octet-stream' // Type alternatif
+            'application/octet-stream',
+            'binary/octet-stream'
         ];
 
         // Vérification par extension de fichier comme fallback
@@ -766,7 +1228,7 @@ app.put('/api/upload/:albumId/*', async (c) => {
         console.error('❌ Erreur upload R2:', error);
 
         return c.json({
-            error: "Erreur lors de l'upload",
+            error: "Erreur lors de upload",
             details: getErrorMessage(error),
             timestamp: new Date().toISOString()
         }, 500);
@@ -838,7 +1300,7 @@ app.get('/api/albums/:albumId/photos', async (c) => {
         }
 
         // Utiliser le nom de l'album pour le dossier R2
-        const albumName = album.customer_name;
+        const albumName = album.customer_name || '';
         const albumFolderName = normalizeFolderName(albumName);
         const prefix = `albums/${albumFolderName}/`;
 
@@ -863,7 +1325,7 @@ app.get('/api/albums/:albumId/photos', async (c) => {
             }
         }));
 
-        // CORRECTION : Extraire les infos client
+        // Extraire les infos client
         const customerName = album.customer_name || '';
         const nameParts = customerName.split(' ');
         const firstName = nameParts[0] || '';
@@ -876,15 +1338,15 @@ app.get('/api/albums/:albumId/photos', async (c) => {
             phone: album.customer_phone || ''
         };
 
-        // CORRECTION : Retourner avec la structure ApiSuccessResponse
+        // Retourner avec la structure ApiSuccessResponse
         const response: ApiResponse = {
             success: true,
             message: "Album récupéré avec succès",
             data: {
                 albumId: albumId,
                 albumName: albumName,
-                totalAmount: album.total_amount,
-                amountPaid: album.amount_paid,
+                totalAmount: album.total_amount || 0,
+                amountPaid: album.amount_paid || 0,
                 customerInfo: customerInfo,
                 photos: photos,
                 total: photos.length
@@ -927,12 +1389,12 @@ app.delete('/api/albums/:albumId', async (c) => {
         }
 
         // Supprimer toutes les photos de l'album dans R2 (en utilisant le nom de l'album)
-        const albumName = album.customer_name;
+        const albumName = album.customer_name || '';
         const albumFolderName = normalizeFolderName(albumName);
         const prefix = `albums/${albumFolderName}/`;
 
         console.log(`🗑️ Recherche photos à supprimer avec prefix: ${prefix}`);
-        const listed = await c.env.PHOTO_ALBUMS.list({ prefix });
+        const listed = await c.env.PHOTO_ALBUMS.list({prefix});
 
         let deletedPhotosCount = 0;
         if (listed.objects.length > 0) {
@@ -944,18 +1406,15 @@ app.delete('/api/albums/:albumId', async (c) => {
             );
             console.log(`🗑️ Supprimé ${deletedPhotosCount} photos de l'album ${albumId}`);
         }
-
-        // NE PAS supprimer la réservation de la base de données - juste la marquer comme non-album
-        // On remet le service_type à sa valeur d'origine ou on le laisse vide
         await db.prepare(
-            `UPDATE reservations 
-             SET service_type = 'completed_album',
+            `UPDATE reservations
+             SET service_type  = 'completed_album',
                  order_details = JSON_SET(
-                     COALESCE(order_details, '{}'),
-                     '$.album_completed_at', ?,
-                     '$.photos_deleted', ?,
-                     '$.album_original_data', JSON_EXTRACT(COALESCE(order_details, '{}'), '$')
-                 )
+                         COALESCE(order_details, '{}'),
+                         '$.album_completed_at', ?,
+                         '$.photos_deleted', ?,
+                         '$.album_original_data', JSON_EXTRACT(COALESCE(order_details, '{}'), '$')
+                                 )
              WHERE id = ?`
         ).bind(
             new Date().toISOString(),
@@ -985,13 +1444,13 @@ app.post('/api/albums', async (c) => {
     const db = c.env.DB;
 
     try {
-        const { reservationId } = await c.req.json() as { reservationId: string };
+        const {reservationId} = await c.req.json() as { reservationId: string };
 
         console.log('📝 Création album à partir de réservation:', reservationId);
 
         // Validation
         if (!reservationId) {
-            return c.json({ error: "L'ID de réservation est requis" }, 400);
+            return c.json({error: "L'ID de réservation est requis"}, 400);
         }
 
         // Récupérer la réservation existante
@@ -1000,7 +1459,7 @@ app.post('/api/albums', async (c) => {
         ).bind(reservationId).first() as Record<string, any> | null;
 
         if (!reservation) {
-            return c.json({ error: "Réservation non trouvée" }, 404);
+            return c.json({error: "Réservation non trouvée"}, 404);
         }
 
         console.log('📊 Réservation trouvée:', reservation);
@@ -1022,7 +1481,7 @@ app.post('/api/albums', async (c) => {
         // Mettre à jour la réservation pour la marquer comme album photo
         const update = await db.prepare(
             `UPDATE reservations
-             SET service_type = 'photo_album',
+             SET service_type  = 'photo_album',
                  order_details = ?
              WHERE id = ?`
         ).bind(
@@ -1049,7 +1508,7 @@ app.post('/api/albums', async (c) => {
 
         const response: ApiResponse<{ album: AlbumResponse }> = {
             success: true,
-            data: { album: albumResponse },
+            data: {album: albumResponse},
             message: "Album créé avec succès à partir de la réservation"
         };
 
@@ -1077,20 +1536,19 @@ app.get('/api/reservations/for-albums', async (c) => {
     const db = c.env.DB;
 
     try {
-        // Récupérer les réservations qui ne sont pas des albums actifs
-        // mais INCLURE les réservations completed_album pour permettre la recréation
         const result = await db.prepare(
-            `SELECT * FROM reservations
+            `SELECT *
+             FROM reservations
              WHERE (service_type != 'photo_album' OR service_type IS NULL)
                AND customer_name IS NOT NULL
                AND customer_name != ''
              ORDER BY created_at DESC`
         ).all();
 
-        console.log('📊 Réservations disponibles pour albums:', result.results.length);
+        console.log('📊 Réservations disponibles pour albums:', result.results?.length || 0);
 
         // Formater les réservations
-        const reservations = result.results.map((reservation: any) => {
+        const reservations = (result.results || []).map((reservation: any) => {
             let orderDetails = {};
             try {
                 orderDetails = reservation.order_details ? JSON.parse(reservation.order_details) : {};
@@ -1099,7 +1557,7 @@ app.get('/api/reservations/for-albums', async (c) => {
             }
 
             return {
-                id: String(reservation.id),
+                id: String(reservation.id || ''),
                 customerName: String(reservation.customer_name || ''),
                 customerEmail: reservation.customer_email || undefined,
                 serviceType: reservation.service_type || undefined,
@@ -1115,7 +1573,7 @@ app.get('/api/reservations/for-albums', async (c) => {
 
         const response: ApiResponse<{ reservations: any[] }> = {
             success: true,
-            data: { reservations }
+            data: {reservations}
         };
 
         return c.json(response);
@@ -1126,7 +1584,7 @@ app.get('/api/reservations/for-albums', async (c) => {
         if (getErrorMessage(error).includes('no such table')) {
             return c.json({
                 success: true,
-                data: { reservations: [] },
+                data: {reservations: []},
                 message: "Table reservations non trouvée"
             });
         }
@@ -1147,10 +1605,10 @@ app.get('/api/albums', async (c) => {
             "SELECT * FROM reservations WHERE service_type = 'photo_album' ORDER BY created_at DESC"
         ).all();
 
-        console.log('📊 Albums actifs from reservations:', result.results.length);
+        console.log('📊 Albums actifs from reservations:', result.results?.length || 0);
 
         // Transformation des données
-        const albums = result.results.map((reservation: any) => {
+        const albums = (result.results || []).map((reservation: any) => {
             let orderDetails = {};
             try {
                 orderDetails = reservation.order_details ? JSON.parse(reservation.order_details) : {};
@@ -1159,7 +1617,7 @@ app.get('/api/albums', async (c) => {
             }
 
             return {
-                id: String(reservation.id),
+                id: String(reservation.id || ''),
                 name: String(reservation.customer_name || ''),
                 description: (orderDetails as any).description || undefined,
                 clientEmail: reservation.customer_email || undefined,
@@ -1170,7 +1628,7 @@ app.get('/api/albums', async (c) => {
 
         const response: ApiResponse<{ albums: any[] }> = {
             success: true,
-            data: { albums }
+            data: {albums}
         };
 
         return c.json(response);
@@ -1182,7 +1640,7 @@ app.get('/api/albums', async (c) => {
         if (getErrorMessage(error).includes('no such table')) {
             return c.json({
                 success: true,
-                data: { albums: [] },
+                data: {albums: []},
                 message: "Table reservations non trouvée"
             });
         }
@@ -1214,7 +1672,7 @@ app.delete('/api/albums/:albumId', async (c) => {
 
         // Supprimer toutes les photos de l'album dans R2
         const prefix = `albums/${albumId}/`;
-        const listed = await c.env.PHOTO_ALBUMS.list({ prefix });
+        const listed = await c.env.PHOTO_ALBUMS.list({prefix});
 
         if (listed.objects.length > 0) {
             await Promise.all(
@@ -1244,7 +1702,6 @@ app.delete('/api/albums/:albumId', async (c) => {
     }
 });
 
-// ✅ ROUTE: Vérifier la base de données
 app.get('/api/check-db', async (c) => {
     const db = c.env.DB;
 
@@ -1290,7 +1747,7 @@ app.get('/api/check-db', async (c) => {
 app.get('/api/test-stripe', async (c) => {
     try {
         if (!c.env.STRIPE_SECRET_KEY) {
-            return c.json({ error: 'STRIPE_SECRET_KEY non définie' }, 500);
+            return c.json({error: 'STRIPE_SECRET_KEY non définie'}, 500);
         }
 
         // Test simple de connexion à Stripe
@@ -1304,13 +1761,13 @@ app.get('/api/test-stripe', async (c) => {
             return c.json({
                 status: 'Stripe connecté avec succès',
                 hasKey: true,
-                keyPrefix: c.env.STRIPE_SECRET_KEY.substring(0, 7) + '...'
+                keyPrefix: c.env.STRIPE_SECRET_KEY?.substring(0, 7) + '...'
             });
         } else {
-            const error = await response.json();
+            const errorData = await handleStripeError(response);
             return c.json({
                 error: 'Erreur Stripe',
-                details: error,
+                details: errorData.error,
                 status: response.status
             }, 500);
         }
@@ -1323,7 +1780,7 @@ app.get('/api/test-stripe', async (c) => {
 });
 
 // ✅ ROUTE OPTIONS POUR CORS PREFLIGHT
-app.options('/api/create-payment-intent', (c) => {
+app.options('/api/create-payment-intent', () => {
     return new Response(null, {
         status: 200,
         headers: {
@@ -1399,8 +1856,8 @@ app.put('/api/reservations/:id', async (c) => {
         values.push(reservationId);
 
         const updateQuery = `
-            UPDATE reservations 
-            SET ${updates.join(', ')} 
+            UPDATE reservations
+            SET ${updates.join(', ')}
             WHERE id = ?
         `;
 
@@ -1413,7 +1870,7 @@ app.put('/api/reservations/:id', async (c) => {
             message: "Réservation mise à jour avec succès",
             data: {
                 id: reservationId,
-                updated: result.meta.changes > 0
+                updated: result.meta?.changes ? result.meta.changes > 0 : false
             }
         };
 
@@ -1443,7 +1900,7 @@ app.post('/api/reservations', async (c) => {
                 payload = JSON.parse(raw);
             } catch (parseErr: unknown) {
                 const parseMsg = getErrorMessage(parseErr);
-                return c.json({ error: 'Payload JSON invalide', details: parseMsg }, 400);
+                return c.json({error: 'Payload JSON invalide', details: parseMsg}, 400);
             }
         }
 
@@ -1489,17 +1946,17 @@ app.post('/api/reservations', async (c) => {
 
         // Validations de base
         if (!firstName || !lastName || !email) {
-            return c.json({ error: 'All required fields must be filled' }, 400);
+            return c.json({error: 'All required fields must be filled'}, 400);
         }
 
         if (!Array.isArray(cart) || cart.length === 0) {
-            return c.json({ error: 'Le panier est invalide ou vide (cart attendu)' }, 400);
+            return c.json({error: 'Le panier est invalide ou vide (cart attendu)'}, 400);
         }
 
         // Email format
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(String(email).trim())) {
-            return c.json({ error: 'Invalid email format' }, 400);
+            return c.json({error: 'Invalid email format'}, 400);
         }
 
         // Has session/product
@@ -1507,7 +1964,7 @@ app.post('/api/reservations', async (c) => {
         const hasProducts = cart.some((it: any) => it?.productType === 'product');
 
         // serviceType / orderType
-        let serviceType = 'produits';
+        let serviceType;
         let orderType = type || 'product';
 
         if (hasSessions && hasProducts) {
@@ -1525,9 +1982,9 @@ app.post('/api/reservations', async (c) => {
 
         // Si séance, date/time obligatoires
         if (hasSessions) {
-            if (!date || !time) return c.json({ error: 'Date et heure sont requises pour les séances photo' }, 400);
+            if (!date || !time) return c.json({error: 'Date et heure sont requises pour les séances photo'}, 400);
             if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^\d{2}:\d{2}$/.test(time)) {
-                return c.json({ error: 'Invalid date or time format' }, 400);
+                return c.json({error: 'Invalid date or time format'}, 400);
             }
         }
 
@@ -1544,7 +2001,7 @@ app.post('/api/reservations', async (c) => {
         calculatedTotal = Math.max(0, calculatedTotal);
 
         // order_details
-        let orderDetails = '[]';
+        let orderDetails ;
         try {
             orderDetails = JSON.stringify(cart || []);
         } catch {
@@ -1563,7 +2020,7 @@ app.post('/api/reservations', async (c) => {
             const existing = await db.prepare(
                 'SELECT id FROM reservations WHERE reservation_date = ? AND reservation_time = ?'
             ).bind(reservationDate, reservationTime).first();
-            if (existing) return c.json({ error: 'This time slot is already booked' }, 409);
+            if (existing) return c.json({error: 'This time slot is already booked'}, 409);
         }
 
         // Déterminer le statut de paiement final
@@ -1580,12 +2037,11 @@ app.post('/api/reservations', async (c) => {
 
         // INSERT avec amount_paid et payment_type
         const insert = await db.prepare(
-            `INSERT INTO reservations (
-                customer_name, customer_email, customer_phone,
-                reservation_date, reservation_time, service_type,
-                order_type, total_amount, amount_paid, payment_type,
-                order_details, payment_intent_id, payment_status
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+            `INSERT INTO reservations (customer_name, customer_email, customer_phone,
+                                       reservation_date, reservation_time, service_type,
+                                       order_type, total_amount, amount_paid, payment_type,
+                                       order_details, payment_intent_id, payment_status)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
         ).bind(
             customerName,
             customerEmail,
@@ -1614,7 +2070,7 @@ app.post('/api/reservations', async (c) => {
             success: true,
             message: confirmationMessage,
             data: {
-                id: insert.meta.last_row_id,
+                id: insert.meta?.last_row_id || 0,
                 paymentStatus: finalPaymentStatus,
                 paymentIntentId: paymentIntentId || null
             }
@@ -1625,7 +2081,7 @@ app.post('/api/reservations', async (c) => {
     } catch (err: unknown) {
         const errMsg = getErrorMessage(err);
         console.error('API Error:', errMsg);
-        return c.json({ error: 'Server error', details: errMsg }, 500);
+        return c.json({error: 'Server error', details: errMsg}, 500);
     }
 });
 
@@ -1634,7 +2090,7 @@ app.get('/api/reservations', async (c) => {
     const db = c.env.DB;
 
     try {
-        const { searchParams } = new URL(c.req.url);
+        const {searchParams} = new URL(c.req.url);
         const date = searchParams.get('date');
 
         let result;
@@ -1648,7 +2104,7 @@ app.get('/api/reservations', async (c) => {
             ).all();
         }
 
-        return c.json(result.results);
+        return c.json(result.results || []);
 
     } catch (error) {
         console.error('API Error:', error);
@@ -1658,7 +2114,6 @@ app.get('/api/reservations', async (c) => {
     }
 });
 
-// ✅ ROUTE: Servir les images depuis R2 (proxy)
 app.get('/api/images/*', async (c) => {
     try {
         const path = c.req.path.replace('/api/images/', '');
@@ -1670,13 +2125,13 @@ app.get('/api/images/*', async (c) => {
 
         if (!object) {
             console.error('❌ Image non trouvée dans R2:', path);
-            return c.json({ error: 'Image non trouvée' }, 404);
+            return c.json({error: 'Image non trouvée'}, 404);
         }
 
         // Déterminer le content-type
         const contentType = object.httpMetadata?.contentType || 'image/jpeg';
 
-        console.log('✅ Image trouvée:', { path, contentType, size: object.size });
+        console.log('✅ Image trouvée:', {path, contentType, size: object.size});
 
         // Retourner l'image avec les bons headers
         return new Response(object.body, {
@@ -1696,7 +2151,7 @@ app.get('/api/images/*', async (c) => {
 });
 
 // Route OPTIONS pour CORS preflight
-app.options('/api/reservations', (c) => {
+app.options('/api/reservations', () => {
     return new Response(null, {
         status: 200,
         headers: {
@@ -1715,7 +2170,7 @@ app.get("*", (c) => {
     );
 
     return requestHandler(c.req.raw, {
-        cloudflare: { env: c.env, ctx: c.executionCtx },
+        cloudflare: {env: c.env, ctx: c.executionCtx},
     });
 });
 

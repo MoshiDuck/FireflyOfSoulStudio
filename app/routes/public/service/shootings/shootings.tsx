@@ -69,7 +69,6 @@ export default function Shootings() {
     const [selectedService, setSelectedService] = useState<Service | null>(null);
     const [isCheckingOut, setIsCheckingOut] = useState(false);
 
-    // ✅ TOUTES les fonctions définies :
     const handleDirectBooking = (service: Service) => {
         setSelectedService(service);
         setIsCheckingOut(true);

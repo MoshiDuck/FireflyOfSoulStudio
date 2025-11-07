@@ -1,134 +1,73 @@
-// Info : app/config/api.ts
+// app/config/api.ts
 import type {Service} from "~/types/api";
-
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://fireflyofsoulstudio.uk';
+import {STRIPE_CATALOG} from "~/config/stripe-catalog";
 
 export const API_ENDPOINTS = {
-    RESERVATIONS: `${API_BASE_URL}/api/reservations`,
-    CONTACT: `${API_BASE_URL}/api/contact`,
-    GALLERY: `${API_BASE_URL}/api/gallery`,
-    CREATE_PAYMENT_INTENT: `${API_BASE_URL}/api/create-payment-intent`,
-};
+    CREATE_PAYMENT_INTENT: '/api/create-payment-intent',
+    RESERVATIONS: '/api/reservations',
+    CREATE_CUSTOMER: '/api/create-customer',
+    CREATE_INVOICE: '/api/create-invoice',
+    CREATE_INVOICE_PAYMENT: '/api/create-invoice-payment' // AJOUTÉ
+} as const;
 
 export const SHOOTING_SERVICES: Service[] = [
     {
         id: "portrait",
         name: "Séance Portrait",
-        price: 450,
-        description: "Individuel & Couples",
-        duration: "2 heures",
-        type: 'session' as const,
+        description: "Une séance photo mettant en valeur votre personnalité avec des portraits authentiques et naturels.",
+        price: 250,
+        duration: "1h30",
+        type: "session",
+        stripeProductId: STRIPE_CATALOG.sessions.portrait.productId,
+        stripePriceId: STRIPE_CATALOG.sessions.portrait.priceId,
+        stripeDepositPriceId: STRIPE_CATALOG.sessions.portrait.depositPriceId,
         features: [
-            "30 images professionnellement retouchées",
-            "Accès galerie en ligne",
-            "Téléchargement digital inclus",
-            "Droit d'impression",
-            "2 changements de tenue",
-            "Session de visionnage privée"
-        ],
+            "15 photos retouchées numériquement",
+            "Guide de pose inclus",
+            "2 tenues différentes",
+            "Accès à la galerie en ligne",
+            "Téléchargement haute résolution"
+        ]
     },
     {
         id: "artistic",
         name: "Séance Artistique",
-        price: 850,
-        description: "Conceptuel & Fine Art",
-        duration: "4 heures",
-        type: 'session' as const,
+        description: "Une expérience créative unique pour des images d'exception qui racontent votre histoire.",
+        price: 450,
+        duration: "3h",
+        type: "session",
+        stripeProductId: STRIPE_CATALOG.sessions.artistic.productId,
+        stripePriceId: STRIPE_CATALOG.sessions.artistic.priceId,
+        stripeDepositPriceId: STRIPE_CATALOG.sessions.artistic.depositPriceId,
         features: [
-            "50 images professionnellement retouchées",
-            "Développement du concept",
-            "Retouche premium",
-            "Galerie en ligne + stockage cloud",
-            "2 impressions fine art (16x24)",
-            "Direction artistique"
-        ],
-    },
-    {
-        id: "editorial",
-        name: "Projet Éditorial",
-        price: 1200,
-        description: "Commercial & Publication",
-        duration: "8 heures",
-        type: 'session' as const,
-        features: [
-            "80+ images professionnellement retouchées",
-            "Direction artistique",
-            "Retouche avancée",
-            "Droits d'usage commercial",
-            "Livraison prioritaire",
-            "Gestionnaire de projet dédié"
-        ],
-    },
-];
-
-export const STORE_PRODUCTS: Service[] = [
-    {
-        id: "raw-files",
-        name: "Collection Fichiers RAW",
-        price: 299,
-        description: "Set complet des fichiers bruts",
-        duration: "Livraison digitale",
-        type: 'product' as const,
-        features: [
-            "Tous les fichiers RAW originaux",
-            "Pleine résolution",
-            "Droits d'usage commercial",
-            "Accès archive à vie",
-            "Métadonnées techniques incluses"
-        ],
-    },
-    {
-        id: "fine-art-print",
-        name: "Impression Fine Art",
-        price: 150,
-        description: "Tirage qualité musée",
-        duration: "2-3 semaines",
-        type: 'product' as const,
-        features: [
-            "Papier archive premium",
-            "Édition numérotée",
-            "Certificat d'authenticité",
-            "Encadrement sur mesure disponible",
-            "Format: 16x24 pouces"
-        ],
-    },
-    {
-        id: "premium-album",
-        name: "Album Premium",
-        price: 350,
-        description: "Album relié cuir artisanat",
-        duration: "3-4 semaines",
-        type: 'product' as const,
-        features: [
-            "Couverture cuir italien",
-            "50 pages premium",
-            "Relure à plat",
-            "Gravure personnalisée",
-            "Boîtier de présentation"
-        ],
-    },
-    {
-        id: "premium-usb",
-        name: "Clé USB Édition Premium",
-        price: 199,
-        description: "Clé USB gravée avec votre collection",
-        duration: "1-2 semaines",
-        type: 'product' as const,
-        features: [
-            "Gravure personnalisée gratuite",
-            "Toutes vos photos en haute résolution",
-            "Formats JPEG + PNG inclus",
-            "Boîtier de présentation premium",
-            "Sauvegarde cloud incluse (1 an)"
-        ],
-        capacities: [
-            { size: "8Go", price: 99, description: "Parfait pour les séances courtes" },
-            { size: "16Go", price: 149, description: "Idéal pour les portraits" },
-            { size: "32Go", price: 199, description: "Recommandé - Convient à la plupart des séances" },
-            { size: "64Go", price: 299, description: "Parfait pour les séances longues" },
-            { size: "128Go", price: 449, description: "Ultime - Pour les projets complets" }
+            "30 photos retouchées artistiquement",
+            "Concept personnalisé",
+            "3 tenues différentes",
+            "Maquillage professionnel inclus",
+            "Retouches avancées",
+            "Galerie privée en ligne"
         ]
     },
+    {
+        id: "creative",
+        name: "Séance Créative",
+        description: "Exploration artistique poussée pour des images uniques et mémorables.",
+        price: 650,
+        duration: "4h",
+        type: "session",
+        stripeProductId: STRIPE_CATALOG.sessions.creative.productId,
+        stripePriceId: STRIPE_CATALOG.sessions.creative.priceId,
+        stripeDepositPriceId: STRIPE_CATALOG.sessions.creative.depositPriceId,
+        features: [
+            "50 photos retouchées premium",
+            "Direction artistique complète",
+            "4 tenues différentes",
+            "Équipe pro (maquillage, coiffure)",
+            "2 lieux de shooting",
+            "Retouches créatives avancées",
+            "Galerie VIP avec accès prioritaire"
+        ]
+    }
 ];
 
 export async function apiRequest<T>(

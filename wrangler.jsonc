@@ -26,11 +26,6 @@
 			"binding": "PHOTO_ALBUMS",
 			"bucket_name": "firefly-photo-albums",
 			"preview_bucket_name": "firefly-photo-albums-preview"
-		},
-		{
-			"bucket_name": "firefly-photo-albums",
-			"binding": "firefly_photo_albums",
-			"remote": true
 		}
 	],
 	"vars": {
